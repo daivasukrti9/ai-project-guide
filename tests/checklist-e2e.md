@@ -69,9 +69,10 @@ comparativo manual vs. herramienta y skills seleccionadas).
 - [x] La Matriz KPI & ROI muestra el hint de qué significa As-Is vs. To-Be.
 - [x] Agregar/quitar KPIs funciona.
 - [x] El ROI estimado se recalcula al cambiar horas/costo.
-- [x] El comparativo "manual vs. con la herramienta" lista las mismas tareas habituales de la Sección 1 (se actualiza si agregás/renombrás una); cada tarea mantiene su color, con la barra "con la herramienta" más oscura y saturada.
-- [x] Cargar horas "con la herramienta" calcula el ahorro por tarea y el resumen (h/día, h/mes, % reducción).
-- [x] El comparativo persiste en el `.json` exportado y, al recargarlo, conserva los valores por nombre de tarea (aunque se hayan cargado en otra sesión).
+- [x] El "Gantt comparativo As-Is vs. To-Be" lista las mismas tareas habituales de la Sección 1 (se actualiza si agregás/renombrás una); barra As-Is en rojo suave, barra To-Be en azul primario (ambos temas).
+- [x] Cargar horas "con IA (To-Be)" calcula la etiqueta "⚡ -X% de tiempo" por tarea (rojo si el resultado es peor que el manual) y el resumen.
+- [x] La tarjeta de impacto sobre el Gantt muestra carga previa (As-Is), nueva carga (To-Be) y capacidad liberada, en horas/mes.
+- [x] El comparativo persiste en el `.json` exportado y, al recargarlo, conserva los valores por nombre de tarea (aunque se hayan cargado en otra sesión) — incluido un expediente con solo los tiempos manuales (As-Is), cargado antes de tener los datos con IA.
 - [x] "Descargar resumen ejecutivo" genera un `.md` coherente con lo cargado.
 - [x] "Seguimiento: Plan base vs. Ejecución" muestra el mismo Gantt/Kanban de la Sección 1 (solo lectura), incluida la barra "Real" con el desvío en días.
 - [x] Editar una tarea en la Sección 1 (fecha, nombre, estado) actualiza el seguimiento de la Sección 3 sin recargar la página.

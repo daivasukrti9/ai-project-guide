@@ -595,26 +595,21 @@
     elKanban.innerHTML = kanbanMarkup(tasks);
   }
 
-  /* -------------------------------------------------- Comparativo: manual vs. con la herramienta */
-  const PALETA_TAREAS = [210, 160, 340, 30, 265, 50, 190, 320, 100, 5];
-  function huePorIndice(i) { return PALETA_TAREAS[i % PALETA_TAREAS.length]; }
-
+  /* -------------------------------------------------- Gantt comparativo: manual (As-Is) vs. con IA (To-Be) */
   function renderComparativoAutomatizacion() {
     const container = document.getElementById("comparativoRows");
     if (!container) return;
     const tareas = readTareasHabituales().filter(t => t.nombre);
     const previas = new Map((state.seccion_3_compresion_proyecto.comparativo_automatizacion || []).map(p => [p.nombre, p.horas_automatizado]));
     container.innerHTML = "";
-    tareas.forEach((t, i) => {
-      const hue = huePorIndice(i);
+    tareas.forEach(t => {
       const prev = previas.get(t.nombre);
       const row = document.createElement("div");
       row.className = "row-card row-card--comparativo";
-      row.style.setProperty("--tarea-hue", hue);
       row.dataset.nombre = t.nombre;
       row.dataset.horasManual = t.horas_dia;
       row.innerHTML = `
-        <span class="comparativo-nombre"><span class="comparativo-swatch"></span>${escHtml(t.nombre)}</span>
+        <span class="comparativo-nombre">${escHtml(t.nombre)}</span>
         <span class="row-result">${t.horas_dia.toFixed(1)} h/día</span>
         <input type="number" min="0" step="0.1" data-f="horas_automatizado" placeholder="—" value="${prev != null && prev !== "" ? escAttr(prev) : ""}" />
         <span class="row-result" data-f="ahorro">—</span>`;
@@ -650,43 +645,52 @@
 
   function renderComparativoVisual() {
     const el = document.getElementById("comparativoVisual");
-    const resumen = document.getElementById("comparativoResumen");
+    const impacto = document.getElementById("comparativoImpacto");
     if (!el) return;
     const filas = Array.from(document.getElementById("comparativoRows")?.children || []);
-    const datos = filas.map((row, i) => {
+    const datos = filas.map(row => {
       const val = row.querySelector('[data-f="horas_automatizado"]').value;
       return {
         nombre: row.dataset.nombre,
-        hue: huePorIndice(i),
         manual: Number(row.dataset.horasManual || 0),
         auto: val === "" ? null : Number(val)
       };
     }).filter(d => d.auto != null && !isNaN(d.auto));
 
     if (!datos.length) {
-      el.innerHTML = '<p class="comparativo-empty">Carga cuánto tarda cada tarea con la herramienta para ver la comparación.</p>';
-      resumen.innerHTML = "";
+      el.innerHTML = '<p class="comparativo-empty">Carga cuánto tarda cada tarea con la IA (To-Be) para ver el comparativo.</p>';
+      if (impacto) impacto.innerHTML = "";
       return;
     }
 
     const maxHoras = Math.max(...datos.map(d => Math.max(d.manual, d.auto)), 1);
-    el.innerHTML = datos.map(d => `
-      <div class="comparativo-row" style="--tarea-hue:${d.hue}">
-        <div class="comparativo-label"><span class="comparativo-swatch"></span>${escHtml(d.nombre)}</div>
-        <div class="comparativo-bars">
-          <div class="comparativo-bar comparativo-bar--manual" style="width:${Math.max((d.manual / maxHoras) * 100, 8).toFixed(1)}%">${d.manual.toFixed(1)}h manual</div>
-          <div class="comparativo-bar comparativo-bar--auto" style="width:${Math.max((d.auto / maxHoras) * 100, 8).toFixed(1)}%">${d.auto.toFixed(1)}h con la herramienta</div>
+    el.innerHTML = datos.map(d => {
+      const ahorroPct = d.manual > 0 ? Math.round(((d.manual - d.auto) / d.manual) * 100) : 0;
+      const peor = ahorroPct < 0;
+      return `
+      <div class="comparativo-row">
+        <div class="comparativo-row-main">
+          <div class="comparativo-label">${escHtml(d.nombre)}</div>
+          <div class="comparativo-bars">
+            <div class="comparativo-bar comparativo-bar--manual" style="width:${Math.max((d.manual / maxHoras) * 100, 8).toFixed(1)}%">${d.manual.toFixed(1)}h · As-Is</div>
+            <div class="comparativo-bar comparativo-bar--auto" style="width:${Math.max((d.auto / maxHoras) * 100, 8).toFixed(1)}%">${d.auto.toFixed(1)}h · To-Be</div>
+          </div>
         </div>
-      </div>`).join("");
+        <span class="comparativo-pct${peor ? " comparativo-pct--peor" : ""}">⚡ ${peor ? "+" : "-"}${Math.abs(ahorroPct)}% de tiempo</span>
+      </div>`;
+    }).join("");
 
     const totalManual = datos.reduce((s, d) => s + d.manual, 0);
     const totalAuto = datos.reduce((s, d) => s + d.auto, 0);
-    const ahorroDia = totalManual - totalAuto;
-    const pctAhorro = totalManual > 0 ? (ahorroDia / totalManual) * 100 : 0;
-    resumen.innerHTML = `
-      <div class="summary-card"><div class="value">${ahorroDia.toFixed(1)}h</div><div class="label">Ahorro estimado / día</div></div>
-      <div class="summary-card"><div class="value">${(ahorroDia * 22).toFixed(0)}h</div><div class="label">Ahorro estimado / mes</div></div>
-      <div class="summary-card"><div class="value">${pctAhorro.toFixed(0)}%</div><div class="label">Reducción de tiempo</div></div>`;
+    const cargaPrevia = totalManual * 22;
+    const nuevaCarga = totalAuto * 22;
+    const capacidadLiberada = cargaPrevia - nuevaCarga;
+    if (impacto) {
+      impacto.innerHTML = `
+        <div class="impacto-card"><div class="value">${cargaPrevia.toFixed(0)}h</div><div class="label">Carga de trabajo previa (As-Is) / mes</div></div>
+        <div class="impacto-card"><div class="value">${nuevaCarga.toFixed(0)}h</div><div class="label">Nueva carga estimada (To-Be) / mes</div></div>
+        <div class="impacto-card impacto-card--liberada"><div class="value">${capacidadLiberada.toFixed(0)}h</div><div class="label">Capacidad liberada para tareas de mayor valor</div></div>`;
+    }
   }
 
   function initCronogramaViews() {

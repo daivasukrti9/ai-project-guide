@@ -366,16 +366,17 @@
       </fieldset>
 
       <fieldset class="card">
-        <legend>⏱️ Comparativo: plan base (manual) vs. ejecución con la herramienta</legend>
-        <p class="hint hint--muted">Los tiempos manuales ya están cargados en la Sección 1. Acá agregas cuánto tarda cada tarea <strong>con la herramienta</strong> — hoy si ya tenés una prueba, o en unas semanas cuando tengas datos reales (exportá el expediente y volvé a cargarlo). Cada tarea mantiene su color; la barra más oscura y saturada es la versión con la herramienta.</p>
+        <legend>⏱️ Gantt comparativo: operativa manual (As-Is) vs. proceso con IA (To-Be)</legend>
+        <p class="hint hint--muted">Los tiempos manuales (As-Is) ya están cargados en la Sección 1 — se cargan solos aunque vengan de un expediente anterior. Acá agregas cuánto tarda cada tarea <strong>con la herramienta</strong> (To-Be) — hoy si ya tenés una prueba, o en unas semanas cuando tengas datos reales (exportá el expediente y volvé a cargarlo).</p>
+
+        <div id="comparativoImpacto" class="impacto-grid" aria-live="polite"></div>
 
         <div class="comparativo-header">
-          <span>Tarea</span><span>Manual hoy</span><span>Con la herramienta</span><span>Ahorro</span>
+          <span>Tarea</span><span>Manual hoy (As-Is)</span><span>Con IA (To-Be)</span><span>Ahorro</span>
         </div>
         <div id="comparativoRows" class="repeatable-rows"></div>
 
         <div id="comparativoVisual" class="comparativo-visual" aria-live="polite"></div>
-        <div class="summary-cards" id="comparativoResumen" aria-live="polite"></div>
       </fieldset>
 
       <fieldset class="card">
