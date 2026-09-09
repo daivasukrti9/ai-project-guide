@@ -1,0 +1,258 @@
+{
+  "schema_version": "1.0.0",
+  "app_meta": {
+    "id_expediente": "PROC-DYJ90J",
+    "nombre_proyecto": "Conciliación de facturas de proveedores",
+    "etapa_actual": 4,
+    "etapas_completadas": [],
+    "generado_en": "2026-09-09T02:18:18.693Z",
+    "actualizado_en": "2026-09-09T02:20:17.901Z",
+    "version_app": "1.0.0"
+  },
+  "seccion_1_ordenar_trabajo": {
+    "metadata_proceso": {
+      "id_proceso": "PROC-DYJ90J",
+      "nombre_proceso": "Conciliación de facturas de proveedores",
+      "departamento": "Contabilidad",
+      "responsable_proceso": "Coordinador de Cuentas por Pagar",
+      "fecha_evaluacion": "2026-09-08",
+      "nivel_madurez_actual": "Nivel 1: Asistencia / Presentaciones"
+    },
+    "mapeo_entradas_salidas": {
+      "entradas": [
+        "Factura del proveedor por correo",
+        "Orden de compra en el ERP",
+        "Comprobante de pago del banco"
+      ],
+      "salidas": [
+        "Conciliación aprobada",
+        "Asiento contable registrado",
+        "Notificación al proveedor"
+      ],
+      "punto_entrada_unico_definido": false
+    },
+    "metricas_tiempo_y_costos": {
+      "frecuencia_ejecucion": "Diaria",
+      "volumen_ejecuciones_mes": 0,
+      "horas_hombre_por_ejecucion": 0,
+      "horas_hombre_totales_mes": 0,
+      "numero_personas_involucradas": 0,
+      "costo_hora_promedio_usd": 0,
+      "tiempo_espera_o_bloqueo_horas": 0,
+      "jornada_laboral_horas_dia": 8
+    },
+    "tareas_habituales": [
+      {
+        "nombre": "Conciliación de facturas de proveedores",
+        "tipo": "Repetitiva",
+        "horas_dia": 5,
+        "cantidad": 20,
+        "minutos_por_unidad": 15
+      },
+      {
+        "nombre": "Alta de nuevos empleados en el sistema",
+        "tipo": "Repetitiva",
+        "horas_dia": 1,
+        "cantidad": 3,
+        "minutos_por_unidad": 20
+      },
+      {
+        "nombre": "Reportes de cierre mensual",
+        "tipo": "Fijo",
+        "horas_dia": 1.5,
+        "horas_fijas": 1.5
+      }
+    ],
+    "capacidad_80_20": {
+      "modo_equipo": true,
+      "horas_jornada_semanal": 40,
+      "porcentaje_innovacion": 0.2,
+      "colaboradores": [
+        {
+          "nombre_o_rol": "Ana Gómez",
+          "horas_operativas_actuales": 44,
+          "horas_disponibles_para_mejora": 0,
+          "estado_carga": "Sobrecargado (+4.0h)"
+        },
+        {
+          "nombre_o_rol": "Luis Torres",
+          "horas_operativas_actuales": 32,
+          "horas_disponibles_para_mejora": 8,
+          "estado_carga": "Balance Ideal 80/20"
+        },
+        {
+          "nombre_o_rol": "Carla Ruiz",
+          "horas_operativas_actuales": 38,
+          "horas_disponibles_para_mejora": 2,
+          "estado_carga": "Carga Alta · casi sin margen"
+        },
+        {
+          "nombre_o_rol": "Diego Paz",
+          "horas_operativas_actuales": 20,
+          "horas_disponibles_para_mejora": 20,
+          "estado_carga": "Capacidad ociosa alta"
+        }
+      ]
+    },
+    "puntos_de_dolor": [
+      {
+        "id_dolor": "PAIN-01",
+        "categoria": "Procesamiento Manual",
+        "descripcion": "Cotejar cada factura con la orden de compra a mano",
+        "nivel_severidad": "Alto"
+      },
+      {
+        "id_dolor": "PAIN-02",
+        "categoria": "Errores Humanos",
+        "descripcion": "Errores de tipeo al cargar montos en el ERP",
+        "nivel_severidad": "Medio"
+      }
+    ],
+    "cronograma_gantt": [
+      {
+        "id_tarea": "T-1",
+        "jerarquia": "Tarea",
+        "nombre": "Definir reglas de conciliación automática",
+        "encargado_proceso": "Ana Gómez",
+        "simbolo_urgencia": "🔥 Alta",
+        "dependencia_id": "",
+        "horas_estimadas": 8,
+        "fecha_inicio_plan": "2026-09-01",
+        "fecha_fin_plan": "2026-09-05",
+        "fecha_inicio_real": "2026-09-01",
+        "fecha_fin_real": "2026-09-08",
+        "porcentaje_avance": 100,
+        "estado": "Completado"
+      },
+      {
+        "id_tarea": "T-2",
+        "jerarquia": "Tarea",
+        "nombre": "Construir prototipo con Claude",
+        "encargado_proceso": "Luis Torres",
+        "simbolo_urgencia": "➡️ Normal",
+        "dependencia_id": "",
+        "horas_estimadas": 12,
+        "fecha_inicio_plan": "2026-09-08",
+        "fecha_fin_plan": "2026-09-15",
+        "fecha_inicio_real": "",
+        "fecha_fin_real": "",
+        "porcentaje_avance": 40,
+        "estado": "En Proceso"
+      },
+      {
+        "id_tarea": "T-3",
+        "jerarquia": "Tarea",
+        "nombre": "Piloto con 1 proveedor",
+        "encargado_proceso": "Carla Ruiz",
+        "simbolo_urgencia": "🧊 Baja",
+        "dependencia_id": "",
+        "horas_estimadas": 6,
+        "fecha_inicio_plan": "2026-09-16",
+        "fecha_fin_plan": "2026-09-19",
+        "fecha_inicio_real": "",
+        "fecha_fin_real": "",
+        "porcentaje_avance": 0,
+        "estado": "No Iniciado"
+      }
+    ]
+  },
+  "seccion_2_clasificacion_proyecto": {
+    "respuestas": {
+      "entregable": "automatizacion",
+      "mapeo_proceso": "fija",
+      "nivel_logica": "minima",
+      "fuente_datos": "desestructurados",
+      "confidencialidad": "moderado"
+    },
+    "recomendacion": {
+      "nombre_tecnico": "Automatización basada en reglas (Apps Script / Webhooks)",
+      "guia": "Conecta triggers fijos con Google Apps Script o un webhook simple. Sin IA generativa.",
+      "investigar_con_ia": "Cómo estructurar un trigger de Google Apps Script para esta tarea.",
+      "requisitos": [
+        "Permisos de edición en Google Workspace o el sistema que dispara el webhook.",
+        "Reglas de negocio ya estables — si cambian seguido, este nivel no alcanza."
+      ],
+      "riesgos": [
+        "No tiene criterio propio: un caso fuera de regla rompe el flujo en silencio.",
+        "Necesita revisión manual periódica."
+      ],
+      "advertencia_seguridad": ""
+    },
+    "evaluacion_ecosistema": {
+      "respuestas": {
+        "eco_frecuencia": { "valor": "c", "puntos": 3 },
+        "eco_datos": { "valor": "b", "puntos": 2 },
+        "eco_ecosistema": { "valor": "b", "puntos": 2 },
+        "eco_tolerancia": { "valor": "c", "puntos": 3 },
+        "eco_complejidad": { "valor": "b", "puntos": 2 }
+      },
+      "puntaje": 12,
+      "nivel": "Nivel 2"
+    }
+  },
+  "seccion_3_compresion_proyecto": {
+    "nivel_solucion": "Nivel 2: Herramienta / Script de Automatización Fija",
+    "tecnologias_sugeridas": [],
+    "kpis_y_metricas_clave": [
+      {
+        "nombre_kpi": "Tiempo de conciliación por factura",
+        "unidad_medida": "minutos",
+        "valor_actual_as_is": 15,
+        "meta_esperada_to_be": 3,
+        "frecuencia_medicion": "Diario",
+        "origen_datos_google": "Sheets"
+      },
+      {
+        "nombre_kpi": "Facturas con error de carga",
+        "unidad_medida": "%",
+        "valor_actual_as_is": 8,
+        "meta_esperada_to_be": 1,
+        "frecuencia_medicion": "Mensual",
+        "origen_datos_google": "ERP"
+      }
+    ],
+    "roi_estimado": {
+      "potencial_ahorro_horas_mes": 381,
+      "roi_estimado_mensual_usd": 5716,
+      "tiempo_estimado_implementacion": "3–4 semanas",
+      "requiere_aprobacion_seguridad": false
+    },
+    "comparativo_automatizacion": [
+      {
+        "nombre": "Conciliación de facturas de proveedores",
+        "horas_manual": 5,
+        "horas_automatizado": 1
+      },
+      {
+        "nombre": "Alta de nuevos empleados en el sistema",
+        "horas_manual": 1,
+        "horas_automatizado": null
+      },
+      {
+        "nombre": "Reportes de cierre mensual",
+        "horas_manual": 1.5,
+        "horas_automatizado": 0.5
+      }
+    ]
+  },
+  "seccion_4_indicadores_desarrollo": {
+    "skills_seleccionadas": [
+      { "skill_id": "capacity-planner", "justificacion": "", "prioridad": "Media" },
+      { "skill_id": "gantt-generator", "justificacion": "", "prioridad": "Media" },
+      { "skill_id": "solution-assessment", "justificacion": "", "prioridad": "Media" }
+    ],
+    "diccionario_exportado_formato": "JSON",
+    "prompts_generados": [],
+    "plan_gestion_cambio": {
+      "checklist": [
+        { "item": "Validar que no se incluyó información confidencial", "completado": false },
+        { "item": "Probar con datos sintéticos en sandbox", "completado": false },
+        { "item": "Revisar permisos mínimos (least privilege)", "completado": false },
+        { "item": "Definir rollback / mecanismo STOP", "completado": false },
+        { "item": "Obtener aprobación del sponsor", "completado": false }
+      ],
+      "responsable_sponsor": "Gerente de Contabilidad",
+      "fecha_revision_piloto": "2026-10-15"
+    }
+  }
+}

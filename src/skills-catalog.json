@@ -1,0 +1,105 @@
+{
+  "schema_version": "1.0.0",
+  "fuente": "diccionario_herramientas_IA_proyectos_empresariales.md",
+  "categorias": [
+    {
+      "id": "00-core",
+      "nombre": "Núcleo del proceso",
+      "skills": [
+        { "id": "project-intake", "nombre": "Project Intake", "proposito": "Convierte una idea en objetivo, problema, alcance y preguntas pendientes.", "momento": "Etapa 1", "regla_clave": "No desarrolla; solo estructura y detecta vacíos." },
+        { "id": "phase-gate", "nombre": "Phase Gate", "proposito": "Controla qué requisitos deben estar completos para pasar de etapa.", "momento": "Todas", "regla_clave": "Bloquea saltos silenciosos; permite 'No aplica' con justificación." },
+        { "id": "project-export-import", "nombre": "Project Export/Import", "proposito": "Exporta/importa el expediente portable y reanuda desde la última etapa.", "momento": "Todas", "regla_clave": "Valida schema_version e integridad antes de cargar." }
+      ]
+    },
+    {
+      "id": "01-planning",
+      "nombre": "Planificación",
+      "skills": [
+        { "id": "capacity-planner", "nombre": "Capacity Planner", "proposito": "Calcula capacidad laboral real y distribuye horas por semana/mes.", "momento": "Etapa 1", "regla_clave": "Separa capacidad potencial de horas recomendadas (regla 80/20)." },
+        { "id": "gantt-generator", "nombre": "Gantt Generator", "proposito": "Crea Gantt a partir de tareas, dependencias, esfuerzo y capacidad.", "momento": "Etapa 1-2", "regla_clave": "Detecta fechas imposibles y dependencias circulares." },
+        { "id": "kanban-generator", "nombre": "Kanban Generator", "proposito": "Crea Kanban con WIP, prioridad, dependencias y esfuerzo.", "momento": "Etapa 1-2", "regla_clave": "No usar WIP como métrica de productividad individual." }
+      ]
+    },
+    {
+      "id": "02-research",
+      "nombre": "Investigación",
+      "skills": [
+        { "id": "research-plan", "nombre": "Research Plan", "proposito": "Convierte vacíos de información en preguntas, fuentes y entregables.", "momento": "Etapa 1", "regla_clave": "Prioriza fuentes primarias y registra evidencia." },
+        { "id": "google-research", "nombre": "Google Research", "proposito": "Guía la investigación con Drive, Docs, Sheets y recursos Google autorizados.", "momento": "Etapa 2", "regla_clave": "No pide datos privados fuera del entorno aprobado." }
+      ]
+    },
+    {
+      "id": "03-architecture",
+      "nombre": "Arquitectura de solución",
+      "skills": [
+        { "id": "solution-assessment", "nombre": "Solution Assessment", "proposito": "Compara automatización, script, aplicación, datos e IA según las reglas del proyecto.", "momento": "Etapa 2-3", "regla_clave": "La IA no es la opción por defecto." },
+        { "id": "google-solution-architect", "nombre": "Google Solution Architect", "proposito": "Diseña primero con Workspace cuando sea suficiente.", "momento": "Etapa 3", "regla_clave": "Prefiere arquitectura simple y mantenible." },
+        { "id": "adr-writer", "nombre": "ADR Writer", "proposito": "Crea Architecture Decision Records con alternativas, decisión y consecuencias.", "momento": "Etapa 3", "regla_clave": "Una decisión importante = un ADR." }
+      ]
+    },
+    {
+      "id": "04-code",
+      "nombre": "Desarrollo",
+      "skills": [
+        { "id": "clean-code", "nombre": "Clean Code", "proposito": "Revisa nombres, responsabilidades, acoplamiento y duplicación.", "momento": "Desarrollo", "regla_clave": "Evita refactorizaciones masivas sin tests." },
+        { "id": "tdd", "nombre": "TDD", "proposito": "Aplica RED-GREEN-REFACTOR.", "momento": "Desarrollo", "regla_clave": "Test primero salvo excepción explícita y documentada." }
+      ]
+    },
+    {
+      "id": "05-quality",
+      "nombre": "Calidad",
+      "skills": [
+        { "id": "webapp-e2e", "nombre": "Webapp E2E", "proposito": "Ejecuta smoke/E2E sobre los flujos críticos del portal.", "momento": "Validación", "regla_clave": "Cubre import/export, formularios, Gantt y Kanban." },
+        { "id": "verification-gate", "nombre": "Verification Gate", "proposito": "No declara terminado hasta disponer de evidencia de pruebas.", "momento": "Todas", "regla_clave": "Resultado + evidencia + fecha + versión." }
+      ]
+    },
+    {
+      "id": "06-security",
+      "nombre": "Seguridad",
+      "skills": [
+        { "id": "synthetic-data-guard", "nombre": "Synthetic Data Guard", "proposito": "Impide/advierte sobre datos confidenciales; promueve datos sintéticos.", "momento": "Todas", "regla_clave": "Regla obligatoria." },
+        { "id": "secrets-audit", "nombre": "Secrets Audit", "proposito": "Busca secretos en archivos, logs y repositorio.", "momento": "Antes de compartir/commit", "regla_clave": "No imprime secretos en contexto." }
+      ]
+    },
+    {
+      "id": "07-knowledge",
+      "nombre": "Conocimiento",
+      "skills": [
+        { "id": "obsidian-vault-manager", "nombre": "Obsidian Vault Manager", "proposito": "Organiza conocimiento en Markdown con índices, enlaces y convenciones.", "momento": "Todas", "regla_clave": "Evita notas gigantes." }
+      ]
+    },
+    {
+      "id": "08-docs",
+      "nombre": "Documentación y comunicación",
+      "skills": [
+        { "id": "sop-generator", "nombre": "SOP Generator", "proposito": "Genera SOP actual/propuesto con marcadores [PENDIENTE DE VALIDACIÓN].", "momento": "Final", "regla_clave": "No inventa pasos." },
+        { "id": "presentation-builder", "nombre": "Presentation Builder", "proposito": "Convierte el expediente validado en presentación ejecutiva/técnica.", "momento": "Final", "regla_clave": "Separa hechos, resultados y recomendaciones." },
+        { "id": "validation-pack", "nombre": "Validation Pack", "proposito": "Crea checklist de aprobación empresarial, evidencias y responsables.", "momento": "Final", "regla_clave": "Debe existir un responsable humano." }
+      ]
+    },
+    {
+      "id": "09-agent",
+      "nombre": "Autonomía (avanzado)",
+      "skills": [
+        { "id": "autonomy-readiness", "nombre": "Autonomy Readiness", "proposito": "Evalúa si una automatización puede pasar a agente/autónomo.", "momento": "Avanzado", "regla_clave": "Requiere límites, rollback, logs y STOP." },
+        { "id": "human-in-loop", "nombre": "Human in the Loop", "proposito": "Fuerza aprobación humana para acciones sensibles o irreversibles.", "momento": "Avanzado", "regla_clave": "Por defecto en producción." },
+        { "id": "dry-run", "nombre": "Dry Run", "proposito": "Simula acciones y muestra impacto antes de ejecutar.", "momento": "Automatización", "regla_clave": "Obligatorio en operaciones masivas." }
+      ]
+    },
+    {
+      "id": "10-ops",
+      "nombre": "Operación",
+      "skills": [
+        { "id": "drive-archive", "nombre": "Drive Archive", "proposito": "Archiva entregables por proyecto, etapa y versión en Drive.", "momento": "Todas", "regla_clave": "Convención de nombres y permisos mínimos." },
+        { "id": "release-checklist", "nombre": "Release Checklist", "proposito": "Checklist de versión, backup, pruebas, documentación y rollback.", "momento": "Antes de producción", "regla_clave": "No desplegar sin checklist." }
+      ]
+    },
+    {
+      "id": "11-ux",
+      "nombre": "Experiencia de usuario",
+      "skills": [
+        { "id": "ux-clarity", "nombre": "UX Clarity", "proposito": "Revisa lenguaje, carga cognitiva, accesibilidad y siguiente paso.", "momento": "Portal y apps", "regla_clave": "Una decisión importante por pantalla." }
+      ]
+    }
+  ]
+}

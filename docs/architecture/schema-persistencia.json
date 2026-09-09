@@ -1,0 +1,303 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://empresa.local/schemas/ai-project-guide-state.json",
+  "title": "AIProjectGuideStatePayload",
+  "description": "Objeto de estado portable de AI Project Guide. Se descarga/carga en cada etapa para reanudar sin perder contexto. No contiene información confidencial: todos los campos de texto libre deben tratarse como datos sintéticos o generalizados por el usuario.",
+  "type": "object",
+  "required": ["schema_version", "app_meta", "seccion_1_ordenar_trabajo"],
+  "properties": {
+    "schema_version": { "type": "string", "const": "1.0.0" },
+    "app_meta": {
+      "type": "object",
+      "required": ["id_expediente", "etapa_actual", "generado_en"],
+      "properties": {
+        "id_expediente": { "type": "string", "description": "Identificador único del expediente/proyecto, generado por la app (uuid corto)." },
+        "nombre_proyecto": { "type": "string" },
+        "etapa_actual": { "type": "integer", "minimum": 1, "maximum": 4 },
+        "etapas_completadas": {
+          "type": "array",
+          "items": { "type": "integer", "minimum": 1, "maximum": 4 }
+        },
+        "generado_en": { "type": "string", "format": "date-time" },
+        "actualizado_en": { "type": "string", "format": "date-time" },
+        "version_app": { "type": "string" }
+      }
+    },
+
+    "seccion_1_ordenar_trabajo": {
+      "type": "object",
+      "description": "Etapa 1: mapeo As-Is del proceso, capacidad 80/20 y cronograma base.",
+      "properties": {
+        "metadata_proceso": {
+          "type": "object",
+          "required": ["id_proceso", "nombre_proceso", "departamento", "nivel_madurez_actual"],
+          "properties": {
+            "id_proceso": { "type": "string" },
+            "nombre_proceso": { "type": "string" },
+            "departamento": {
+              "type": "string",
+              "enum": ["Operaciones", "Finanzas", "RRHH", "Tecnología", "Ventas", "Logística", "Otro"]
+            },
+            "responsable_proceso": { "type": "string" },
+            "fecha_evaluacion": { "type": "string", "format": "date" },
+            "nivel_madurez_actual": {
+              "type": "string",
+              "enum": [
+                "Nivel 1: Asistencia / Presentaciones",
+                "Nivel 2: Automatización Fija",
+                "Nivel 3: Skills / Herramientas",
+                "Nivel 4: Agente Autónomo"
+              ]
+            }
+          }
+        },
+        "mapeo_entradas_salidas": {
+          "type": "object",
+          "properties": {
+            "entradas": { "type": "array", "items": { "type": "string" } },
+            "salidas": { "type": "array", "items": { "type": "string" } },
+            "punto_entrada_unico_definido": { "type": "boolean" }
+          }
+        },
+        "metricas_tiempo_y_costos": {
+          "type": "object",
+          "required": ["frecuencia_ejecucion", "volumen_ejecuciones_mes", "horas_hombre_por_ejecucion", "numero_personas_involucradas"],
+          "properties": {
+            "frecuencia_ejecucion": { "type": "string", "enum": ["Diaria", "Semanal", "Quincenal", "Mensual", "Por Demanda"] },
+            "volumen_ejecuciones_mes": { "type": "integer" },
+            "horas_hombre_por_ejecucion": { "type": "number" },
+            "horas_hombre_totales_mes": { "type": "number" },
+            "numero_personas_involucradas": { "type": "integer" },
+            "costo_hora_promedio_usd": { "type": "number" },
+            "tiempo_espera_o_bloqueo_horas": { "type": "number" },
+            "jornada_laboral_horas_dia": { "type": "number", "description": "Jornada laboral de referencia en horas/día, usada por el diagnóstico de carga (Paso 1)." }
+          }
+        },
+        "tareas_habituales": {
+          "type": "array",
+          "description": "Mapeo deductivo de carga habitual (Paso 1): de aquí se calcula el tiempo libre real antes de comprometer horas a un proyecto nuevo.",
+          "items": {
+            "type": "object",
+            "required": ["nombre", "tipo", "horas_dia"],
+            "properties": {
+              "nombre": { "type": "string" },
+              "tipo": { "type": "string", "enum": ["Repetitiva", "Fijo"] },
+              "cantidad": { "type": "number", "description": "Solo si tipo=Repetitiva: unidades por día (ej. 15 facturas)." },
+              "minutos_por_unidad": { "type": "number", "description": "Solo si tipo=Repetitiva: minutos por unidad." },
+              "horas_fijas": { "type": "number", "description": "Solo si tipo=Fijo: horas/día asignadas (tarea no repetitiva)." },
+              "horas_dia": { "type": "number", "description": "Horas/día resultantes (calculadas)." }
+            }
+          }
+        },
+        "capacidad_80_20": {
+          "type": "object",
+          "description": "Resultado del cálculo de capacidad por colaborador (regla 80% operación / 20% innovación).",
+          "properties": {
+            "modo_equipo": { "type": "boolean", "default": false, "description": "true = el usuario coordina un equipo (vista Scrum); false = uso individual, la disponibilidad real ya sale de tareas_habituales." },
+            "horas_jornada_semanal": { "type": "number", "default": 40 },
+            "porcentaje_innovacion": { "type": "number", "default": 0.2 },
+            "colaboradores": {
+              "type": "array",
+              "items": {
+                "type": "object",
+                "properties": {
+                  "nombre_o_rol": { "type": "string" },
+                  "horas_operativas_actuales": { "type": "number" },
+                  "horas_disponibles_para_mejora": { "type": "number" },
+                  "estado_carga": { "type": "string", "description": "Texto descriptivo generado (ej. 'Sobrecargado (+5.0h)', 'Balance Ideal 80/20'); no es un enum fijo." }
+                }
+              }
+            }
+          }
+        },
+        "puntos_de_dolor": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "required": ["id_dolor", "categoria", "descripcion", "nivel_severidad"],
+            "properties": {
+              "id_dolor": { "type": "string" },
+              "categoria": {
+                "type": "string",
+                "enum": ["Entrada Desordenada", "Procesamiento Manual", "Esperas/Silos", "Errores Humanos", "Falta de Visibilidad"]
+              },
+              "descripcion": { "type": "string" },
+              "nivel_severidad": { "type": "string", "enum": ["Bajo", "Medio", "Alto", "Crítico"] },
+              "impacto_operativo": { "type": "string" },
+              "herramientas_google_afectadas": { "type": "array", "items": { "type": "string" } }
+            }
+          }
+        },
+        "cronograma_gantt": {
+          "type": "array",
+          "description": "Filas equivalentes a Gantt_Reutilizable_Con_Listas_Desplegables.xlsx",
+          "items": {
+            "type": "object",
+            "required": ["id_tarea", "nombre", "jerarquia"],
+            "properties": {
+              "id_tarea": { "type": "string" },
+              "grupo_hito": { "type": "string" },
+              "jerarquia": { "type": "string", "enum": ["Objetivo", "Tarea", "Subtarea"] },
+              "nombre": { "type": "string" },
+              "encargado_proceso": { "type": "string" },
+              "personal_asignado": { "type": "string" },
+              "area": { "type": "string" },
+              "funcion": { "type": "string" },
+              "simbolo_urgencia": { "type": "string", "enum": ["⚡ Urgente", "🔥 Alta", "➡️ Normal", "🧊 Baja"] },
+              "dependencia_id": { "type": "string" },
+              "horas_estimadas": { "type": "number", "description": "Esfuerzo total estimado de la tarea, usado para sugerir días hábiles según el tiempo libre real (Paso 1)." },
+              "fecha_inicio_plan": { "type": "string", "format": "date" },
+              "fecha_fin_plan": { "type": "string", "format": "date" },
+              "dias_plan_base": { "type": "number" },
+              "fecha_inicio_real": { "type": "string", "format": "date" },
+              "fecha_fin_real": { "type": "string", "format": "date" },
+              "dias_ejecucion_real": { "type": "number" },
+              "variacion_dias": { "type": "number" },
+              "porcentaje_avance": { "type": "number", "minimum": 0, "maximum": 100 },
+              "estado": { "type": "string", "enum": ["No Iniciado", "En Proceso", "En Riesgo", "Completado"] }
+            }
+          }
+        }
+      }
+    },
+
+    "seccion_2_clasificacion_proyecto": {
+      "type": "object",
+      "description": "Etapa 2: clasificación técnica del proyecto vía preguntas de opción múltiple (reglas fijas, sin IA) que producen una recomendación técnica concreta.",
+      "properties": {
+        "respuestas": {
+          "type": "object",
+          "properties": {
+            "entregable": { "type": "string", "enum": ["", "documento", "datos", "automatizacion", "agente"] },
+            "mapeo_proceso": { "type": "string", "enum": ["", "eventual", "fija", "criterio", "interdepartamental"] },
+            "nivel_logica": { "type": "string", "enum": ["", "minima", "interpretacion", "decision", "razonamiento"] },
+            "fuente_datos": { "type": "string", "enum": ["", "plantillas", "desestructurados", "sistemas", "mezcla"] },
+            "confidencialidad": { "type": "string", "enum": ["", "bajo", "moderado", "alto"] }
+          }
+        },
+        "recomendacion": {
+          "type": "object",
+          "description": "Calculada por reglas fijas a partir de 'respuestas' (ver calcularRecomendacionTecnica en app.js).",
+          "properties": {
+            "nombre_tecnico": { "type": "string" },
+            "guia": { "type": "string" },
+            "investigar_con_ia": { "type": "string" },
+            "advertencia_seguridad": { "type": "string" },
+            "requisitos": { "type": "array", "items": { "type": "string" } },
+            "riesgos": { "type": "array", "items": { "type": "string" } }
+          }
+        },
+        "evaluacion_ecosistema": {
+          "type": "object",
+          "description": "Puntaje ponderado (5-20) sobre infraestructura/tolerancia al error, independiente del Nivel de solución de la Sección 3 (ver PREGUNTAS_ECOSISTEMA en app.js).",
+          "properties": {
+            "respuestas": { "type": "object", "description": "Mapa preguntaId -> {valor, puntos}." },
+            "puntaje": { "type": "number" },
+            "nivel": { "type": "string" }
+          }
+        }
+      }
+    },
+
+    "seccion_3_compresion_proyecto": {
+      "type": "object",
+      "description": "Etapa 3: nivel de solución, matriz KPI/ROI y hoja de ruta.",
+      "properties": {
+        "nivel_solucion": {
+          "type": "string",
+          "enum": [
+            "Nivel 1: Presentación / Documento de Asistencia",
+            "Nivel 2: Herramienta / Script de Automatización Fija",
+            "Nivel 3: Skill / Prompt Estructurado",
+            "Nivel 4: Agente Autónomo / Multi-herramienta"
+          ]
+        },
+        "tecnologias_sugeridas": { "type": "array", "items": { "type": "string" } },
+        "kpis_y_metricas_clave": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "required": ["nombre_kpi", "unidad_medida", "valor_actual_as_is", "meta_esperada_to_be"],
+            "properties": {
+              "nombre_kpi": { "type": "string" },
+              "unidad_medida": { "type": "string" },
+              "valor_actual_as_is": { "type": "number" },
+              "meta_esperada_to_be": { "type": "number" },
+              "frecuencia_medicion": { "type": "string", "enum": ["Diario", "Semanal", "Mensual"] },
+              "origen_datos_google": { "type": "string" }
+            }
+          }
+        },
+        "roi_estimado": {
+          "type": "object",
+          "properties": {
+            "potencial_ahorro_horas_mes": { "type": "number" },
+            "roi_estimado_mensual_usd": { "type": "number" },
+            "tiempo_estimado_implementacion": { "type": "string" },
+            "requiere_aprobacion_seguridad": { "type": "boolean" }
+          }
+        },
+        "comparativo_automatizacion": {
+          "type": "array",
+          "description": "Por cada tarea habitual de la Sección 1: tiempo manual actual vs. tiempo estimado con la herramienta. Se completa en la Sección 3, a veces en una sesión posterior (exportar .json hoy, cargarlo en unas semanas con datos reales).",
+          "items": {
+            "type": "object",
+            "properties": {
+              "nombre": { "type": "string", "description": "Debe coincidir con el nombre de una tarea habitual de la Sección 1." },
+              "horas_manual": { "type": "number" },
+              "horas_automatizado": { "type": ["number", "null"] }
+            }
+          }
+        }
+      }
+    },
+
+    "seccion_4_indicadores_desarrollo": {
+      "type": "object",
+      "description": "Etapa 4: catálogo de skills, configuración global (skills/plugins/MCP), prompt generado, protocolo de pruebas y gestión del cambio.",
+      "properties": {
+        "skills_seleccionadas": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "required": ["skill_id"],
+            "properties": {
+              "skill_id": { "type": "string", "description": "Referencia a src/skills-catalog.json" },
+              "justificacion": { "type": "string" },
+              "prioridad": { "type": "string", "enum": ["Alta", "Media", "Baja"] }
+            }
+          }
+        },
+        "diccionario_exportado_formato": { "type": "string", "enum": ["JSON", "Markdown", "PDF"] },
+        "prompts_generados": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "titulo": { "type": "string" },
+              "contenido": { "type": "string" },
+              "fase_recomendada": { "type": "string", "enum": ["Sandbox", "Piloto", "Producción"] }
+            }
+          }
+        },
+        "plan_gestion_cambio": {
+          "type": "object",
+          "properties": {
+            "checklist": {
+              "type": "array",
+              "items": {
+                "type": "object",
+                "properties": {
+                  "item": { "type": "string" },
+                  "completado": { "type": "boolean" }
+                }
+              }
+            },
+            "responsable_sponsor": { "type": "string" },
+            "fecha_revision_piloto": { "type": "string", "format": "date" }
+          }
+        }
+      }
+    }
+  }
+}
