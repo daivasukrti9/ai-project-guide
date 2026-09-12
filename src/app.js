@@ -24,57 +24,81 @@
   const SKILLS_CATALOG = {
     schema_version: "1.0.0",
     categorias: [
-      { id: "00-core", nombre: "Núcleo del proceso", skills: [
-        { id: "project-intake", nombre: "Project Intake", proposito: "Convierte una idea en objetivo, problema, alcance y preguntas pendientes.", momento: "Etapa 1" },
-        { id: "phase-gate", nombre: "Phase Gate", proposito: "Controla qué requisitos deben estar completos para pasar de etapa.", momento: "Todas" },
-        { id: "project-export-import", nombre: "Project Export/Import", proposito: "Exporta/importa el expediente portable y reanuda desde la última etapa.", momento: "Todas" }
-      ]},
-      { id: "01-planning", nombre: "Planificación", skills: [
-        { id: "capacity-planner", nombre: "Capacity Planner", proposito: "Calcula capacidad laboral real y distribuye horas (regla 80/20).", momento: "Etapa 1" },
-        { id: "gantt-generator", nombre: "Gantt Generator", proposito: "Crea Gantt a partir de tareas, dependencias, esfuerzo y capacidad.", momento: "Etapa 1-2" },
-        { id: "kanban-generator", nombre: "Kanban Generator", proposito: "Crea Kanban con WIP, prioridad y dependencias.", momento: "Etapa 1-2" }
-      ]},
-      { id: "02-research", nombre: "Investigación", skills: [
-        { id: "research-plan", nombre: "Research Plan", proposito: "Convierte vacíos de información en preguntas, fuentes y entregables.", momento: "Etapa 1" },
-        { id: "google-research", nombre: "Google Research", proposito: "Guía la investigación con Drive, Docs, Sheets y recursos Google.", momento: "Etapa 2" }
-      ]},
-      { id: "03-architecture", nombre: "Arquitectura de solución", skills: [
-        { id: "solution-assessment", nombre: "Solution Assessment", proposito: "Compara automatización, script, aplicación, datos e IA.", momento: "Etapa 2-3" },
-        { id: "google-solution-architect", nombre: "Google Solution Architect", proposito: "Diseña primero con Workspace cuando sea suficiente.", momento: "Etapa 3" },
-        { id: "adr-writer", nombre: "ADR Writer", proposito: "Crea Architecture Decision Records.", momento: "Etapa 3" }
-      ]},
-      { id: "04-code", nombre: "Desarrollo", skills: [
-        { id: "clean-code", nombre: "Clean Code", proposito: "Revisa nombres, responsabilidades, acoplamiento y duplicación.", momento: "Desarrollo" },
-        { id: "tdd", nombre: "TDD", proposito: "Aplica RED-GREEN-REFACTOR.", momento: "Desarrollo" }
-      ]},
-      { id: "05-quality", nombre: "Calidad", skills: [
-        { id: "webapp-e2e", nombre: "Webapp E2E", proposito: "Ejecuta smoke/E2E sobre los flujos críticos.", momento: "Validación" },
-        { id: "verification-gate", nombre: "Verification Gate", proposito: "No declara terminado hasta disponer de evidencia.", momento: "Todas" }
-      ]},
-      { id: "06-security", nombre: "Seguridad", skills: [
-        { id: "synthetic-data-guard", nombre: "Synthetic Data Guard", proposito: "Impide/advierte sobre datos confidenciales.", momento: "Todas" },
-        { id: "secrets-audit", nombre: "Secrets Audit", proposito: "Busca secretos en archivos, logs y repositorio.", momento: "Antes de compartir/commit" }
-      ]},
-      { id: "07-knowledge", nombre: "Conocimiento", skills: [
-        { id: "obsidian-vault-manager", nombre: "Obsidian Vault Manager", proposito: "Organiza conocimiento en Markdown con índices y enlaces.", momento: "Todas" }
-      ]},
-      { id: "08-docs", nombre: "Documentación y comunicación", skills: [
-        { id: "sop-generator", nombre: "SOP Generator", proposito: "Genera SOP con marcadores [PENDIENTE DE VALIDACIÓN].", momento: "Final" },
-        { id: "presentation-builder", nombre: "Presentation Builder", proposito: "Convierte el expediente validado en presentación ejecutiva.", momento: "Final" },
-        { id: "validation-pack", nombre: "Validation Pack", proposito: "Crea checklist de aprobación empresarial.", momento: "Final" }
-      ]},
-      { id: "09-agent", nombre: "Autonomía (avanzado)", skills: [
-        { id: "autonomy-readiness", nombre: "Autonomy Readiness", proposito: "Evalúa si una automatización puede pasar a agente/autónomo.", momento: "Avanzado" },
-        { id: "human-in-loop", nombre: "Human in the Loop", proposito: "Fuerza aprobación humana para acciones sensibles.", momento: "Avanzado" },
-        { id: "dry-run", nombre: "Dry Run", proposito: "Simula acciones antes de ejecutar.", momento: "Automatización" }
-      ]},
-      { id: "10-ops", nombre: "Operación", skills: [
-        { id: "drive-archive", nombre: "Drive Archive", proposito: "Archiva entregables por proyecto, etapa y versión.", momento: "Todas" },
-        { id: "release-checklist", nombre: "Release Checklist", proposito: "Checklist de versión, backup, pruebas y rollback.", momento: "Antes de producción" }
-      ]},
-      { id: "11-ux", nombre: "Experiencia de usuario", skills: [
-        { id: "ux-clarity", nombre: "UX Clarity", proposito: "Revisa lenguaje, carga cognitiva, accesibilidad.", momento: "Portal y apps" }
-      ]}
+      {
+        id: "00-core", nombre: "Núcleo del proceso", skills: [
+          { id: "project-intake", nombre: "Project Intake", proposito: "Convierte una idea en objetivo, problema, alcance y preguntas pendientes.", momento: "Etapa 1" },
+          { id: "phase-gate", nombre: "Phase Gate", proposito: "Controla qué requisitos deben estar completos para pasar de etapa.", momento: "Todas" },
+          { id: "project-export-import", nombre: "Project Export/Import", proposito: "Exporta/importa el expediente portable y reanuda desde la última etapa.", momento: "Todas" }
+        ]
+      },
+      {
+        id: "01-planning", nombre: "Planificación", skills: [
+          { id: "capacity-planner", nombre: "Capacity Planner", proposito: "Calcula capacidad laboral real y distribuye horas (regla 80/20).", momento: "Etapa 1" },
+          { id: "gantt-generator", nombre: "Gantt Generator", proposito: "Crea Gantt a partir de tareas, dependencias, esfuerzo y capacidad.", momento: "Etapa 1-2" },
+          { id: "kanban-generator", nombre: "Kanban Generator", proposito: "Crea Kanban con WIP, prioridad y dependencias.", momento: "Etapa 1-2" }
+        ]
+      },
+      {
+        id: "02-research", nombre: "Investigación", skills: [
+          { id: "research-plan", nombre: "Research Plan", proposito: "Convierte vacíos de información en preguntas, fuentes y entregables.", momento: "Etapa 1" },
+          { id: "google-research", nombre: "Google Research", proposito: "Guía la investigación con Drive, Docs, Sheets y recursos Google.", momento: "Etapa 2" }
+        ]
+      },
+      {
+        id: "03-architecture", nombre: "Arquitectura de solución", skills: [
+          { id: "solution-assessment", nombre: "Solution Assessment", proposito: "Compara automatización, script, aplicación, datos e IA.", momento: "Etapa 2-3" },
+          { id: "google-solution-architect", nombre: "Google Solution Architect", proposito: "Diseña primero con Workspace cuando sea suficiente.", momento: "Etapa 3" },
+          { id: "adr-writer", nombre: "ADR Writer", proposito: "Crea Architecture Decision Records.", momento: "Etapa 3" }
+        ]
+      },
+      {
+        id: "04-code", nombre: "Desarrollo", skills: [
+          { id: "clean-code", nombre: "Clean Code", proposito: "Revisa nombres, responsabilidades, acoplamiento y duplicación.", momento: "Desarrollo" },
+          { id: "tdd", nombre: "TDD", proposito: "Aplica RED-GREEN-REFACTOR.", momento: "Desarrollo" }
+        ]
+      },
+      {
+        id: "05-quality", nombre: "Calidad", skills: [
+          { id: "webapp-e2e", nombre: "Webapp E2E", proposito: "Ejecuta smoke/E2E sobre los flujos críticos.", momento: "Validación" },
+          { id: "verification-gate", nombre: "Verification Gate", proposito: "No declara terminado hasta disponer de evidencia.", momento: "Todas" }
+        ]
+      },
+      {
+        id: "06-security", nombre: "Seguridad", skills: [
+          { id: "synthetic-data-guard", nombre: "Synthetic Data Guard", proposito: "Impide/advierte sobre datos confidenciales.", momento: "Todas" },
+          { id: "secrets-audit", nombre: "Secrets Audit", proposito: "Busca secretos en archivos, logs y repositorio.", momento: "Antes de compartir/commit" }
+        ]
+      },
+      {
+        id: "07-knowledge", nombre: "Conocimiento", skills: [
+          { id: "obsidian-vault-manager", nombre: "Obsidian Vault Manager", proposito: "Organiza conocimiento en Markdown con índices y enlaces.", momento: "Todas" }
+        ]
+      },
+      {
+        id: "08-docs", nombre: "Documentación y comunicación", skills: [
+          { id: "sop-generator", nombre: "SOP Generator", proposito: "Genera SOP con marcadores [PENDIENTE DE VALIDACIÓN].", momento: "Final" },
+          { id: "presentation-builder", nombre: "Presentation Builder", proposito: "Convierte el expediente validado en presentación ejecutiva.", momento: "Final" },
+          { id: "validation-pack", nombre: "Validation Pack", proposito: "Crea checklist de aprobación empresarial.", momento: "Final" }
+        ]
+      },
+      {
+        id: "09-agent", nombre: "Autonomía (avanzado)", skills: [
+          { id: "autonomy-readiness", nombre: "Autonomy Readiness", proposito: "Evalúa si una automatización puede pasar a agente/autónomo.", momento: "Avanzado" },
+          { id: "human-in-loop", nombre: "Human in the Loop", proposito: "Fuerza aprobación humana para acciones sensibles.", momento: "Avanzado" },
+          { id: "dry-run", nombre: "Dry Run", proposito: "Simula acciones antes de ejecutar.", momento: "Automatización" }
+        ]
+      },
+      {
+        id: "10-ops", nombre: "Operación", skills: [
+          { id: "drive-archive", nombre: "Drive Archive", proposito: "Archiva entregables por proyecto, etapa y versión.", momento: "Todas" },
+          { id: "release-checklist", nombre: "Release Checklist", proposito: "Checklist de versión, backup, pruebas y rollback.", momento: "Antes de producción" }
+        ]
+      },
+      {
+        id: "11-ux", nombre: "Experiencia de usuario", skills: [
+          { id: "ux-clarity", nombre: "UX Clarity", proposito: "Revisa lenguaje, carga cognitiva, accesibilidad.", momento: "Portal y apps" }
+        ]
+      }
     ]
   };
 
@@ -192,7 +216,12 @@
     }
     document.getElementById("main-content").focus?.();
     window.scrollTo({ top: 0, behavior: "auto" });
-    if (step === 4) renderPrompt();
+    if (step === 3) {
+      if (typeof renderGuiaDesarrollo === 'function') renderGuiaDesarrollo();
+    }
+    if (step === 4) {
+      actualizarScrollTabla();
+    }
   }
 
   function markStepComplete(step) {
@@ -281,7 +310,7 @@
 
   function initSeccion1() {
     document.getElementById("btnAddColaborador").addEventListener("click", () => addRow("capacidadRows", "tpl-colaborador-row", {}, calcularCapacidad));
-    document.getElementById("btnAddDolor").addEventListener("click", () => addRow("dolorRows", "tpl-dolor-row", { id_dolor: "" }, () => {}));
+    document.getElementById("btnAddDolor").addEventListener("click", () => addRow("dolorRows", "tpl-dolor-row", { id_dolor: "" }, () => { }));
     document.getElementById("btnAddTarea").addEventListener("click", () => addGanttRow());
     addRow("capacidadRows", "tpl-colaborador-row", {}, calcularCapacidad);
     initTareasHabituales();
@@ -425,14 +454,14 @@
     const tr = document.createElement("tr");
     tr.innerHTML = `
       <td><input data-f="id_tarea" value="${escAttr(data.id_tarea || `T-${tbody.children.length + 1}`)}" /></td>
-      <td><select data-f="jerarquia"><option${data.jerarquia==="Objetivo"?" selected":""}>Objetivo</option><option${!data.jerarquia||data.jerarquia==="Tarea"?" selected":""}>Tarea</option><option${data.jerarquia==="Subtarea"?" selected":""}>Subtarea</option></select></td>
+      <td><select data-f="jerarquia"><option${data.jerarquia === "Objetivo" ? " selected" : ""}>Objetivo</option><option${!data.jerarquia || data.jerarquia === "Tarea" ? " selected" : ""}>Tarea</option><option${data.jerarquia === "Subtarea" ? " selected" : ""}>Subtarea</option></select></td>
       <td><input data-f="nombre" value="${escAttr(data.nombre || "")}" /></td>
       <td><input data-f="encargado_proceso" value="${escAttr(data.encargado_proceso || "")}" /></td>
       <td><select data-f="simbolo_urgencia">
-            <option${data.simbolo_urgencia==="⚡ Urgente"?" selected":""}>⚡ Urgente</option>
-            <option${data.simbolo_urgencia==="🔥 Alta"?" selected":""}>🔥 Alta</option>
-            <option${!data.simbolo_urgencia||data.simbolo_urgencia==="➡️ Normal"?" selected":""}>➡️ Normal</option>
-            <option${data.simbolo_urgencia==="🧊 Baja"?" selected":""}>🧊 Baja</option>
+            <option${data.simbolo_urgencia === "⚡ Urgente" ? " selected" : ""}>⚡ Urgente</option>
+            <option${data.simbolo_urgencia === "🔥 Alta" ? " selected" : ""}>🔥 Alta</option>
+            <option${!data.simbolo_urgencia || data.simbolo_urgencia === "➡️ Normal" ? " selected" : ""}>➡️ Normal</option>
+            <option${data.simbolo_urgencia === "🧊 Baja" ? " selected" : ""}>🧊 Baja</option>
           </select></td>
       <td><input data-f="dependencia_id" value="${escAttr(data.dependencia_id || "")}" placeholder="ID" /></td>
       <td><input type="number" min="0" step="0.5" data-f="horas_estimadas" value="${escAttr(data.horas_estimadas || 0)}" style="width:4.5rem" /></td>
@@ -443,10 +472,10 @@
       <td><input type="date" data-f="fecha_fin_real" value="${escAttr(data.fecha_fin_real || "")}" /></td>
       <td><input type="number" min="0" max="100" data-f="porcentaje_avance" value="${escAttr(data.porcentaje_avance || 0)}" /></td>
       <td><select data-f="estado">
-            <option${!data.estado||data.estado==="No Iniciado"?" selected":""}>No Iniciado</option>
-            <option${data.estado==="En Proceso"?" selected":""}>En Proceso</option>
-            <option${data.estado==="En Riesgo"?" selected":""}>En Riesgo</option>
-            <option${data.estado==="Completado"?" selected":""}>Completado</option>
+            <option${!data.estado || data.estado === "No Iniciado" ? " selected" : ""}>No Iniciado</option>
+            <option${data.estado === "En Proceso" ? " selected" : ""}>En Proceso</option>
+            <option${data.estado === "En Riesgo" ? " selected" : ""}>En Riesgo</option>
+            <option${data.estado === "Completado" ? " selected" : ""}>Completado</option>
           </select></td>
       <td><button type="button" class="btn-icon" aria-label="Eliminar tarea">🗑️</button></td>`;
     tr.querySelector("button").addEventListener("click", () => { tr.remove(); refrescarVistaActiva(); actualizarScrollTabla(); });
@@ -862,67 +891,91 @@
 
   /* ------------------------------------------------------------------ SECCIÓN 2 */
   const PREGUNTAS_CLASIFICACION = [
-    { id: "entregable", opciones: [
-      { value: "documento", label: "Documento o Presentación", desc: "Reporte, resumen, propuesta, plantilla o diapositivas — ej. informe contable, manual de onboarding en RRHH." },
-      { value: "datos", label: "Procesamiento de Datos", desc: "Extracción, validación, conciliación o clasificación de datos — ej. revisión de facturas, análisis de nómina, tablas dinámicas." },
-      { value: "automatizacion", label: "Automatización o Script", desc: "Tarea repetitiva que conecta sistemas o ejecuta acciones — ej. envío masivo de correos, sincronización entre planillas y ERP." },
-      { value: "agente", label: "Asistente Conversacional o Agente", desc: "Chatbot o flujo autónomo para responder dudas o ejecutar tareas — ej. atención a consultas internas, soporte a empleados o clientes." }
-    ]},
-    { id: "mapeo_proceso", opciones: [
-      { value: "eventual", label: "Eventual o manual", desc: "Se hace de forma aislada cuando surge la necesidad." },
-      { value: "fija", label: "Repetitiva con pasos fijos", desc: "Sigue una lista de verificación o instructivo paso a paso claro." },
-      { value: "criterio", label: "Variable con criterio humano", desc: "Cada caso cambia y requiere revisar reglas o políticas de la empresa." },
-      { value: "interdepartamental", label: "Flujo continuo interdepartamental", desc: "Involucra a varias personas o áreas y múltiples aprobaciones." }
-    ]},
-    { id: "nivel_logica", opciones: [
-      { value: "minima", label: "Mínima (operativa)", desc: "Copiar, mover, formatear o calcular datos estandarizados." },
-      { value: "interpretacion", label: "Interpretación de texto o documentos", desc: "Leer PDFs, correos, contratos o políticas para extraer lo relevante." },
-      { value: "decision", label: "Toma de decisiones / reglas de negocio", desc: "Aplicar políticas (ej. aprobar/rechazar solicitudes, evaluar excepciones)." },
-      { value: "razonamiento", label: "Razonamiento complejo", desc: "Comparar escenarios, proyectar estados financieros o planificar recursos." }
-    ]},
-    { id: "fuente_datos", opciones: [
-      { value: "plantillas", label: "Plantillas o formularios estandarizados", desc: "Excel, Google Sheets, Forms." },
-      { value: "desestructurados", label: "Documentos desestructurados", desc: "PDFs, escaneos, correos, chats o notas de voz." },
-      { value: "sistemas", label: "Sistemas de la empresa", desc: "ERP, CRM, software de nómina, bases de datos o APIs." },
-      { value: "mezcla", label: "Mezcla de fuentes", desc: "Múltiples fuentes desordenadas." }
-    ]},
-    { id: "confidencialidad", opciones: [
-      { value: "bajo", label: "Uso interno / bajo riesgo", desc: "Formatos genéricos, minutas, redacción." },
-      { value: "moderado", label: "Operativo / riesgo moderado", desc: "Requiere revisión humana antes de enviar o aplicar." },
-      { value: "alto", label: "Financiero o RRHH / alto riesgo", desc: "Datos sensibles, nóminas, estados financieros o datos personales (requiere validación estricta y seguridad)." }
-    ]}
+    {
+      id: "entregable", opciones: [
+        { value: "documento", label: "Documento o Presentación", desc: "Reporte, resumen, propuesta, plantilla o diapositivas — ej. informe contable, manual de onboarding en RRHH." },
+        { value: "datos", label: "Procesamiento de Datos", desc: "Extracción, validación, conciliación o clasificación de datos — ej. revisión de facturas, análisis de nómina, tablas dinámicas." },
+        { value: "automatizacion", label: "Automatización o Script", desc: "Tarea repetitiva que conecta sistemas o ejecuta acciones — ej. envío masivo de correos, sincronización entre planillas y ERP." },
+        { value: "agente", label: "Asistente Conversacional o Agente", desc: "Chatbot o flujo autónomo para responder dudas o ejecutar tareas — ej. atención a consultas internas, soporte a empleados o clientes." }
+      ]
+    },
+    {
+      id: "mapeo_proceso", opciones: [
+        { value: "eventual", label: "Eventual o manual", desc: "Se hace de forma aislada cuando surge la necesidad." },
+        { value: "fija", label: "Repetitiva con pasos fijos", desc: "Sigue una lista de verificación o instructivo paso a paso claro." },
+        { value: "criterio", label: "Variable con criterio humano", desc: "Cada caso cambia y requiere revisar reglas o políticas de la empresa." },
+        { value: "interdepartamental", label: "Flujo continuo interdepartamental", desc: "Involucra a varias personas o áreas y múltiples aprobaciones." }
+      ]
+    },
+    {
+      id: "nivel_logica", opciones: [
+        { value: "minima", label: "Mínima (operativa)", desc: "Copiar, mover, formatear o calcular datos estandarizados." },
+        { value: "interpretacion", label: "Interpretación de texto o documentos", desc: "Leer PDFs, correos, contratos o políticas para extraer lo relevante." },
+        { value: "decision", label: "Toma de decisiones / reglas de negocio", desc: "Aplicar políticas (ej. aprobar/rechazar solicitudes, evaluar excepciones)." },
+        { value: "razonamiento", label: "Razonamiento complejo", desc: "Comparar escenarios, proyectar estados financieros o planificar recursos." }
+      ]
+    },
+    {
+      id: "fuente_datos", opciones: [
+        { value: "plantillas", label: "Plantillas o formularios estandarizados", desc: "Excel, Google Sheets, Forms." },
+        { value: "desestructurados", label: "Documentos desestructurados", desc: "PDFs, escaneos, correos, chats o notas de voz." },
+        { value: "sistemas", label: "Sistemas de la empresa", desc: "ERP, CRM, software de nómina, bases de datos o APIs." },
+        { value: "mezcla", label: "Mezcla de fuentes", desc: "Múltiples fuentes desordenadas." }
+      ]
+    },
+    {
+      id: "confidencialidad", opciones: [
+        { value: "bajo", label: "Uso interno / bajo riesgo", desc: "Formatos genéricos, minutas, redacción." },
+        { value: "moderado", label: "Operativo / riesgo moderado", desc: "Requiere revisión humana antes de enviar o aplicar." },
+        { value: "alto", label: "Financiero o RRHH / alto riesgo", desc: "Datos sensibles, nóminas, estados financieros o datos personales (requiere validación estricta y seguridad)." }
+      ]
+    }
   ];
 
   function calcularRecomendacionTecnica(r) {
     let rec;
     if (r.nivel_logica === "decision") {
-      rec = { nombre_tecnico: "Asistencia con aprobación humana (human-in-the-loop)", guia: "La IA prepara un borrador; una persona aprueba antes de ejecutar. No automatices la decisión final.", investigar_con_ia: "Patrones human-in-the-loop para aprobaciones con Claude.",
+      rec = {
+        nombre_tecnico: "Asistencia con aprobación humana (human-in-the-loop)", guia: "La IA prepara un borrador; una persona aprueba antes de ejecutar. No automatices la decisión final.", investigar_con_ia: "Patrones human-in-the-loop para aprobaciones con Claude.",
         requisitos: ["Un flujo de aprobación claro: quién revisa y cuándo.", "Acceso de Claude solo a los datos necesarios para el borrador."],
-        riesgos: ["Si nadie revisa a tiempo, el borrador se acumula sin usarse.", "Define qué pasa si alguien aprueba sin leer con atención."] };
+        riesgos: ["Si nadie revisa a tiempo, el borrador se acumula sin usarse.", "Define qué pasa si alguien aprueba sin leer con atención."]
+      };
     } else if (r.nivel_logica === "razonamiento" && r.fuente_datos === "sistemas") {
-      rec = { nombre_tecnico: "Agente con herramientas (tool use / MCP)", guia: "Define qué herramientas puede llamar el agente y sus límites: alcance, timeout, logs, mecanismo STOP.", investigar_con_ia: "Model Context Protocol (MCP) y tool use para conectar sistemas existentes.",
+      rec = {
+        nombre_tecnico: "Agente con herramientas (tool use / MCP)", guia: "Define qué herramientas puede llamar el agente y sus límites: alcance, timeout, logs, mecanismo STOP.", investigar_con_ia: "Model Context Protocol (MCP) y tool use para conectar sistemas existentes.",
         requisitos: ["Acceso técnico a las herramientas/sistemas que el agente va a llamar.", "Un mecanismo STOP y logs de cada acción ejecutada."],
-        riesgos: ["Mayor superficie de error: una herramienta mal definida puede ejecutar acciones no deseadas.", "Necesita pruebas en sandbox antes de tocar datos reales."] };
+        riesgos: ["Mayor superficie de error: una herramienta mal definida puede ejecutar acciones no deseadas.", "Necesita pruebas en sandbox antes de tocar datos reales."]
+      };
     } else if (r.entregable === "automatizacion" && r.mapeo_proceso === "fija" && r.nivel_logica === "minima") {
-      rec = { nombre_tecnico: "Automatización basada en reglas (Apps Script / Webhooks)", guia: "Conecta triggers fijos con Google Apps Script o un webhook simple. Sin IA generativa.", investigar_con_ia: "Cómo estructurar un trigger de Google Apps Script para esta tarea.",
+      rec = {
+        nombre_tecnico: "Automatización basada en reglas (Apps Script / Webhooks)", guia: "Conecta triggers fijos con Google Apps Script o un webhook simple. Sin IA generativa.", investigar_con_ia: "Cómo estructurar un trigger de Google Apps Script para esta tarea.",
         requisitos: ["Permisos de edición en Google Workspace o el sistema que dispara el webhook.", "Reglas de negocio ya estables — si cambian seguido, este nivel no alcanza."],
-        riesgos: ["No tiene criterio propio: un caso fuera de regla rompe el flujo en silencio.", "Necesita revisión manual periódica."] };
+        riesgos: ["No tiene criterio propio: un caso fuera de regla rompe el flujo en silencio.", "Necesita revisión manual periódica."]
+      };
     } else if (r.entregable === "datos" && (r.fuente_datos === "desestructurados" || r.fuente_datos === "mezcla")) {
-      rec = { nombre_tecnico: "Extracción estructurada (structured output)", guia: "Define un schema de salida (JSON) claro y un prompt de extracción con ejemplos.", investigar_con_ia: "Structured output / JSON mode para extraer datos de documentos.",
+      rec = {
+        nombre_tecnico: "Extracción estructurada (structured output)", guia: "Define un schema de salida (JSON) claro y un prompt de extracción con ejemplos.", investigar_con_ia: "Structured output / JSON mode para extraer datos de documentos.",
         requisitos: ["Ejemplos reales (o sintéticos) de los documentos a procesar.", "Un schema de salida acordado con quien consume los datos."],
-        riesgos: ["Documentos con formato muy variable bajan la precisión.", "Revisa una muestra antes de confiar en el resultado."] };
+        riesgos: ["Documentos con formato muy variable bajan la precisión.", "Revisa una muestra antes de confiar en el resultado."]
+      };
     } else if (r.nivel_logica === "interpretacion" && r.mapeo_proceso === "criterio") {
-      rec = { nombre_tecnico: "Skill / prompt estructurado (Claude)", guia: "Crea una skill reutilizable con instrucciones claras, ejemplos y límites de alcance.", investigar_con_ia: "Cómo escribir un system prompt / skill para esta tarea.",
+      rec = {
+        nombre_tecnico: "Skill / prompt estructurado (Claude)", guia: "Crea una skill reutilizable con instrucciones claras, ejemplos y límites de alcance.", investigar_con_ia: "Cómo escribir un system prompt / skill para esta tarea.",
         requisitos: ["Instrucciones claras y ejemplos de los casos típicos.", "Un lugar donde guardar la skill (repositorio o carpeta compartida)."],
-        riesgos: ["Sin límites de alcance definidos, la skill puede usarse para tareas que no fue pensada.", "Depende de que el equipo la mantenga actualizada."] };
+        riesgos: ["Sin límites de alcance definidos, la skill puede usarse para tareas que no fue pensada.", "Depende de que el equipo la mantenga actualizada."]
+      };
     } else if (r.entregable === "agente") {
-      rec = { nombre_tecnico: "Chat asistido en canal existente", guia: "Evalúa Claude en el canal donde ya trabaja tu equipo (Slack, chat interno) antes de construir algo nuevo.", investigar_con_ia: "Claude Tag / Claude en Slack.",
+      rec = {
+        nombre_tecnico: "Chat asistido en canal existente", guia: "Evalúa Claude en el canal donde ya trabaja tu equipo (Slack, chat interno) antes de construir algo nuevo.", investigar_con_ia: "Claude Tag / Claude en Slack.",
         requisitos: ["Acceso de Claude al canal, con permisos acotados.", "Una guía de qué preguntas responder y cuáles escalar a una persona."],
-        riesgos: ["Puede generar expectativa de disponibilidad 24/7 que no se puede sostener.", "Aclara que no reemplaza al responsable humano."] };
+        riesgos: ["Puede generar expectativa de disponibilidad 24/7 que no se puede sostener.", "Aclara que no reemplaza al responsable humano."]
+      };
     } else {
-      rec = { nombre_tecnico: "Presentación o documento de asistencia", guia: "Empieza simple: un documento o resumen generado a partir de este diagnóstico.", investigar_con_ia: "Cómo estructurar un prompt de resumen ejecutivo.",
+      rec = {
+        nombre_tecnico: "Presentación o documento de asistencia", guia: "Empieza simple: un documento o resumen generado a partir de este diagnóstico.", investigar_con_ia: "Cómo estructurar un prompt de resumen ejecutivo.",
         requisitos: ["Ninguno técnico — alcanza con acceso a Claude web o Claude Code."],
-        riesgos: ["Es el nivel más simple: si el proceso crece, vas a necesitar pasar a otro nivel."] };
+        riesgos: ["Es el nivel más simple: si el proceso crece, vas a necesitar pasar a otro nivel."]
+      };
     }
     rec.advertencia_seguridad = r.confidencialidad === "alto"
       ? "⚠️ Datos confidenciales/personales: se requiere aprobación de seguridad antes de conectar datos reales. Prototipa con datos sintéticos."
@@ -951,36 +1004,46 @@
 
   /* -------------------------------------------------- Evaluación de ecosistema (puntaje) */
   const PREGUNTAS_ECOSISTEMA = [
-    { id: "eco_frecuencia", pregunta: "1. Frecuencia y naturaleza del proceso", opciones: [
-      { value: "a", label: "Algo puntual, para mostrar una idea", puntos: 1 },
-      { value: "b", label: "Se repite, pero necesita que alguien decida o intervenga", puntos: 2 },
-      { value: "c", label: "Se repite siempre igual, con reglas fijas", puntos: 3 },
-      { value: "d", label: "Es dinámico, de varios pasos, con decisiones autónomas", puntos: 4 }
-    ]},
-    { id: "eco_datos", pregunta: "2. Formato de los datos de entrada", opciones: [
-      { value: "a", label: "Diapositivas, PDFs o notas de voz", puntos: 1 },
-      { value: "b", label: "Planillas (Excel, CSV, Google Sheets)", puntos: 2 },
-      { value: "c", label: "Formularios web, webhooks o archivos JSON/XML", puntos: 3 },
-      { value: "d", label: "APIs REST, bases de datos o scraping web", puntos: 4 }
-    ]},
-    { id: "eco_ecosistema", pregunta: "3. Ecosistema tecnológico disponible", opciones: [
-      { value: "a", label: "Solo herramientas de oficina (PowerPoint, Word)", puntos: 1 },
-      { value: "b", label: "Scripts simples (Google Apps Script, VBA)", puntos: 2 },
-      { value: "c", label: "Plataformas iPaaS (Make, Zapier, n8n) o Node.js/Python", puntos: 3 },
-      { value: "d", label: "Servidores dedicados, contenedores o entorno cloud", puntos: 4 }
-    ]},
-    { id: "eco_tolerancia", pregunta: "4. Tolerancia al error", opciones: [
-      { value: "a", label: "Indiferente, solo para visualizar", puntos: 1 },
-      { value: "b", label: "Moderada — revisas los resultados antes de usarlos", puntos: 2 },
-      { value: "c", label: "Baja — necesita reglas y validación estricta", puntos: 3 },
-      { value: "d", label: "Cero tolerancia — ejecuta acciones directas en otros sistemas", puntos: 4 }
-    ]},
-    { id: "eco_complejidad", pregunta: "5. Complejidad de las tareas actuales", opciones: [
-      { value: "a", label: "Estética o de presentación", puntos: 1 },
-      { value: "b", label: "Manipulación o limpieza de datos", puntos: 2 },
-      { value: "c", label: "Flujo de trabajo entre varios sistemas", puntos: 3 },
-      { value: "d", label: "Acciones contextuales complejas", puntos: 4 }
-    ]}
+    {
+      id: "eco_frecuencia", pregunta: "1. Frecuencia y naturaleza del proceso", opciones: [
+        { value: "a", label: "Algo puntual, para mostrar una idea", puntos: 1 },
+        { value: "b", label: "Se repite, pero necesita que alguien decida o intervenga", puntos: 2 },
+        { value: "c", label: "Se repite siempre igual, con reglas fijas", puntos: 3 },
+        { value: "d", label: "Es dinámico, de varios pasos, con decisiones autónomas", puntos: 4 }
+      ]
+    },
+    {
+      id: "eco_datos", pregunta: "2. Formato de los datos de entrada", opciones: [
+        { value: "a", label: "Diapositivas, PDFs o notas de voz", puntos: 1 },
+        { value: "b", label: "Planillas (Excel, CSV, Google Sheets)", puntos: 2 },
+        { value: "c", label: "Formularios web, webhooks o archivos JSON/XML", puntos: 3 },
+        { value: "d", label: "APIs REST, bases de datos o scraping web", puntos: 4 }
+      ]
+    },
+    {
+      id: "eco_ecosistema", pregunta: "3. Ecosistema tecnológico disponible", opciones: [
+        { value: "a", label: "Solo herramientas de oficina (PowerPoint, Word)", puntos: 1 },
+        { value: "b", label: "Scripts simples (Google Apps Script, VBA)", puntos: 2 },
+        { value: "c", label: "Plataformas iPaaS (Make, Zapier, n8n) o Node.js/Python", puntos: 3 },
+        { value: "d", label: "Servidores dedicados, contenedores o entorno cloud", puntos: 4 }
+      ]
+    },
+    {
+      id: "eco_tolerancia", pregunta: "4. Tolerancia al error", opciones: [
+        { value: "a", label: "Indiferente, solo para visualizar", puntos: 1 },
+        { value: "b", label: "Moderada — revisas los resultados antes de usarlos", puntos: 2 },
+        { value: "c", label: "Baja — necesita reglas y validación estricta", puntos: 3 },
+        { value: "d", label: "Cero tolerancia — ejecuta acciones directas en otros sistemas", puntos: 4 }
+      ]
+    },
+    {
+      id: "eco_complejidad", pregunta: "5. Complejidad de las tareas actuales", opciones: [
+        { value: "a", label: "Estética o de presentación", puntos: 1 },
+        { value: "b", label: "Manipulación o limpieza de datos", puntos: 2 },
+        { value: "c", label: "Flujo de trabajo entre varios sistemas", puntos: 3 },
+        { value: "d", label: "Acciones contextuales complejas", puntos: 4 }
+      ]
+    }
   ];
 
   function calcularNivelEcosistema(puntaje) {
@@ -1091,45 +1154,22 @@
       </div>`;
   }
 
-  function renderSkillsCatalog() {
-    const wrap = document.getElementById("skillsCatalog");
-    wrap.innerHTML = "";
-    SKILLS_CATALOG.categorias.forEach(cat => {
-      const group = document.createElement("div");
-      group.className = "skills-group";
-      group.innerHTML = `<h3>${cat.nombre}</h3>`;
-      cat.skills.forEach(sk => {
-        const card = document.createElement("label");
-        card.className = "skill-card";
-        card.innerHTML = `<input type="checkbox" data-skill-id="${sk.id}" />
-          <span><strong>${sk.nombre}</strong><span>${sk.proposito} · ${sk.momento}</span></span>`;
-        group.appendChild(card);
-      });
-      wrap.appendChild(group);
-    });
-  }
-
-  function readSelectedSkills() {
-    return Array.from(document.querySelectorAll("#skillsCatalog input[type=checkbox]:checked")).map(cb => ({
-      skill_id: cb.dataset.skillId, justificacion: "", prioridad: "Media"
-    }));
-  }
-
   function exportSkillsDictionary() {
-    const seleccion = readSelectedSkills();
     const nombre = state.seccion_1_ordenar_trabajo.metadata_proceso.nombre_proceso || "proceso";
     const md = [
-      `# Diccionario de skills — ${nombre}`,
+      `# Diccionario de Recursos y Skills — ${nombre}`,
       "",
-      "> Cargar como instrucciones personalizadas / system prompt en Claude.",
+      "> Información para cargar como instrucciones en tu asistente de IA.",
       ""
     ];
-    seleccion.forEach(s => {
-      const found = SKILLS_CATALOG.categorias.flatMap(c => c.skills).find(sk => sk.id === s.skill_id);
-      if (found) md.push(`## ${found.nombre}\n- **Propósito:** ${found.proposito}\n- **Momento:** ${found.momento}\n`);
+    SKILLS_CATALOG.categorias.forEach(cat => {
+      md.push(`## ${cat.nombre}`);
+      cat.skills.forEach(sk => {
+        md.push(`- **${sk.nombre}**: ${sk.proposito} _(${sk.momento})_`);
+      });
+      md.push("");
     });
-    if (!seleccion.length) md.push("_(Ninguna skill seleccionada aún)_");
-    downloadText(`diccionario-skills-${nombre.replace(/\s+/g, "-").toLowerCase() || "proceso"}.md`, md.join("\n"));
+    downloadText(`catalogo-recursos-${nombre.replace(/\s+/g, "-").toLowerCase() || "proceso"}.md`, md.join("\n"));
   }
 
   /* ------------------------------------------------------------------ SECCIÓN 3 */
@@ -1148,13 +1188,7 @@
       picker.appendChild(opt);
     });
 
-    document.getElementById("btnAddKpi").addEventListener("click", addKpiRow);
-    addKpiRow();
-
-    ["s3_ahorro_horas", "s3_costo_hora"].forEach(id => document.getElementById(id).addEventListener("input", updateRoi));
-    updateRoi();
-
-    document.getElementById("btnExportResumen").addEventListener("click", exportResumenEjecutivo);
+    document.getElementById("btnExportSkills").addEventListener("click", exportSkillsDictionary);
   }
 
   function selectLevel(levelId) {
@@ -1162,6 +1196,7 @@
     document.querySelectorAll(".level-option").forEach(el => el.setAttribute("aria-checked", el.dataset.level === levelId ? "true" : "false"));
     const lv = LEVELS.find(l => l.id === levelId);
     document.getElementById("levelWhy").textContent = lv ? `💡 ${lv.why}` : "";
+    renderGuiaDesarrollo();
   }
 
   function addKpiRow(data) {
@@ -1173,7 +1208,7 @@
       <td><input data-f="unidad_medida" value="${data.unidad_medida || ""}" /></td>
       <td><input type="number" step="0.1" data-f="valor_actual_as_is" value="${data.valor_actual_as_is || 0}" /></td>
       <td><input type="number" step="0.1" data-f="meta_esperada_to_be" value="${data.meta_esperada_to_be || 0}" /></td>
-      <td><select data-f="frecuencia_medicion"><option${!data.frecuencia_medicion||data.frecuencia_medicion==="Diario"?" selected":""}>Diario</option><option${data.frecuencia_medicion==="Semanal"?" selected":""}>Semanal</option><option${data.frecuencia_medicion==="Mensual"?" selected":""}>Mensual</option></select></td>
+      <td><select data-f="frecuencia_medicion"><option${!data.frecuencia_medicion || data.frecuencia_medicion === "Diario" ? " selected" : ""}>Diario</option><option${data.frecuencia_medicion === "Semanal" ? " selected" : ""}>Semanal</option><option${data.frecuencia_medicion === "Mensual" ? " selected" : ""}>Mensual</option></select></td>
       <td><input data-f="origen_datos_google" value="${data.origen_datos_google || ""}" placeholder="Sheets, Looker…" /></td>
       <td><button type="button" class="btn-icon" aria-label="Eliminar KPI">🗑️</button></td>`;
     tr.querySelector("button").addEventListener("click", () => tr.remove());
@@ -1223,96 +1258,125 @@
 
   /* ------------------------------------------------------------------ SECCIÓN 4 */
   function initSeccion4() {
-    renderSkillsCatalog();
-    document.getElementById("btnExportSkills").addEventListener("click", exportSkillsDictionary);
-    document.getElementById("btnAddChecklist").addEventListener("click", () => addRow("checklistRows", "tpl-checklist-row", { item: "" }, () => {}));
-    ["Validar que no se incluyó información confidencial", "Probar con datos sintéticos en sandbox", "Revisar permisos mínimos (least privilege)", "Definir rollback / mecanismo STOP", "Obtener aprobación del sponsor"].forEach(item => addRow("checklistRows", "tpl-checklist-row", { item }, () => {}));
-    document.getElementById("btnCopyPrompt").addEventListener("click", () => {
-      navigator.clipboard?.writeText(document.getElementById("promptOutput").textContent);
-      setIoStatus("Prompt copiado al portapapeles.");
-    });
-    document.getElementById("btnCopyPromptDebug").addEventListener("click", () => {
-      navigator.clipboard?.writeText(document.getElementById("promptDebugOutput").textContent);
-      setIoStatus("Prompt de depuración copiado al portapapeles.");
-    });
-    document.getElementById("btnCopyPromptTest").addEventListener("click", () => {
-      navigator.clipboard?.writeText(document.getElementById("promptTestOutput").textContent);
-      setIoStatus("Prompt de pruebas copiado al portapapeles.");
-    });
+    document.getElementById("btnAddKpi").addEventListener("click", addKpiRow);
+
+    ["s3_ahorro_horas", "s3_costo_hora"].forEach(id => document.getElementById(id).addEventListener("input", updateRoi));
+
+    document.getElementById("btnExportResumen").addEventListener("click", exportResumenEjecutivo);
+
+    document.getElementById("btnAddChecklist").addEventListener("click", () => addRow("checklistRows", "tpl-checklist-row", { item: "" }, () => { }));
+    ["Validar que no se incluyó información confidencial", "Probar con datos sintéticos en sandbox", "Revisar permisos mínimos (least privilege)", "Definir rollback / mecanismo STOP", "Obtener aprobación del sponsor"].forEach(item => addRow("checklistRows", "tpl-checklist-row", { item }, () => { }));
+
     document.getElementById("btnFinalize").addEventListener("click", exportManualCompleto);
   }
 
-  function renderPrompt() {
+  function renderGuiaDesarrollo() {
     collectState();
     const s1 = state.seccion_1_ordenar_trabajo.metadata_proceso;
     const s2 = state.seccion_2_clasificacion_proyecto.recomendacion;
     const s3 = state.seccion_3_compresion_proyecto;
-    const skills = state.seccion_4_indicadores_desarrollo.skills_seleccionadas
-      .map(s => SKILLS_CATALOG.categorias.flatMap(c => c.skills).find(sk => sk.id === s.skill_id))
-      .filter(Boolean);
 
-    const prompt = [
-      `Actúa como mi arquitecto/desarrollador para construir la siguiente solución interna.`,
-      ``,
-      `### Contexto (desinfectado, sin datos confidenciales)`,
-      `- Proceso: ${s1.nombre_proceso || "[COMPLETAR]"}`,
-      `- Departamento: ${s1.departamento || "[COMPLETAR]"}`,
-      `- Nivel de solución objetivo: ${s3.nivel_solucion || "[COMPLETAR]"}`,
-      `- Recomendación técnica (Sección 2): ${s2.nombre_tecnico || "[COMPLETAR — responde la Sección 2]"}`,
-      s2.investigar_con_ia ? `- Para profundizar, investiga: ${s2.investigar_con_ia}` : "",
-      s2.advertencia_seguridad ? `- ${s2.advertencia_seguridad}` : "",
-      ``,
-      `### Restricciones`,
-      `- No usar datos reales de clientes, empleados ni cifras confidenciales; usar datos sintéticos.`,
-      `- No instalar herramientas externas sin mostrar antes el plan.`,
-      `- No ejecutar acciones destructivas sin mi aprobación explícita.`,
-      `- Preferir Google Workspace (Forms, Sheets, Apps Script) antes que infraestructura nueva.`,
-      ``,
-      `### Skills a cargar como contexto`,
-      skills.length ? skills.map(sk => `- ${sk.id}: ${sk.proposito}`).join("\n") : "- (ninguna seleccionada aún en la Sección 4)",
-      ``,
-      `### Paso 1 — Diagnóstico`,
-      `Antes de escribir código, confirma que entendiste el proceso y lista qué información falta.`,
-      ``,
-      `### Paso 2 — Propuesta`,
-      `Propón la arquitectura mínima viable acorde al nivel de solución indicado. Sin backend salvo que sea estrictamente necesario.`,
-      ``,
-      `### Paso 3 — Plan de pruebas`,
-      `Define cómo se probará en sandbox con datos sintéticos antes de tocar el proceso real.`,
-      ``,
-      `### Resultado esperado`,
-      `Entrega incremental: primero el mínimo funcionando, luego pregunta qué bloque activar a continuación. No construyas todo de una vez.`
-    ].join("\n");
+    if (!s3.nivel_solucion) return;
 
-    document.getElementById("promptOutput").textContent = prompt;
-    renderPromptsSecundarios();
-  }
+    let guiaAvanzada = "";
 
-  function renderPromptsSecundarios() {
-    const promptDebug = [
-      `Actúa como ingeniero de software senior haciendo debugging sobre la solución que construiste a partir del prompt principal.`,
-      ``,
-      `Te voy a describir un error o comportamiento inesperado. Antes de proponer una corrección:`,
-      `1. Reproduce el problema paso a paso con la información que te doy.`,
-      `2. Identifica la causa raíz, no el síntoma.`,
-      `3. Propón el fix mínimo necesario — no reescribas código que no esté relacionado con el error.`,
-      ``,
-      `Si te falta información para reproducir el error, pregúntamela antes de adivinar.`
-    ].join("\n");
+    if (s3.nivel_solucion.includes("Nivel 1")) {
+      guiaAvanzada = `
+        <div style="margin-bottom: 1.5rem;">
+          <p class="hint-title"><strong>Arquitectura y Conceptos Básicos</strong></p>
+          <p style="font-size: .85rem; color: var(--color-text);">Para este nivel, el enfoque es conversacional (Chat). La IA actúa como un analista o revisor. No necesitas integraciones técnicas complejas, simplemente debes proporcionar contexto claro y el borrador de lo que deseas mejorar.</p>
+        </div>
+        <div style="margin-bottom: 1.5rem;">
+          <p class="hint-title"><strong>💡 Qué pedir a la IA para generar el material</strong></p>
+          <ul class="hint-list">
+            <li>Pide que te sugiera una estructura óptima para el tipo de documento o presentación (índice, capítulos).</li>
+            <li>Define la <strong>audiencia</strong> (ej. directivos, clientes) y pídele que ajuste el tono y el vocabulario.</li>
+            <li>Solicita una iteración tipo <em>Brainstorming</em> (lluvia de ideas guiada) antes de que la IA genere el contenido final estructurado.</li>
+          </ul>
+        </div>
+        <div style="margin-bottom: 1.5rem;">
+          <p class="hint-title"><strong>⚠️ Prevenciones y Criterio</strong></p>
+          <ul class="hint-list">
+            <li><strong>Desarrollo del Criterio:</strong> No puedes desarrollar criterio si no lees y analizas las discrepancias en lo que la IA te responde. Revisa cuidadosamente cada respuesta, la IA es propensa a inventar datos que suenan convincentes.</li>
+            <li><strong>Seguridad de Datos:</strong> Bajo ningún motivo incluyas datos confidenciales de la empresa (márgenes comerciales reales, balances puros, contraseñas) en la ventana de chat. Usa nombres inventados (datos sintéticos) como "Empresa X".</li>
+          </ul>
+        </div>
+      `;
+    } else if (s3.nivel_solucion.includes("Nivel 2")) {
+      guiaAvanzada = `
+        <div style="margin-bottom: 1.5rem;">
+          <p class="hint-title"><strong>Arquitectura y Conceptos Básicos</strong></p>
+          <p style="font-size: .85rem; color: var(--color-text);">La IA actuará como tu desarrollador copiloto. Se trata de construir automatizaciones mediante código simple (ej. Macros, Python, Google Apps Script) en la cual la IA genera el código y tú lo pruebas y pones en funcionamiento en un sistema tradicional.</p>
+        </div>
+        <div style="margin-bottom: 1.5rem;">
+          <p class="hint-title"><strong>💡 Qué pedir a la IA para tu Prompt</strong></p>
+          <ul class="hint-list">
+            <li>Pídele que diseñe pequeños <strong>bloques de código</strong> ("funciones") que hagan una sola cosa a la vez (Divide y Vencerás). No pidas el sistema completo en tu primer mensaje.</li>
+            <li>Solicita que el código esté abundantemente <strong>comentado</strong>. Si no entiendes qué hace una línea crucial, exígele que te la explique con metáforas simples antes de ejecutarla.</li>
+          </ul>
+        </div>
+        <div style="margin-bottom: 1.5rem;">
+          <p class="hint-title"><strong>⚠️ Prevenciones y Criterio</strong></p>
+          <ul class="hint-list">
+            <li><strong>Ahorro de Tokens y Contexto:</strong> No envíes sábanas de código gigantes si sabes que el error está en una sola línea. Al aislar las secciones, liberas tokens y reduces confusión.</li>
+            <li><strong>Test de Código:</strong> Prueba cada paso (Unit Test manual) usando planillas y variables de prueba (sandbox). <em>Nunca ejecutes un código nuevo directamente sobre bases de datos o sistemas de producción reales</em>.</li>
+            <li><strong>Formar el Criterio:</strong> Al usar la IA para depurar (debugging), no copies/pegues los errores ciegamente; reflexiona con la herramienta. Así formarás tu intuición algorítmica sobre por qué fallan ciertas cosas.</li>
+          </ul>
+        </div>
+      `;
+    } else if (s3.nivel_solucion.includes("Nivel 3")) {
+      guiaAvanzada = `
+        <div style="margin-bottom: 1.5rem;">
+          <p class="hint-title"><strong>Arquitectura y Conceptos Básicos</strong></p>
+          <p style="font-size: .85rem; color: var(--color-text);">Tu proyecto demanda transformar la IA conversacional en un nodo analítico (Prompt Structure / Skills). En vez de chatear libremente, deberás construir plantillas de instrucciones restrictivas (system prompts) que guían a la IA lógica y procesalmente a través de un flujo fijo (Chain of Thought).</p>
+        </div>
+        <div style="margin-bottom: 1.5rem;">
+          <p class="hint-title"><strong>💡 Qué pedir a la IA para tu Prompt</strong></p>
+          <ul class="hint-list">
+            <li>Pide a la IA que, utilizando tus mejores ejemplos resueltos, extraiga un marco de trabajo que servirá después como la "regla general estructurada" (tú le das los casos base, ella construye los pasos evaluadores).</li>
+            <li>Instruye explícitamente a la IA sobre qué <strong>formato exacto de salida</strong> esperas (ej. JSON puro, plantilla con viñetas) y demándale prohibir variaciones creativas.</li>
+            <li>Proporciónale "Reglas de Escape de Excepción", pidiéndole: "¿bajo qué casos precisos te negarías a procesar la data por considerarla incompleta o anómala?".</li>
+          </ul>
+        </div>
+        <div style="margin-bottom: 1.5rem;">
+          <p class="hint-title"><strong>⚠️ Prevenciones y Criterio</strong></p>
+          <ul class="hint-list">
+            <li><strong>Parálisis por Exceso de Contexto:</strong> Llenar el prompt con 20 páginas de "cultura general y marco histórico de la empresa" confundirá gravemente al modelo, licuando su atencionalidad. Solo incluye el contexto estricto y mecánico que la IA necesita para resolver la tarea en cuestión hoy.</li>
+            <li><strong>Criterio Empírico por Iteración:</strong> Es ingenuo pretender diseñar el <em>Prompt maestro</em> en el primer intento. El criterio madura interactuando: manda 10 escenarios intencionalmente engañosos a la IA, extrae donde falló, y perfecciona las reglas de la plantilla con esas lecciones.</li>
+          </ul>
+        </div>
+      `;
+    } else if (s3.nivel_solucion.includes("Nivel 4")) {
+      guiaAvanzada = `
+        <div style="margin-bottom: 1.5rem;">
+          <p class="hint-title"><strong>Arquitectura y Conceptos Básicos</strong></p>
+          <p style="font-size: .85rem; color: var(--color-text);">Implementación de Agentes Autónomos integrados con herramientas (MCP, APIs, Plugins directos). La IA actuará como orquestador cognitivo: lee opciones, genera su propio razonamiento interno, llama a los sistemas para extraer datos u operar, e interactúa con el usuario final de manera independiente (Agentic Workflow). Requiere profunda gobernanza.</p>
+        </div>
+        <div style="margin-bottom: 1.5rem;">
+          <p class="hint-title"><strong>💡 Qué pedir a la IA al planificar</strong></p>
+          <ul class="hint-list">
+            <li>Pídele a la IA en tu iteración inicial que actúe como un arquitecto enterprise: que diagrame y audite la arquitectura modular detallando cada componente y herramienta externa requerida (bases de datos a afectar, APIs a llamar).</li>
+            <li>Solicita la generación de instrucciones de "Self-Correction" y mecanismos de <em>Escalamiento Humano</em>, forzando a la autonomía a detenerse y generar un trigger si detecta un margen de incertidumbre no mapeado.</li>
+          </ul>
+        </div>
+        <div style="margin-bottom: 1.5rem;">
+          <p class="hint-title"><strong>⚠️ Prevenciones y Criterio Estricto</strong></p>
+          <ul class="hint-list">
+            <li><strong>Micro-Gestión a Macro-Gestión:</strong> Formarte un criterio como orquestador en este nivel implica entender los patrones de fallos, y no operar los flujos por tu cuenta. Se requiere delegar basándote en los reportes del agente, pero supervisando la métrica real.</li>
+            <li><strong>Límites y Consumo (Cortocircuitos):</strong> Un agente atascado puede entrar en un <em>loop o bucle</em> infinito que quema la cuota de tokens. Debes forzar logs robustos y fijar topes duros de intentos antes de un apagado preventivo (Kill Switch).</li>
+            <li><strong>Least Privilege y Aprobación:</strong> Nunca expongas la mutación de bases de datos críticas sin un middleware de aprobación humana incrustado en el flujo (Human-in-the-Loop) como norma absoluta para este tipo de pilotos iniciales.</li>
+          </ul>
+        </div>
+      `;
+    }
 
-    const promptTest = [
-      `Actúa como ingeniero de QA sobre la solución que construiste a partir del prompt principal.`,
-      ``,
-      `Genera un plan de pruebas breve:`,
-      `1. Casos felices (el flujo esperado funcionando bien).`,
-      `2. Casos límite (datos vacíos, muy grandes, formato inesperado).`,
-      `3. Casos con datos sintéticos que simulen los reales, sin usar información confidencial.`,
-      ``,
-      `Si la solución no tiene un framework de testing configurado, prioriza pruebas manuales simples y dime paso a paso cómo ejecutarlas.`
-    ].join("\n");
+    let html = `<h4>Comprensión Estratégica del Nivel de Solución</h4>`;
+    html += `<p style="margin-bottom: 1rem; font-size: 0.85rem; color: var(--color-text-muted);">
+      Proceso: <strong>${escHtml(s1.nombre_proceso || 'tu proceso')}</strong> <br> Recomendación detectada: <strong>${escHtml(s2.nombre_tecnico || 'esperando datos de la Etapa 2')}</strong>.
+    </p>`;
+    html += guiaAvanzada;
 
-    document.getElementById("promptDebugOutput").textContent = promptDebug;
-    document.getElementById("promptTestOutput").textContent = promptTest;
+    document.getElementById("guiaDesarrollo").innerHTML = html;
   }
 
   function exportManualCompleto() {
@@ -1320,38 +1384,27 @@
     markStepComplete(4);
     const s = state;
     const md = [
-      `# Manual de implementación — ${s.seccion_1_ordenar_trabajo.metadata_proceso.nombre_proceso || s.app_meta.id_expediente}`,
+      `# Manual de Implementación — ${s.seccion_1_ordenar_trabajo.metadata_proceso.nombre_proceso || s.app_meta.id_expediente}`,
       `Expediente: ${s.app_meta.id_expediente} · Generado: ${new Date().toLocaleDateString()}`,
       "",
-      "## 1. Prompt para Claude / Claude Code",
-      "```",
-      document.getElementById("promptOutput").textContent,
-      "```",
+      "## 1. Recomendación y Nivel de Solución",
+      `- **Recomendación Técnica:** ${s.seccion_2_clasificacion_proyecto.recomendacion?.nombre_tecnico || "—"}`,
+      `- **Nivel:** ${s.seccion_3_compresion_proyecto.nivel_solucion || "—"}`,
       "",
-      "## 2. Prompts secundarios",
-      "### Depuración de errores",
-      "```",
-      document.getElementById("promptDebugOutput").textContent,
-      "```",
-      "### Plan de pruebas",
-      "```",
-      document.getElementById("promptTestOutput").textContent,
-      "```",
-      "",
-      "## 3. Checklist de sandbox",
+      "## 2. Checklist de Seguridad / Emisión al Piloto",
       ...readRows("checklistRows", ["item", "completado"]).map(c => `- [${c.completado ? "x" : " "}] ${c.item}`),
       "",
-      "## 4. Gestión del cambio",
+      "## 3. Gestión del Cambio",
       `- Sponsor: ${document.getElementById("s4_sponsor").value || "—"}`,
       `- Fecha de revisión del piloto: ${document.getElementById("s4_fecha_revision").value || "—"}`,
       "",
-      "## 5. Estado completo del expediente",
+      "## 4. Estado completo del expediente",
       "```json",
       JSON.stringify(s, null, 2),
       "```"
     ];
-    downloadText(`manual-implementacion-${s.app_meta.id_expediente}.md`, md.join("\n"));
-    setIoStatus("Manual de implementación descargado.");
+    downloadText(`plan-proyecto-${s.app_meta.id_expediente}.md`, md.join("\n"));
+    setIoStatus("Plan de proyecto descargado.");
   }
 
   /* ------------------------------------------------------------------ COLLECT / HYDRATE */
@@ -1377,7 +1430,7 @@
     s1.puntos_de_dolor = readRows("dolorRows", ["categoria", "descripcion", "nivel_severidad"]).map((d, i) => ({ id_dolor: `PAIN-${String(i + 1).padStart(2, "0")}`, ...d }));
     s1.cronograma_gantt = readGantt();
 
-    state.seccion_4_indicadores_desarrollo.skills_seleccionadas = readSelectedSkills();
+    // skills_seleccionadas ya no se gestiona mediante UI. Se eliminó la colección manual
 
     state.seccion_3_compresion_proyecto.kpis_y_metricas_clave = readKpis();
     state.seccion_3_compresion_proyecto.comparativo_automatizacion = readComparativoAutomatizacion();
@@ -1424,7 +1477,7 @@
     calcularCapacidad();
 
     document.getElementById("dolorRows").innerHTML = "";
-    s1.puntos_de_dolor.forEach(d => addRow("dolorRows", "tpl-dolor-row", d, () => {}));
+    s1.puntos_de_dolor.forEach(d => addRow("dolorRows", "tpl-dolor-row", d, () => { }));
 
     document.getElementById("ganttBody").innerHTML = "";
     (s1.cronograma_gantt.length ? s1.cronograma_gantt : []).forEach(addGanttRow);
@@ -1441,8 +1494,7 @@
     });
     if (!Object.keys(ecoRespuestas).length) renderEcosistema();
 
-    const selectedIds = new Set((state.seccion_4_indicadores_desarrollo.skills_seleccionadas || []).map(s => s.skill_id));
-    document.querySelectorAll("#skillsCatalog input[type=checkbox]").forEach(cb => { cb.checked = selectedIds.has(cb.dataset.skillId); });
+    // skills_seleccionadas dependencias removidas
 
     const s3 = state.seccion_3_compresion_proyecto;
     if (s3.nivel_solucion) selectLevel(s3.nivel_solucion);
@@ -1455,7 +1507,7 @@
 
     const s4 = state.seccion_4_indicadores_desarrollo;
     document.getElementById("checklistRows").innerHTML = "";
-    (s4.plan_gestion_cambio.checklist.length ? s4.plan_gestion_cambio.checklist : []).forEach(c => addRow("checklistRows", "tpl-checklist-row", c, () => {}));
+    (s4.plan_gestion_cambio.checklist.length ? s4.plan_gestion_cambio.checklist : []).forEach(c => addRow("checklistRows", "tpl-checklist-row", c, () => { }));
     setVal("s4_sponsor", s4.plan_gestion_cambio.responsable_sponsor);
     setVal("s4_fecha_revision", s4.plan_gestion_cambio.fecha_revision_piloto);
 
