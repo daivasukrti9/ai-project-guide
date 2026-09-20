@@ -208,9 +208,19 @@
           "enum": [
             "Nivel 1: Presentación / Documento de Asistencia",
             "Nivel 2: Herramienta / Script de Automatización Fija",
-            "Nivel 3: Skill / Prompt Estructurado",
+            "Nivel 3: Herramienta / Visualización / Conjunto de Funciones",
             "Nivel 4: Agente Autónomo / Multi-herramienta"
           ]
+        },
+        "sugerencias_seleccionadas": {
+          "type": "array",
+          "description": "Ids de las ideas marcadas en la galería de la Sección 3 (ej. \"c1\", \"c4\"). Pertenecen al nivel seleccionado: al cambiar de nivel se vacía.",
+          "items": { "type": "string" }
+        },
+        "ia_preferida": {
+          "type": "string",
+          "description": "Asistente elegido para el prompt maestro. Solo afecta la nota final del prompt; no hay llamadas a esa IA.",
+          "enum": ["", "chatgpt", "claude", "gemini", "deepseek"]
         },
         "tecnologias_sugeridas": { "type": "array", "items": { "type": "string" } },
         "kpis_y_metricas_clave": {

@@ -12,7 +12,9 @@ punto de partida de cada proyecto nuevo.
 ## Stack
 - HTML/CSS/JS vanilla, sin build step, sin framework, sin backend.
 - Persistencia por archivo: JSON descargable/importable (drag&drop).
-- Exportables: `.json` (estado), `.md` (resúmenes/diccionario/manual), PDF vía impresión del navegador.
+- Exportables: `.json` (estado), `.md` (resúmenes/diccionario/manual/prompt maestro), PDF vía impresión
+  del navegador (el catálogo de la Sección 3 se imprime desde `#docCatalogo`, un documento oculto que
+  `@media print` deja como único contenido visible).
 - Prototipado/puente opcional: notebook de Google Colab (ver `docs/notebook_colab_ai_project_guide.ipynb`).
 
 ## Comandos principales
@@ -28,10 +30,16 @@ punto de partida de cada proyecto nuevo.
 ## Arquitectura resumida
 ```
 src/
-├── index.html          # 4 secciones del wizard + sidebar de progreso
-├── styles.css           # tema claro/oscuro, accesible, print-friendly
+├── index.html            # 4 secciones del wizard + sidebar de progreso
+├── styles.css            # tema claro/oscuro, accesible, print-friendly
 ├── app.js                # estado en memoria, cálculos, import/export JSON
-└── skills-catalog.json   # catálogo de skills (fuente portable, también embebido en app.js)
+├── contenido-guias.js    # solo datos: galerías de ideas por nivel, guía de IA y catálogo del PDF
+├── skills-catalog.json   # catálogo de skills (fuente portable, también embebido en app.js)
+├── ilustracion-chica.png # hero del wizard
+└── ilustracion-catalogo.png # portada del catálogo descargable
+knowledge/
+├── sugerencias-desarrollo-pagina3.md        # fuente editorial de las galerías de la Sección 3
+└── catalogo-recursos-proyecto-usuario.md    # fuente editorial del catálogo PDF
 docs/
 ├── architecture/schema-persistencia.json   # JSON Schema del payload de estado
 ├── guia-prompts-claude.md                   # plantillas de prompts (Sección 4)

@@ -379,7 +379,38 @@
       <section class="wizard-panel" id="panel-3" data-panel="3" hidden>
 
         <fieldset class="card">
-          <legend>Nivel de solución recomendado</legend>
+          <legend>⚙️ Antes de elegir: conceptos clave y precauciones</legend>
+          <div class="hint hint-card">
+            <p class="hint-title">Tres piezas que aparecen en toda conversación sobre proyectos con IA:</p>
+            <ul class="hint-list">
+              <li><strong>Instrucción / Skill:</strong> reglas reutilizables para que la IA actúe de forma consistente.
+                Se guardan en las "instrucciones del sistema" o en proyectos.</li>
+              <li><strong>Plugin / Integración:</strong> un paquete que agrupa funciones y permite que la IA ejecute
+                tareas avanzadas (convertir a PDF, enviar correos, procesar planillas).</li>
+              <li><strong>MCP (Model Context Protocol):</strong> conexión técnica real a una herramienta externa (Drive,
+                bases de datos, APIs). Requiere revisión de seguridad exhaustiva.</li>
+            </ul>
+            <p class="hint-footnote">🛡️ Precaución: no instales ni conectes herramientas de red ni permisos sobre tus
+              archivos sin revisar antes qué datos pueden leer o modificar.</p>
+          </div>
+
+          <details class="calc-helper">
+            <summary>🔍 Formación de criterio: cómo investigar un error (bug) con la IA</summary>
+            <ul class="hint-list" style="margin-top:.75rem">
+              <li><strong>Aísla antes de preguntar.</strong> No pegues el archivo entero si sabes que el fallo está en
+                un paso concreto: acotar ahorra contexto y reduce respuestas confusas.</li>
+              <li><strong>Pide la causa, no solo el parche.</strong> Exige que te explique <em>por qué</em> falló antes
+                de aceptar el código corregido. Si no entiendes la explicación, pídela con una metáfora simple.</li>
+              <li><strong>Contrasta lo que te responde.</strong> La IA puede inventar datos que suenan convincentes.
+                Verifica cifras, nombres de funciones y rutas de archivo antes de usarlos.</li>
+              <li><strong>Prueba en un espacio seguro.</strong> Nunca ejecutes algo nuevo sobre archivos o sistemas
+                reales: usa una copia con datos sintéticos.</li>
+            </ul>
+          </details>
+        </fieldset>
+
+        <fieldset class="card">
+          <legend>Selecciona el tipo de desarrollo que deseas explorar</legend>
           <div class="level-picker" id="levelPicker" role="radiogroup" aria-label="Nivel de solución"></div>
           <div class="callout" id="levelWhy" aria-live="polite"></div>
         </fieldset>
@@ -390,36 +421,52 @@
             solicitar ayuda a un asistente de Inteligencia Artificial (IA).</p>
 
           <div id="guiaDesarrollo" class="status-box" aria-live="polite">
-            <p style="margin:0;color:var(--color-text-muted);">Selecciona un Nivel de solución arriba para ver tu guía
+            <p style="margin:0;color:var(--color-text-muted);">Selecciona un tipo de desarrollo arriba para ver tu guía
               estructurada.</p>
           </div>
         </fieldset>
 
-        <fieldset class="card">
-          <legend>⚙️ Ecosistema y Recursos Técnicos</legend>
-          <div class="hint hint-card">
-            <p class="hint-title">Antes de interactuar con una IA, conoce estas tres piezas fundamentales para proyectos
-              avanzados:</p>
-            <ul class="hint-list">
-              <li><strong>Instrucción / Skill:</strong> Reglas reutilizables para que la IA actúe de forma consistente.
-                Se guardan en las "instrucciones del sistema" o proyectos.</li>
-              <li><strong>Plugin / Arquitectura Externa:</strong> Un paquete o integración que agrupa comandos y permite
-                la orquestación.</li>
-              <li><strong>MCP (Model Context Protocol):</strong> Conexión técnica real a una herramienta externa (como
-                Drive, Bases de datos, APIs). Requiere revisión de seguridad exhaustiva.</li>
-            </ul>
-            <p class="hint-footnote">🛡️ Precaución: No instales ni conectes herramientas de red o permisos sobre tus
-              archivos sin revisar qué datos pueden leer o modificar.</p>
+        <fieldset class="card" id="cardGaleriaIdeas">
+          <legend>💡 Galería de ideas y sugerencias</legend>
+          <p class="hint hint--muted">Marca las ideas que se parezcan a lo que necesitas. No hace falta que te
+            convenzan todas: sirven para que el prompt salga concreto en vez de genérico.</p>
+          <div id="galeriaIdeas" aria-live="polite">
+            <p style="margin:0;color:var(--color-text-muted);font-size:.85rem;">Selecciona un tipo de desarrollo para
+              ver las ideas sugeridas.</p>
+          </div>
+        </fieldset>
+
+        <fieldset class="card" id="cardPromptLauncher">
+          <legend>🚀 Lanzador de prompt y selección de IA</legend>
+          <p class="hint hint--muted">Elige con qué asistente vas a trabajar y copia el prompt maestro ya armado con tu
+            proceso y las ideas que marcaste.</p>
+          <div id="promptLauncher" aria-live="polite">
+            <p style="margin:0;color:var(--color-text-muted);font-size:.85rem;">Disponible en cuanto selecciones un tipo
+              de desarrollo.</p>
           </div>
         </fieldset>
 
         <fieldset class="card">
-          <legend>Catálogo de Recursos de Desarrollo</legend>
-          <p class="hint hint--muted">Te sugerimos un paquete de componentes técnicos e instrucciones que puedes usar
-            con tu asistente de IA. Descárgalo para integrarlo en tu proyecto.</p>
-          <div class="panel-actions" style="margin-top:.75rem; justify-content: flex-start;">
-            <button type="button" class="btn-secondary" id="btnExportSkills">📄 Descargar catálogo de recursos
-              sugeridos</button>
+          <legend>📘 Catálogo de recursos para tu proyecto</legend>
+          <p class="hint hint--muted">Documento de consulta con el esquema universal de operación, las 5 áreas de
+            recursos y el glosario en lenguaje sencillo. Descárgalo en PDF para compartirlo con tu equipo, o en
+            Markdown para cargarlo como contexto en tu asistente de IA.</p>
+          <div class="catalogo-preview">
+            <img src="ilustracion-catalogo.png" width="800" height="600" alt=""
+              class="catalogo-preview-img" loading="lazy" />
+            <div>
+              <p class="hint-title">Qué incluye</p>
+              <ul class="hint-list">
+                <li>Esquema Entrada → Transformación → Control → Salida.</li>
+                <li>5 áreas de recursos con entradas y salidas de cada skill.</li>
+                <li>Reglas de gobernanza digital de la empresa.</li>
+                <li>Glosario de 10 conceptos con ejemplos de oficina.</li>
+              </ul>
+            </div>
+          </div>
+          <div class="panel-actions" style="margin-top:.75rem; justify-content: flex-start; gap:.6rem;">
+            <button type="button" class="btn-primary" id="btnCatalogoPdf">🖨️ Descargar catálogo (PDF)</button>
+            <button type="button" class="btn-secondary" id="btnExportSkills">📄 Descargar catálogo (.md)</button>
           </div>
         </fieldset>
 
@@ -539,6 +586,9 @@
     </main>
   </div>
 
+  <!-- Documento imprimible del catálogo (oculto en pantalla; solo se muestra al imprimir) -->
+  <div id="docCatalogo" class="doc-print" hidden></div>
+
   <footer class="app-footer">
     <span>© 2026 AI Project Guide · Herramienta interna de diagnóstico y planificación · Sin conexión a IA
       externa</span>
@@ -583,6 +633,7 @@
     </div>
   </template>
 
+  <script src="contenido-guias.js"></script>
   <script src="app.js"></script>
 </body>
 

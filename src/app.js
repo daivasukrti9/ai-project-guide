@@ -104,9 +104,9 @@
 
   const LEVELS = [
     { id: "Nivel 1: Presentación / Documento de Asistencia", titulo: "Nivel 1 · Presentación / Documento", desc: "Resumen de actas, diapositivas automatizadas.", why: "Suficiente cuando el proceso es puntual y de bajo volumen: solo necesitas comunicar mejor, no automatizar." },
-    { id: "Nivel 2: Herramienta / Script de Automatización Fija", titulo: "Nivel 2 · Automatización fija", desc: "Google Forms + Apps Script + Sheets.", why: "Ideal cuando el proceso ya está limpio y es repetitivo, pero sigue reglas fijas sin criterio subjetivo." },
-    { id: "Nivel 3: Skill / Prompt Estructurado", titulo: "Nivel 3 · Skill / Prompt estructurado", desc: "Prompt reutilizable por el equipo vía Claude.", why: "Adecuado cuando hay tareas analíticas/creativas repetidas (resumir, redactar, clasificar texto)." },
-    { id: "Nivel 4: Agente Autónomo / Multi-herramienta", titulo: "Nivel 4 · Agente autónomo", desc: "Sistema multi-herramienta para tareas complejas.", why: "Solo si ya existen datos estructurados, métricas y aprobación de seguridad. Requiere límites, logs y STOP." }
+    { id: "Nivel 2: Herramienta / Script de Automatización Fija", titulo: "Nivel 2 · Automatización", desc: "Script, macro o flujo que hace la tarea repetitiva.", why: "Ideal cuando el proceso ya está limpio y es repetitivo, pero sigue reglas fijas sin criterio subjetivo." },
+    { id: "Nivel 3: Herramienta / Visualización / Conjunto de Funciones", titulo: "Nivel 3 · Herramienta / Visualización", desc: "Calculadora, dashboard o plantilla interactiva.", why: "Conviene cuando varias personas necesitan consultar, calcular o comparar lo mismo: en vez de explicarlo cada vez, les das la herramienta." },
+    { id: "Nivel 4: Agente Autónomo / Multi-herramienta", titulo: "Nivel 4 · Agente / Autónomo", desc: "Asistente con rol experto y varios pasos de razonamiento.", why: "Solo si ya existen datos estructurados, métricas y aprobación de seguridad. Requiere límites, logs y STOP." }
   ];
 
   /* ------------------------------------------------------------------ STATE */
@@ -136,7 +136,7 @@
         recomendacion: { nombre_tecnico: "", guia: "", investigar_con_ia: "", advertencia_seguridad: "" },
         evaluacion_ecosistema: { respuestas: {}, puntaje: 0, nivel: "" }
       },
-      seccion_3_compresion_proyecto: { nivel_solucion: "", tecnologias_sugeridas: [], kpis_y_metricas_clave: [], roi_estimado: { potencial_ahorro_horas_mes: 0, roi_estimado_mensual_usd: 0, tiempo_estimado_implementacion: "", requiere_aprobacion_seguridad: false }, comparativo_automatizacion: [] },
+      seccion_3_compresion_proyecto: { nivel_solucion: "", sugerencias_seleccionadas: [], ia_preferida: "", tecnologias_sugeridas: [], kpis_y_metricas_clave: [], roi_estimado: { potencial_ahorro_horas_mes: 0, roi_estimado_mensual_usd: 0, tiempo_estimado_implementacion: "", requiere_aprobacion_seguridad: false }, comparativo_automatizacion: [] },
       seccion_4_indicadores_desarrollo: {
         skills_seleccionadas: [], diccionario_exportado_formato: "JSON",
         prompts_generados: [], plan_gestion_cambio: { checklist: [], responsable_sponsor: "", fecha_revision_piloto: "" }
@@ -1155,21 +1155,42 @@
   }
 
   function exportSkillsDictionary() {
-    const nombre = state.seccion_1_ordenar_trabajo.metadata_proceso.nombre_proceso || "proceso";
+    const cat = CONTENIDO.CATALOGO;
+    const meta = state.seccion_1_ordenar_trabajo.metadata_proceso;
+    const nombre = meta.nombre_proceso || "proceso";
+    if (!cat) { setIoStatus("⚠️ No se pudo cargar el contenido del catálogo."); return; }
+
     const md = [
-      `# Diccionario de Recursos y Skills — ${nombre}`,
+      `# ${cat.titulo} — ${nombre}`,
       "",
-      "> Información para cargar como instrucciones en tu asistente de IA.",
+      `> Expediente ${state.app_meta.id_expediente} · Generado el ${new Date().toLocaleDateString()}`,
+      "",
+      cat.bajada,
+      "",
+      `## 1. ${cat.esquema.titulo}`,
+      "",
+      cat.esquema.lede,
+      "",
+      ...cat.esquema.pasos.map((x, i) => `${i + 1}. **${x.clave}:** ${x.d}`),
+      "",
+      "## 2. Catálogo de recursos por área",
       ""
     ];
-    SKILLS_CATALOG.categorias.forEach(cat => {
-      md.push(`## ${cat.nombre}`);
-      cat.skills.forEach(sk => {
-        md.push(`- **${sk.nombre}**: ${sk.proposito} _(${sk.momento})_`);
-      });
+    cat.areas.forEach(a => {
+      md.push(`### Área ${a.n} · ${a.titulo}`, "", a.descripcion, "", `**Valor para tu proyecto:** ${a.valor}`, "");
+      md.push("| Skill / Recurso | Para qué sirve | Qué necesita (input) | Qué te devuelve (output) |", "| :--- | :--- | :--- | :--- |");
+      a.filas.forEach(f => md.push(`| **${f.skill}**${f.glosario ? ` (glosario #${f.glosario})` : ""} | ${f.proposito} | ${f.input} | ${f.output} |`));
       md.push("");
     });
+    md.push("## 3. Gobernanza digital en la empresa", "");
+    cat.gobernanza.forEach((g, i) => md.push(`${i + 1}. **${g.t}:** ${g.d}`));
+    md.push("", "## 4. Glosario en lenguaje de oficina", "");
+    cat.glosario.forEach(g => {
+      md.push(`### #${g.n}. ${g.termino}`, "", `- **¿Qué es?:** ${g.que}`, `- **¿Para qué sirve?:** ${g.para}`, `- **Ejemplo de oficina:** ${g.ej}`, "");
+    });
+
     downloadText(`catalogo-recursos-${nombre.replace(/\s+/g, "-").toLowerCase() || "proceso"}.md`, md.join("\n"));
+    setIoStatus("Catálogo descargado en Markdown.");
   }
 
   /* ------------------------------------------------------------------ SECCIÓN 3 */
@@ -1189,14 +1210,33 @@
     });
 
     document.getElementById("btnExportSkills").addEventListener("click", exportSkillsDictionary);
+    document.getElementById("btnCatalogoPdf").addEventListener("click", imprimirCatalogo);
   }
 
   function selectLevel(levelId) {
-    state.seccion_3_compresion_proyecto.nivel_solucion = levelId;
-    document.querySelectorAll(".level-option").forEach(el => el.setAttribute("aria-checked", el.dataset.level === levelId ? "true" : "false"));
+    const s3 = state.seccion_3_compresion_proyecto;
+    // Un expediente exportado antes puede traer el rótulo viejo de un nivel
+    // (ej. "Nivel 3: Skill / Prompt Estructurado"): se reconoce por el número
+    // y se migra al rótulo vigente para que la tarjeta quede marcada.
+    const equivalente = LEVELS.find(l => l.id === levelId) || LEVELS.find(l => claveNivel(l.id) === claveNivel(levelId));
+    if (equivalente) levelId = equivalente.id;
+    // Las ideas marcadas pertenecen a la galería de un nivel concreto: si se
+    // cambia de nivel dejan de tener sentido. Al rehidratar un expediente el
+    // nivel llega igual al que ya está en el estado, así que no se pierden.
+    if (s3.nivel_solucion && s3.nivel_solucion !== levelId) s3.sugerencias_seleccionadas = [];
+    s3.nivel_solucion = levelId;
+    document.querySelectorAll("#levelPicker .level-option").forEach(el => el.setAttribute("aria-checked", el.dataset.level === levelId ? "true" : "false"));
     const lv = LEVELS.find(l => l.id === levelId);
     document.getElementById("levelWhy").textContent = lv ? `💡 ${lv.why}` : "";
     renderGuiaDesarrollo();
+    renderGaleriaIdeas();
+    renderPromptLauncher();
+  }
+
+  /* Prefijo "Nivel N" que usan SUGERENCIAS e IA_GUIA como clave. */
+  function claveNivel(levelId) {
+    const m = /Nivel\s*([1-4])/.exec(levelId || "");
+    return m ? `Nivel ${m[1]}` : "";
   }
 
   function addKpiRow(data) {
@@ -1299,6 +1339,7 @@
           <ul class="hint-list">
             <li><strong>Desarrollo del Criterio:</strong> No puedes desarrollar criterio si no lees y analizas las discrepancias en lo que la IA te responde. Revisa cuidadosamente cada respuesta, la IA es propensa a inventar datos que suenan convincentes.</li>
             <li><strong>Seguridad de Datos:</strong> Bajo ningún motivo incluyas datos confidenciales de la empresa (márgenes comerciales reales, balances puros, contraseñas) en la ventana de chat. Usa nombres inventados (datos sintéticos) como "Empresa X".</li>
+            <li><strong>Convierte lo que funcionó en plantilla:</strong> cuando un documento te quede bien, guarda esas instrucciones como una <em>skill</em> reutilizable (instrucciones del sistema o proyecto) en vez de reescribirlas de memoria la próxima vez.</li>
           </ul>
         </div>
       `;
@@ -1328,21 +1369,24 @@
       guiaAvanzada = `
         <div style="margin-bottom: 1.5rem;">
           <p class="hint-title"><strong>Arquitectura y Conceptos Básicos</strong></p>
-          <p style="font-size: .85rem; color: var(--color-text);">Tu proyecto demanda transformar la IA conversacional en un nodo analítico (Prompt Structure / Skills). En vez de chatear libremente, deberás construir plantillas de instrucciones restrictivas (system prompts) que guían a la IA lógica y procesalmente a través de un flujo fijo (Chain of Thought).</p>
+          <p style="font-size: .85rem; color: var(--color-text);">La IA actúa aquí como diseñadora de herramientas. Vas a construir una utilidad que otras personas usan sin saber qué hay debajo: un archivo HTML/JS local que abre con doble clic, un libro de Excel con botones o un panel de indicadores. La lógica deja de vivir en una conversación y pasa a vivir dentro de la herramienta, que siempre calcula igual.</p>
         </div>
         <div style="margin-bottom: 1.5rem;">
           <p class="hint-title"><strong>💡 Qué pedir a la IA para tu Prompt</strong></p>
           <ul class="hint-list">
-            <li>Pide a la IA que, utilizando tus mejores ejemplos resueltos, extraiga un marco de trabajo que servirá después como la "regla general estructurada" (tú le das los casos base, ella construye los pasos evaluadores).</li>
-            <li>Instruye explícitamente a la IA sobre qué <strong>formato exacto de salida</strong> esperas (ej. JSON puro, plantilla con viñetas) y demándale prohibir variaciones creativas.</li>
-            <li>Proporciónale "Reglas de Escape de Excepción", pidiéndole: "¿bajo qué casos precisos te negarías a procesar la data por considerarla incompleta o anómala?".</li>
+            <li>Exige un <strong>único archivo autocontenido</strong>, sin instalaciones ni dependencias de internet: en muchas oficinas no vas a poder instalar nada ni abrir puertos.</li>
+            <li>Define de entrada los <strong>3 a 5 indicadores</strong> que van arriba y bien visibles; el resto es detalle secundario.</li>
+            <li>Pide que <strong>valide lo que carga el usuario</strong> (campos vacíos, fechas mal escritas, duplicados) y que avise con un mensaje claro en vez de mostrar un resultado equivocado.</li>
+            <li>Solicita que te señale <strong>exactamente dónde tocar</strong> para cambiar una fórmula o un umbral, para no depender de la IA cada vez que cambie una regla.</li>
+            <li>Si algún paso de la herramienta implica análisis con IA, pídele que ese paso quede como <strong>plantilla de instrucciones fija</strong> (una skill), con formato de salida exacto, en lugar de redactarlo distinto cada vez.</li>
           </ul>
         </div>
         <div style="margin-bottom: 1.5rem;">
           <p class="hint-title"><strong>⚠️ Prevenciones y Criterio</strong></p>
           <ul class="hint-list">
-            <li><strong>Parálisis por Exceso de Contexto:</strong> Llenar el prompt con 20 páginas de "cultura general y marco histórico de la empresa" confundirá gravemente al modelo, licuando su atencionalidad. Solo incluye el contexto estricto y mecánico que la IA necesita para resolver la tarea en cuestión hoy.</li>
-            <li><strong>Criterio Empírico por Iteración:</strong> Es ingenuo pretender diseñar el <em>Prompt maestro</em> en el primer intento. El criterio madura interactuando: manda 10 escenarios intencionalmente engañosos a la IA, extrae donde falló, y perfecciona las reglas de la plantilla con esas lecciones.</li>
+            <li><strong>Datos dentro del archivo:</strong> si vas a compartir la herramienta, revisa que no lleve datos reales pegados adentro. Distribúyela vacía y que cada quien cargue su propio archivo.</li>
+            <li><strong>Prueba con casos límite:</strong> cero registros, un registro, valores negativos y textos donde esperabas números. Una herramienta que se rompe delante de tu jefe pierde toda credibilidad.</li>
+            <li><strong>Formar el criterio:</strong> pídele que te explique la fórmula en palabras y verifícala a mano con un caso que ya conozcas. Si el número no coincide con tu cálculo manual, el error está en la regla, no en quien la usa.</li>
           </ul>
         </div>
       `;
@@ -1377,6 +1421,321 @@
     html += guiaAvanzada;
 
     document.getElementById("guiaDesarrollo").innerHTML = html;
+  }
+
+  /* ---------------- Galería de ideas y sugerencias (Sección 3) ---------------- */
+  const CONTENIDO = window.AIPG_CONTENT || { SUGERENCIAS: {}, IA_GUIA: [], CATALOGO: null };
+
+  function sugerenciasDelNivel() {
+    return CONTENIDO.SUGERENCIAS[claveNivel(state.seccion_3_compresion_proyecto.nivel_solucion)] || null;
+  }
+
+  function renderGaleriaIdeas() {
+    const box = document.getElementById("galeriaIdeas");
+    if (!box) return;
+    const data = sugerenciasDelNivel();
+    if (!data) {
+      box.innerHTML = `<p style="margin:0;color:var(--color-text-muted);font-size:.85rem;">Selecciona un tipo de desarrollo para ver las ideas sugeridas.</p>`;
+      return;
+    }
+    const marcadas = new Set(state.seccion_3_compresion_proyecto.sugerencias_seleccionadas || []);
+
+    const bloque = (titulo, items) => `
+      <div class="sugerencias-bloque">
+        <p class="hint-title">${titulo}</p>
+        <ul class="hint-list">
+          ${items.map(i => `<li><strong>${escHtml(i.t)}:</strong> ${escHtml(i.d)}</li>`).join("")}
+        </ul>
+      </div>`;
+
+    box.innerHTML = `
+      <p class="sugerencias-etiqueta">${escHtml(data.etiqueta)}</p>
+      <p class="sugerencias-lede">${escHtml(data.lede)}</p>
+      <div class="sugerencias-grid">
+        ${bloque("💡 Construcción y estrategia", data.estrategia)}
+        ${bloque("🛠️ Recursos y enfoque técnico", data.recursos)}
+      </div>
+      <p class="hint-title" style="margin-top:1.1rem">Elige las ideas que se parezcan a lo que necesitas</p>
+      <div class="idea-grid">
+        ${data.ideas.map(idea => `
+          <label class="idea-card" data-idea="${escAttr(idea.id)}">
+            <input type="checkbox" data-idea-check="${escAttr(idea.id)}"${marcadas.has(idea.id) ? " checked" : ""} />
+            <span class="idea-texto">
+              <strong>${escHtml(idea.t)}</strong>
+              <span class="idea-desc">${escHtml(idea.d)}</span>
+            </span>
+          </label>`).join("")}
+      </div>
+      <p class="idea-contador" id="ideaContador"></p>`;
+
+    box.querySelectorAll("[data-idea-check]").forEach(chk => {
+      chk.addEventListener("change", () => {
+        const id = chk.dataset.ideaCheck;
+        const sel = state.seccion_3_compresion_proyecto.sugerencias_seleccionadas || [];
+        state.seccion_3_compresion_proyecto.sugerencias_seleccionadas =
+          chk.checked ? Array.from(new Set(sel.concat(id))) : sel.filter(x => x !== id);
+        chk.closest(".idea-card").classList.toggle("is-selected", chk.checked);
+        actualizarContadorIdeas();
+        renderPromptLauncher();
+      });
+      chk.closest(".idea-card").classList.toggle("is-selected", chk.checked);
+    });
+    actualizarContadorIdeas();
+  }
+
+  function actualizarContadorIdeas() {
+    const el = document.getElementById("ideaContador");
+    if (!el) return;
+    const n = (state.seccion_3_compresion_proyecto.sugerencias_seleccionadas || []).length;
+    el.textContent = n === 0
+      ? "Ninguna idea marcada todavía — el prompt saldrá más genérico."
+      : `${n} idea${n === 1 ? "" : "s"} marcada${n === 1 ? "" : "s"}: van a entrar en el prompt maestro.`;
+  }
+
+  /* ---------------- Lanzador de prompt y selección de IA ---------------- */
+  function renderPromptLauncher() {
+    const box = document.getElementById("promptLauncher");
+    if (!box) return;
+    const data = sugerenciasDelNivel();
+    if (!data) {
+      box.innerHTML = `<p style="margin:0;color:var(--color-text-muted);font-size:.85rem;">Disponible en cuanto selecciones un tipo de desarrollo.</p>`;
+      return;
+    }
+    const s3 = state.seccion_3_compresion_proyecto;
+    const nivel = claveNivel(s3.nivel_solucion);
+    const iaElegida = s3.ia_preferida;
+
+    box.innerHTML = `
+      <p class="hint-title">1 · Elige tu asistente de IA</p>
+      <div class="level-picker level-picker--compact" id="iaPicker" role="radiogroup" aria-label="Asistente de IA">
+        ${CONTENIDO.IA_GUIA.map(ia => `
+          <div class="level-option" role="radio" tabindex="0" aria-checked="${ia.id === iaElegida ? "true" : "false"}" data-ia="${escAttr(ia.id)}">
+            <strong>${escHtml(ia.nombre)}${ia.ideal.includes(nivel) ? ' <span class="ia-badge">sugerida</span>' : ""}</strong>
+          </div>`).join("")}
+      </div>
+      <p class="ia-fortaleza" id="iaFortaleza"></p>
+      <p class="hint-title" style="margin-top:1.1rem">2 · Copia tu prompt maestro</p>
+      <pre class="prompt-box" id="promptMaestro"></pre>
+      <div class="panel-actions" style="margin-top:.6rem; justify-content:flex-start; gap:.6rem;">
+        <button type="button" class="btn-primary" id="btnCopiarPrompt">📋 Copiar prompt maestro</button>
+        <button type="button" class="btn-secondary" id="btnDescargarPrompt">⬇️ Descargar prompt (.md)</button>
+      </div>
+      <p class="hint-footnote" style="margin-top:.6rem">🛡️ Antes de pegarlo: revisa que no lleve nombres de clientes,
+        cifras confidenciales ni credenciales. Generaliza o usa datos inventados.</p>`;
+
+    box.querySelectorAll("[data-ia]").forEach(el => {
+      const elegir = () => {
+        state.seccion_3_compresion_proyecto.ia_preferida = el.dataset.ia;
+        box.querySelectorAll("[data-ia]").forEach(o => o.setAttribute("aria-checked", o === el ? "true" : "false"));
+        actualizarPromptMaestro();
+      };
+      el.addEventListener("click", elegir);
+      el.addEventListener("keydown", e => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); elegir(); } });
+    });
+    document.getElementById("btnCopiarPrompt").addEventListener("click", copiarPromptMaestro);
+    document.getElementById("btnDescargarPrompt").addEventListener("click", () => {
+      downloadText(`prompt-maestro-${state.app_meta.id_expediente}.md`, construirPromptMaestro());
+      setIoStatus("Prompt maestro descargado.");
+    });
+    actualizarPromptMaestro();
+  }
+
+  function actualizarPromptMaestro() {
+    const pre = document.getElementById("promptMaestro");
+    if (pre) pre.textContent = construirPromptMaestro();
+    const ia = CONTENIDO.IA_GUIA.find(x => x.id === state.seccion_3_compresion_proyecto.ia_preferida);
+    const nota = document.getElementById("iaFortaleza");
+    if (nota) nota.textContent = ia
+      ? `${ia.nombre}: ${ia.fortaleza}`
+      : "Elige un asistente para ver su punto fuerte — el prompt funciona igual en cualquiera de ellos.";
+  }
+
+  function construirPromptMaestro() {
+    const data = sugerenciasDelNivel();
+    if (!data) return "";
+    const s1 = state.seccion_1_ordenar_trabajo;
+    const meta = s1.metadata_proceso;
+    const rec = state.seccion_2_clasificacion_proyecto.recomendacion || {};
+    const s3 = state.seccion_3_compresion_proyecto;
+    const marcadas = new Set(s3.sugerencias_seleccionadas || []);
+    const ideas = data.ideas.filter(i => marcadas.has(i.id));
+    const ia = CONTENIDO.IA_GUIA.find(x => x.id === s3.ia_preferida);
+    const dolores = (s1.puntos_de_dolor || []).filter(d => d.descripcion);
+
+    const L = [];
+    L.push(`Actúa como ${data.prompt.rol}.`);
+    L.push("");
+    L.push("## Contexto de mi trabajo");
+    L.push(`- Proceso: ${meta.nombre_proceso || "(pendiente de completar en la Sección 1)"}`);
+    if (meta.departamento) L.push(`- Área: ${meta.departamento}`);
+    const entradas = (s1.mapeo_entradas_salidas.entradas || []).filter(Boolean);
+    const salidas = (s1.mapeo_entradas_salidas.salidas || []).filter(Boolean);
+    if (entradas.length) L.push(`- Entradas con las que trabajo: ${entradas.join("; ")}`);
+    if (salidas.length) L.push(`- Salidas que se esperan de mí: ${salidas.join("; ")}`);
+    if (dolores.length) {
+      L.push("- Principales problemas actuales:");
+      dolores.forEach(d => L.push(`  - [${d.nivel_severidad || "—"}] ${d.categoria || ""}: ${d.descripcion}`));
+    }
+    if (rec.nombre_tecnico) L.push(`- Recomendación técnica del diagnóstico previo: ${rec.nombre_tecnico}`);
+    L.push(`- Tipo de desarrollo elegido: ${s3.nivel_solucion} (${data.etiqueta})`);
+    L.push("");
+    L.push("## Lo que necesito");
+    L.push(data.prompt.encargo);
+    L.push("");
+    if (ideas.length) {
+      L.push("## Ideas que quiero incorporar");
+      ideas.forEach(i => L.push(`- **${i.t}**: ${i.d}`));
+      L.push("");
+    }
+    L.push("## Cómo quiero que trabajes");
+    L.push(data.prompt.exigencia);
+    L.push("- Antes de producir nada, hazme las preguntas que te falten. No inventes datos que no te di.");
+    L.push("- Marca con [PENDIENTE DE VALIDACIÓN] cualquier supuesto que hayas tenido que asumir.");
+    L.push("- Trabajo con datos generalizados o sintéticos: no voy a compartir información confidencial, credenciales ni datos personales reales.");
+    L.push("- Explícame las decisiones en lenguaje sencillo: necesito poder defender esto ante mi equipo.");
+    if (ia) {
+      L.push("");
+      L.push(`> Preparado para ${ia.nombre} — ${ia.fortaleza}`);
+    }
+    return L.join("\n");
+  }
+
+  function copiarPromptMaestro() {
+    const texto = construirPromptMaestro();
+    const ok = () => setIoStatus("Prompt maestro copiado. Pégalo en tu asistente de IA.");
+    const fallback = () => {
+      // Al abrir con file:// algunos navegadores bloquean la Clipboard API.
+      const ta = document.createElement("textarea");
+      ta.value = texto;
+      ta.setAttribute("readonly", "");
+      ta.style.position = "fixed";
+      ta.style.opacity = "0";
+      document.body.appendChild(ta);
+      ta.select();
+      let copiado = false;
+      try { copiado = document.execCommand("copy"); } catch (e) { copiado = false; }
+      document.body.removeChild(ta);
+      if (copiado) ok();
+      else setIoStatus("⚠️ Tu navegador bloqueó el copiado: selecciona el texto del recuadro y cópialo a mano.");
+    };
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+      navigator.clipboard.writeText(texto).then(ok).catch(fallback);
+    } else {
+      fallback();
+    }
+  }
+
+  /* ---------------- Catálogo de recursos: documento imprimible (PDF) ---------------- */
+  function refGlosario(n) {
+    return n ? ` <sup class="doc-ref">glosario #${n}</sup>` : "";
+  }
+
+  function renderDocCatalogo() {
+    const cat = CONTENIDO.CATALOGO;
+    const cont = document.getElementById("docCatalogo");
+    if (!cat || !cont) return;
+    const meta = state.seccion_1_ordenar_trabajo.metadata_proceso;
+    const hoy = new Date().toLocaleDateString("es-AR", { year: "numeric", month: "long", day: "numeric" });
+
+    const portada = `
+      <header class="doc-portada">
+        <div class="doc-portada-texto">
+          <p class="doc-kicker">AI Project Guide · Documento de consulta</p>
+          <h1>${escHtml(cat.titulo)}</h1>
+          <p class="doc-bajada">${escHtml(cat.bajada)}</p>
+          <dl class="doc-meta">
+            <div><dt>Proyecto</dt><dd>${escHtml(meta.nombre_proceso || "—")}</dd></div>
+            <div><dt>Área</dt><dd>${escHtml(meta.departamento || "—")}</dd></div>
+            <div><dt>Responsable</dt><dd>${escHtml(meta.responsable_proceso || "—")}</dd></div>
+            <div><dt>Expediente</dt><dd>${escHtml(state.app_meta.id_expediente)}</dd></div>
+            <div><dt>Generado</dt><dd>${escHtml(hoy)}</dd></div>
+          </dl>
+        </div>
+        <img class="doc-portada-img" src="ilustracion-catalogo.png" width="800" height="600" alt="" />
+      </header>`;
+
+    const esquema = `
+      <section class="doc-seccion">
+        <h2><span class="doc-num">1</span> ${escHtml(cat.esquema.titulo)}</h2>
+        <p class="doc-lede">${escHtml(cat.esquema.lede)}</p>
+        <div class="doc-flujo">
+          ${cat.esquema.pasos.map((paso, i) => `
+            <div class="doc-flujo-paso">
+              <span class="doc-flujo-icono" aria-hidden="true">${paso.icono}</span>
+              <strong>${escHtml(paso.clave)}</strong>
+              <span>${escHtml(paso.d)}</span>
+            </div>
+            ${i < cat.esquema.pasos.length - 1 ? '<span class="doc-flujo-flecha" aria-hidden="true">→</span>' : ""}`).join("")}
+        </div>
+      </section>`;
+
+    const areas = `
+      <section class="doc-seccion">
+        <h2><span class="doc-num">2</span> Catálogo de recursos por área</h2>
+        ${cat.areas.map(a => `
+          <article class="doc-area">
+            <h3>Área ${a.n} · ${escHtml(a.titulo)}</h3>
+            <p class="doc-area-desc">${escHtml(a.descripcion)}</p>
+            <p class="doc-area-valor"><strong>Valor para tu proyecto:</strong> ${escHtml(a.valor)}</p>
+            <table class="doc-tabla">
+              <thead>
+                <tr><th>Skill / Recurso</th><th>Para qué sirve</th><th>Qué necesita (input)</th><th>Qué te devuelve (output)</th></tr>
+              </thead>
+              <tbody>
+                ${a.filas.map(f => `
+                  <tr>
+                    <td><strong>${escHtml(f.skill)}</strong>${refGlosario(f.glosario)}</td>
+                    <td>${escHtml(f.proposito)}</td>
+                    <td>${escHtml(f.input)}</td>
+                    <td>${escHtml(f.output)}</td>
+                  </tr>`).join("")}
+              </tbody>
+            </table>
+          </article>`).join("")}
+      </section>`;
+
+    const gobernanza = `
+      <section class="doc-seccion">
+        <h2><span class="doc-num">3</span> Gobernanza digital en la empresa</h2>
+        <ol class="doc-gobernanza">
+          ${cat.gobernanza.map(g => `<li><strong>${escHtml(g.t)}:</strong> ${escHtml(g.d)}</li>`).join("")}
+        </ol>
+      </section>`;
+
+    const glosario = `
+      <section class="doc-seccion doc-seccion--glosario">
+        <h2><span class="doc-num">4</span> Glosario en lenguaje de oficina</h2>
+        <div class="doc-glosario">
+          ${cat.glosario.map(g => `
+            <article class="doc-termino">
+              <h3><span class="doc-termino-num">${g.n}</span> ${escHtml(g.termino)}</h3>
+              <p><strong>¿Qué es?</strong> ${escHtml(g.que)}</p>
+              <p><strong>¿Para qué sirve?</strong> ${escHtml(g.para)}</p>
+              <p class="doc-ejemplo"><strong>Ejemplo de oficina:</strong> ${escHtml(g.ej)}</p>
+            </article>`).join("")}
+        </div>
+      </section>`;
+
+    cont.innerHTML = portada + esquema + areas + gobernanza + glosario +
+      `<footer class="doc-pie">AI Project Guide · Documento generado en tu navegador, sin enviar datos a ningún servidor.</footer>`;
+  }
+
+  function imprimirCatalogo() {
+    collectState();
+    renderDocCatalogo();
+    const doc = document.getElementById("docCatalogo");
+    doc.hidden = false;
+    document.body.classList.add("imprimiendo-catalogo");
+    const restaurar = () => {
+      document.body.classList.remove("imprimiendo-catalogo");
+      doc.hidden = true;
+      window.removeEventListener("afterprint", restaurar);
+    };
+    window.addEventListener("afterprint", restaurar);
+    setIoStatus("En el diálogo de impresión elige «Guardar como PDF» y activa «Gráficos de fondo».");
+    window.print();
+    // Algunos navegadores no disparan afterprint de forma fiable: red de seguridad.
+    setTimeout(() => { if (document.body.classList.contains("imprimiendo-catalogo")) restaurar(); }, 3000);
   }
 
   function exportManualCompleto() {
@@ -1497,6 +1856,7 @@
     // skills_seleccionadas dependencias removidas
 
     const s3 = state.seccion_3_compresion_proyecto;
+    s3.sugerencias_seleccionadas = s3.sugerencias_seleccionadas || [];
     if (s3.nivel_solucion) selectLevel(s3.nivel_solucion);
     document.getElementById("kpiBody").innerHTML = "";
     (s3.kpis_y_metricas_clave.length ? s3.kpis_y_metricas_clave : []).forEach(addKpiRow);

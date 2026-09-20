@@ -66,6 +66,20 @@ comparativo manual vs. herramienta y skills seleccionadas).
 
 ## Sección 3
 - [x] Seleccionar un nivel resalta la tarjeta y muestra el texto "¿Por qué?".
+- [x] Los 4 tipos de desarrollo son A Presentación/Documento, B Automatización, C Herramienta/Visualización y D Agente/Autónomo (alineados con el catálogo de recursos).
+- [x] Al elegir un tipo se despliega su galería: etiqueta ("Opción C · Herramienta / Visualización"), bloque de estrategia, bloque de recursos técnicos y 7 ideas marcables.
+- [x] Marcar/desmarcar ideas resalta la tarjeta, actualiza el contador ("N ideas marcadas…") y regenera el prompt maestro en vivo.
+- [x] Cambiar de tipo de desarrollo vacía las ideas marcadas (pertenecen al nivel anterior) y muestra la galería nueva.
+- [x] El selector de IA marca una sola opción, muestra su punto fuerte debajo y agrega la nota "> Preparado para …" al final del prompt.
+- [x] Las IA sugeridas para el nivel activo muestran el badge "sugerida" (ej. Claude y DeepSeek en Nivel 3).
+- [x] El prompt maestro incluye proceso, área, entradas/salidas, puntos de dolor, la recomendación de la Sección 2, el nivel elegido y las ideas marcadas.
+- [ ] "Copiar prompt maestro" copia al portapapeles (requiere gesto real de usuario; con `file://` cae al fallback de `execCommand`).
+- [x] "Descargar prompt (.md)" genera el mismo texto que muestra el recuadro.
+- [x] "Descargar catálogo (PDF)" abre el diálogo de impresión mostrando SOLO el documento del catálogo (portada + esquema + 5 áreas + gobernanza + glosario de 10 términos): ni el wizard, ni el header, ni el footer.
+- [x] La portada del catálogo trae el nombre del proyecto, área, responsable, id de expediente y fecha, más la ilustración.
+- [x] Al cerrar/cancelar el diálogo de impresión, la app vuelve a la vista normal (el documento se oculta de nuevo).
+- [x] El catálogo se imprime en claro aunque la app esté en modo oscuro.
+- [x] "Descargar catálogo (.md)" genera el mismo contenido que el PDF, en Markdown con tablas.
 - [x] La Matriz KPI & ROI muestra el hint de qué significa As-Is vs. To-Be.
 - [x] Agregar/quitar KPIs funciona.
 - [x] El ROI estimado se recalcula al cambiar horas/costo.
