@@ -39,7 +39,8 @@ src/
 └── ilustracion-catalogo.png # portada del catálogo descargable
 knowledge/
 ├── sugerencias-desarrollo-pagina3.md        # fuente editorial de las galerías de la Sección 3
-└── catalogo-recursos-proyecto-usuario.md    # fuente editorial del catálogo PDF
+├── catalogo-recursos-proyecto-usuario.md    # fuente editorial del catálogo PDF
+└── pagina-4-especificacion-prompt.md        # fuente del cierre: dudas + presentación ejecutiva
 docs/
 ├── architecture/schema-persistencia.json   # JSON Schema del payload de estado
 ├── guia-prompts-claude.md                   # plantillas de prompts (Sección 4)

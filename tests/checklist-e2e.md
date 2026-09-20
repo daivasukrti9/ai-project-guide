@@ -52,7 +52,7 @@ comparativo manual vs. herramienta y skills seleccionadas).
 
 ## Sección 2
 - [x] Las 5 preguntas se renderizan con sus opciones; elegir una la resalta y muestra el punto/radio relleno — no queda más de una marcada por pregunta.
-- [x] Las opciones se muestran como lista vertical (radio a la izquierda, título+descripción a la derecha), sin tarjetas/bordes/columnas paralelas — el diseño de tarjetas se mantiene sin cambios en Nivel de solución (Sección 3) y en la Evaluación de ecosistema.
+- [x] Las opciones se muestran como lista vertical (radio a la izquierda, título+descripción a la derecha), sin tarjetas/bordes/columnas paralelas — el diseño de tarjetas se mantiene sin cambios en Tipo de desarrollo (Sección 3) y en la Evaluación de ecosistema.
 - [x] Los ejemplos de cada opción son universales para Contabilidad, RRHH, Operaciones y Soporte (no específicos de un solo rubro).
 - [x] Combinación "Automatización o Script + Repetitiva con pasos fijos + Lógica mínima" recomienda "Automatización basada en reglas (Apps Script / Webhooks)".
 - [x] Combinación "Razonamiento complejo + Sistemas de la empresa" recomienda "Agente con herramientas (tool use / MCP)", incluso si otras respuestas cambian.
@@ -99,6 +99,27 @@ comparativo manual vs. herramienta y skills seleccionadas).
 - [ ] "Copiar prompt" copia al portapapeles (verificar con Ctrl+V en otro lugar — requiere gesto real de usuario, no se puede automatizar).
 - [x] Los prompts secundarios (Depuración, Plan de pruebas) se generan junto con el principal y cada uno copia por separado.
 - [x] "Descargar manual de implementación completo" genera `.md` con checklist, prompt, prompts secundarios y JSON completo.
+
+## Sección 4 — resultados e impacto
+- [x] "Lo que construiste" guarda tipo, estado, entregable y notas, y sobrevive al exportar/importar el `.json`.
+- [x] Los nombres de las 4 secciones coinciden en el tracker, el hero y los exportables: Organiza tu trabajo · Información de tu proyecto · Tipo de desarrollo · Resultados e impacto.
+- [x] Toda la interfaz trata al usuario de "tú", sin mezclar voseo, incluidos los prompts que genera.
+- [x] El comparativo carga automáticamente las mismas tareas habituales de la Sección 1 (por nombre).
+- [x] Si no hay tareas cargadas en la Sección 1, el comparativo muestra el aviso con el enlace "Paso 1" y el enlace navega.
+- [x] Cargar las horas To-Be recalcula las 4 tarjetas de impacto, incluida "Eficiencia ganada sobre la carga original".
+- [x] El botón "⤵ Usar el ahorro del comparativo" aparece solo si hay diferencia con lo escrito a mano, y desaparece al aplicarlo (no pisa un valor propio sin que lo pidas).
+- [x] El ROI muestra horas/mes, horas/año, retorno mensual y retorno anual; el costo hora ahora se guarda y se restaura al cargar el expediente.
+- [x] Base de cálculo declarada y coherente en tarjetas, resumen y prompts: 5 días hábiles/semana, 22/mes, 264/año.
+- [x] Marcar dudas frecuentes y/o escribir el detalle genera la consulta para IA con el entregable incrustado.
+- [x] Sin dudas marcadas ni texto, la consulta no se muestra (aparece el aviso de que falta marcar algo).
+- [x] La presentación muestra las métricas reales (antes/ahora por semana, horas al año, % eficiencia y retorno si hay costo hora).
+- [x] Elegir audiencia y objetivo cambia el énfasis del prompt, no los números; la nota bajo el selector explica a qué apunta esa audiencia.
+- [x] Marcar "voy a sumar el logo" agrega al prompt la instrucción de reservar el espacio sin inventar un logo.
+- [x] Sin audiencia u objetivo elegidos, el prompt sale igual pero con marcas `[PENDIENTE: …]` en vez de inventar.
+- [ ] "Copiar prompt" de dudas y de presentación copian al portapapeles (requiere gesto real de usuario).
+- [x] "Descargar (.md)" de ambos genera el mismo texto que muestra el recuadro.
+- [x] "Descargar resumen ejecutivo (.md)" incluye qué se construyó, el impacto medido y la tabla por tarea, con el Markdown bien formado (líneas en blanco antes de cada título y tabla).
+- [x] "Completar Plan de Proyecto" incluye el impacto medido y el prompt de presentación además del JSON completo.
 
 ## Persistencia (import/export)
 - [x] "Descargar estado (.json)" en la Sección 1 genera un archivo válido.

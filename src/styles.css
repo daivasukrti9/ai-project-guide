@@ -368,7 +368,15 @@ button{ font: inherit; cursor:pointer; }
   display:grid; grid-template-columns:1.4fr .9fr 1fr .9fr; gap:.5rem; padding:0 .5rem;
   font-size:.72rem; text-transform:uppercase; letter-spacing:.03em; color:var(--color-text-muted); margin-bottom:.4rem;
 }
-@media (max-width:700px){ .comparativo-header{ display:none; } }
+@media (max-width:700px){
+  .comparativo-header{ display:none; }
+  /* En pantalla angosta la fila se apila: el nombre ocupa el ancho completo y
+     los tres valores quedan en dos columnas, sin empujar la página a lo ancho. */
+  .row-card--comparativo{ grid-template-columns:1fr 1fr; row-gap:.4rem; }
+  .row-card--comparativo > *{ min-width:0; }
+  .row-card--comparativo .comparativo-nombre{ grid-column:1/-1; font-weight:600; }
+  .row-card--comparativo input{ width:100%; }
+}
 .row-card--comparativo{ grid-template-columns:1.4fr .9fr 1fr .9fr; }
 .row-card--comparativo .comparativo-nombre{ font-size:.85rem; }
 
@@ -580,6 +588,20 @@ button{ font: inherit; cursor:pointer; }
 .catalogo-preview-img{ width:100%; height:auto; border-radius:var(--radius-md); background:var(--color-surface-2); }
 .catalogo-preview .hint-list{ font-size:.82rem; color:var(--color-text-muted); margin-bottom:0; }
 @media (max-width:640px){ .catalogo-preview{ grid-template-columns:1fr; } .catalogo-preview-img{ max-width:180px; } }
+
+/* ---------- Sección 4: cierre (ROI, dudas y presentación) ---------- */
+.roi-atajo{ display:flex; flex-wrap:wrap; align-items:center; gap:.6rem; margin:.75rem 0 0; }
+.roi-atajo .btn-tertiary{ padding:.35rem .7rem; font-size:.8rem; }
+.summary-card--destacada{ background:var(--color-success-bg); border-color:transparent; }
+.summary-card--destacada .value{ color:var(--color-success); }
+.btn-link{
+  background:none; border:none; padding:0; font:inherit; color:var(--color-primary);
+  text-decoration:underline; cursor:pointer;
+}
+.btn-link:hover{ color:var(--color-primary-hover); }
+#dudasFrecuentes .idea-card{ align-items:center; }
+#dudasFrecuentes .idea-card strong{ margin-bottom:0; font-weight:500; }
+#presentacionMetricas .comparativo-empty{ margin:0; }
 
 /* ---------- Documento imprimible: catálogo de recursos ----------
    Oculto en pantalla (atributo hidden). Solo se muestra cuando

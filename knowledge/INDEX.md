@@ -7,6 +7,7 @@
 - **Catálogo de skills:** [`src/skills-catalog.json`](../src/skills-catalog.json)
 - **Fuente de las galerías (Sección 3):** [`sugerencias-desarrollo-pagina3.md`](sugerencias-desarrollo-pagina3.md)
 - **Fuente del catálogo PDF:** [`catalogo-recursos-proyecto-usuario.md`](catalogo-recursos-proyecto-usuario.md)
+- **Fuente del cierre (Sección 4):** [`pagina-4-especificacion-prompt.md`](pagina-4-especificacion-prompt.md)
   > Ambos se editan primero acá y después se reflejan en `src/contenido-guias.js`, que es lo que lee la app.
 - **Checklist de pruebas:** [`tests/checklist-e2e.md`](../tests/checklist-e2e.md)
 
@@ -29,5 +30,8 @@
   compatibilidad con los expedientes ya exportados.
 - **Prompt maestro:** el texto que arma la Sección 3 con el proceso + las ideas marcadas,
   para pegar en el asistente de IA. La app nunca lo envía: lo copia el usuario.
+- **Impacto medido:** el contraste de horas de la Sección 4 sobre las mismas tareas
+  habituales de la Sección 1. Base de cálculo declarada: 5 días hábiles por semana,
+  22 por mes, 264 por año — vive en `DIAS_HABILES` (src/app.js) y no se duplica.
 - **Nivel de madurez:** clasificación 1–4 de qué tan lista está una tarea
   para automatizarse (ver `docs/architecture/schema-persistencia.json`).

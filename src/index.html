@@ -6,7 +6,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>AI Project Guide — Planificación y Optimización de Procesos</title>
   <meta name="description"
-    content="Guía interna de 4 etapas para ordenar un proceso, empaquetar skills de Claude, evaluar madurez y generar el plan de desarrollo. Sin IA embebida, sin conexión externa." />
+    content="Guía interna de 4 etapas para ordenar un proceso, elegir qué construir, generar los prompts para el asistente de IA que prefieras y medir el impacto. Sin IA embebida, sin conexión externa." />
   <link rel="stylesheet" href="styles.css" />
 </head>
 
@@ -68,14 +68,14 @@
           <li class="step-item" data-step="3">
             <button class="step-btn" data-goto="3">
               <span class="step-badge">3</span>
-              <span class="step-title">Nivel de solución</span>
+              <span class="step-title">Tipo de desarrollo</span>
             </button>
           </li>
           <li class="tracker-line" aria-hidden="true"></li>
           <li class="step-item" data-step="4">
             <button class="step-btn" data-goto="4">
               <span class="step-badge">4</span>
-              <span class="step-title">Configuración de Claude</span>
+              <span class="step-title">Resultados e impacto</span>
             </button>
           </li>
         </ol>
@@ -358,7 +358,7 @@
         <fieldset class="card">
           <legend>📐 Evaluación de complejidad del ecosistema</legend>
           <p class="hint hint--muted">Puntaje aparte, sobre tu infraestructura y tolerancia al error — no reemplaza al
-            Nivel de solución de la Sección 3, lo complementa desde el lado técnico.</p>
+            tipo de desarrollo de la Sección 3, lo complementa desde el lado técnico.</p>
 
           <div class="eco-preguntas" id="ecoPreguntas"></div>
 
@@ -411,7 +411,7 @@
 
         <fieldset class="card">
           <legend>Selecciona el tipo de desarrollo que deseas explorar</legend>
-          <div class="level-picker" id="levelPicker" role="radiogroup" aria-label="Nivel de solución"></div>
+          <div class="level-picker" id="levelPicker" role="radiogroup" aria-label="Tipo de desarrollo"></div>
           <div class="callout" id="levelWhy" aria-live="polite"></div>
         </fieldset>
 
@@ -482,6 +482,44 @@
       <section class="wizard-panel" id="panel-4" data-panel="4" hidden>
 
         <fieldset class="card">
+          <legend>📦 Lo que construiste</legend>
+          <p class="hint hint--muted">Deja registrado qué salió de la Sección 3. Es lo que después la IA va a usar para
+            explicarte las dudas y para armar la presentación — y queda guardado en tu <code>.json</code>, no se envía a
+            ningún lado.</p>
+          <div class="grid-2">
+            <label>¿Qué obtuviste?
+              <select id="s4_entregable_tipo">
+                <option value="">Elige una opción…</option>
+                <option>Documento o presentación</option>
+                <option>Automatización o script</option>
+                <option>Herramienta, plantilla o dashboard</option>
+                <option>Agente o asistente configurado</option>
+                <option>Otro</option>
+              </select>
+            </label>
+            <label>¿Cómo salió?
+              <select id="s4_entregable_estado">
+                <option value="">Elige una opción…</option>
+                <option>Funcionó al primer intento</option>
+                <option>Requirió ajustes menores</option>
+                <option>Requirió varias iteraciones</option>
+                <option>Todavía no lo probé con datos reales</option>
+              </select>
+            </label>
+          </div>
+          <label style="margin-top:.9rem">Resultado / entregable
+            <textarea id="s4_entregable_resultado" rows="6"
+              placeholder="Pega el script, el prompt maestro, la fórmula, el enlace a la plantilla o describe en dos líneas qué quedó funcionando."></textarea>
+          </label>
+          <label style="margin-top:.9rem">Notas de ejecución
+            <textarea id="s4_entregable_notas" rows="3"
+              placeholder="Qué hubo que ajustar, qué quedó pendiente, qué sorprendió."></textarea>
+          </label>
+          <p class="hint-footnote" style="margin-top:.6rem">🛡️ Antes de pegar: revisa que no lleve contraseñas, llaves de
+            API, nombres de clientes ni cifras confidenciales reales.</p>
+        </fieldset>
+
+        <fieldset class="card">
           <legend>⏱️ Contraste de Productividad: Operativa Manual vs. Con Solución (To-Be)</legend>
           <p class="hint hint--muted">Visualiza el ahorro real. Ingresa cuánto tiempo crees que tardarás en cada tarea
             utilizando la nueva herramienta. El gráfico calculará el porcentaje de productividad ganada.</p>
@@ -529,7 +567,7 @@
               estándar de mercado para el rol/área en cuestión para defender la viabilidad del proyecto.</p>
           </div>
           <div class="grid-3">
-            <label>Ahorro de horas proyectadas (mes)
+            <label>Ahorro de horas por semana
               <input type="number" id="s3_ahorro_horas" min="0" step="0.5" />
             </label>
             <label>Costo hora estimado (USD)
@@ -539,6 +577,9 @@
               <input type="text" id="s3_tiempo_impl" placeholder="Ej. 2–4 semanas" />
             </label>
           </div>
+          <p class="roi-atajo"><button type="button" class="btn-tertiary" id="btnRoiDesdeComparativo" hidden></button>
+            <span class="hint-footnote" id="roiBase">Base de cálculo: 5 días hábiles por semana, 22 por mes.</span>
+          </p>
           <div class="summary-cards" id="roiResumen" aria-live="polite"></div>
           <label class="checkbox-row">
             <input type="checkbox" id="s3_requiere_seguridad" />
@@ -568,16 +609,67 @@
 
         <fieldset class="card">
           <legend>📊 Seguimiento: Plan base vs. Ejecución</legend>
-          <p class="hint hint--muted">Mismo cronograma que cargaste en la Sección 1 — acá lo ves como resumen ejecutivo,
+          <p class="hint hint--muted">Mismo cronograma que cargaste en la Sección 1 — aquí lo ves como resumen ejecutivo,
             con el desvío entre lo planeado y lo ejecutado.</p>
           <div id="seguimientoGanttVisual" class="gantt-visual" aria-live="polite"></div>
           <div id="seguimientoKanbanVisual" class="kanban-board" aria-live="polite" style="margin-top:1rem"></div>
         </fieldset>
 
+        <fieldset class="card">
+          <legend>❓ ¿Quedó algo confuso?</legend>
+          <p class="hint hint--muted">Recibir algo que funciona pero no se entiende del todo es normal. Marca qué te
+            pasa y armamos la consulta para que te lo expliquen sin tecnicismos.</p>
+          <div class="idea-grid" id="dudasFrecuentes"></div>
+          <label style="margin-top:.9rem">Cuéntalo con tus palabras (opcional)
+            <textarea id="s4_dudas_detalle" rows="3"
+              placeholder="Ej. no entiendo qué hace la parte que dice «filtrar por fecha», ni qué pasa si la planilla viene vacía."></textarea>
+          </label>
+          <div id="consultaDudas" aria-live="polite"></div>
+        </fieldset>
+
+        <fieldset class="card">
+          <legend>🎤 Presentación ejecutiva</legend>
+          <p class="hint hint--muted">Con los números que ya cargaste, armamos el prompt para que la IA que prefieras
+            te escriba un guion de 5 diapositivas. Tú eliges a quién se lo vas a mostrar y qué quieres conseguir.</p>
+
+          <div id="presentacionMetricas" class="impacto-grid" aria-live="polite"></div>
+
+          <p class="hint-title">1 · ¿A quién se lo vas a presentar?</p>
+          <div class="level-picker level-picker--compact" id="audienciaPicker" role="radiogroup"
+            aria-label="Audiencia de la presentación"></div>
+          <p class="ia-fortaleza" id="audienciaNota"></p>
+
+          <p class="hint-title" style="margin-top:1.1rem">2 · ¿Qué quieres conseguir?</p>
+          <div class="level-picker level-picker--compact" id="objetivoPicker" role="radiogroup"
+            aria-label="Objetivo de la presentación"></div>
+
+          <div class="hint hint-card" style="margin-top:1.1rem">
+            <p class="hint-title">3 · Estilo visual</p>
+            <p style="margin:0 0 .5rem;font-size:.84rem;">El prompt ya viene con un estilo sobrio y prolijo listo para
+              usar. Si tu empresa tiene su propia identidad, puedes pedirle a la IA que cambie la paleta, la tipografía o
+              el formato — es texto dentro del prompt, edítalo sin miedo.</p>
+            <ul class="hint-list" id="estiloDefecto"></ul>
+            <label class="checkbox-row">
+              <input type="checkbox" id="s4_pres_logo" />
+              Voy a sumar el logo de mi empresa (deja el espacio reservado en cada diapositiva)
+            </label>
+          </div>
+
+          <p class="hint-title" style="margin-top:1.1rem">4 · Tu prompt listo para copiar</p>
+          <pre class="prompt-box" id="promptPresentacion"></pre>
+          <div class="panel-actions" style="margin-top:.6rem; justify-content:flex-start; gap:.6rem;">
+            <button type="button" class="btn-primary" id="btnCopiarPresentacion">📋 Copiar prompt</button>
+            <button type="button" class="btn-secondary" id="btnDescargarPresentacion">⬇️ Descargar prompt (.md)</button>
+          </div>
+          <p class="hint-footnote" style="margin-top:.6rem">Funciona en ChatGPT, Claude, Gemini y también en
+            generadores de diapositivas como Gamma o Canva. 🛡️ Revisa los números y nombres antes de pegarlo: lo que
+            copies sale de tu navegador.</p>
+        </fieldset>
+
         <div class="panel-actions">
           <button type="button" class="btn-ghost" data-prev="3">← Volver</button>
           <div class="actions-right">
-            <button type="button" class="btn-secondary" id="btnExportResumen">📄 Descargar PDF Ejecutivo</button>
+            <button type="button" class="btn-secondary" id="btnExportResumen">📄 Descargar resumen ejecutivo (.md)</button>
             <button type="button" class="btn-primary" id="btnFinalize">✅ Completar Plan de Proyecto</button>
           </div>
         </div>

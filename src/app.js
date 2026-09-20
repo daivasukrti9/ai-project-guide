@@ -102,6 +102,11 @@
     ]
   };
 
+  /* Base de cálculo de todo el impacto de la Sección 4. Un solo lugar para
+     que semana/mes/año no se contradigan entre tarjetas y prompts. */
+  const DIAS_HABILES = { semana: 5, mes: 22, anio: 264 };
+  const SEMANAS_MES = DIAS_HABILES.mes / DIAS_HABILES.semana; // 4.4
+
   const LEVELS = [
     { id: "Nivel 1: Presentación / Documento de Asistencia", titulo: "Nivel 1 · Presentación / Documento", desc: "Resumen de actas, diapositivas automatizadas.", why: "Suficiente cuando el proceso es puntual y de bajo volumen: solo necesitas comunicar mejor, no automatizar." },
     { id: "Nivel 2: Herramienta / Script de Automatización Fija", titulo: "Nivel 2 · Automatización", desc: "Script, macro o flujo que hace la tarea repetitiva.", why: "Ideal cuando el proceso ya está limpio y es repetitivo, pero sigue reglas fijas sin criterio subjetivo." },
@@ -139,7 +144,10 @@
       seccion_3_compresion_proyecto: { nivel_solucion: "", sugerencias_seleccionadas: [], ia_preferida: "", tecnologias_sugeridas: [], kpis_y_metricas_clave: [], roi_estimado: { potencial_ahorro_horas_mes: 0, roi_estimado_mensual_usd: 0, tiempo_estimado_implementacion: "", requiere_aprobacion_seguridad: false }, comparativo_automatizacion: [] },
       seccion_4_indicadores_desarrollo: {
         skills_seleccionadas: [], diccionario_exportado_formato: "JSON",
-        prompts_generados: [], plan_gestion_cambio: { checklist: [], responsable_sponsor: "", fecha_revision_piloto: "" }
+        prompts_generados: [], plan_gestion_cambio: { checklist: [], responsable_sponsor: "", fecha_revision_piloto: "" },
+        entregable: { tipo: "", estado_ejecucion: "", resultado: "", notas_ejecucion: "" },
+        dudas: { puntos_confusos: [], detalle: "" },
+        presentacion: { audiencia: "", objetivo: "", incluir_logo: false }
       }
     };
   }
@@ -184,12 +192,12 @@
       lede: "Responde estas preguntas para obtener una recomendación técnica concreta: qué construir y qué investigar en tu próxima interacción con la IA."
     },
     3: {
-      titulo: "Mide el retorno antes de construir",
-      lede: "Clasifica el proyecto según su madurez y calcula el ahorro esperado, para poder defenderlo con números frente a dirección."
+      titulo: "Elige qué vas a construir",
+      lede: "Cuatro caminos posibles, con ideas concretas para cada uno. Marca las que se parezcan a tu necesidad y te armamos el prompt para el asistente de IA que prefieras."
     },
     4: {
-      titulo: "Lleva tu plan a Claude",
-      lede: "Copia el prompt generado en Claude o Claude Code para construir la solución. La app nunca envía nada por ti: tú controlas qué se comparte."
+      titulo: "Mide el impacto y cuéntalo",
+      lede: "Compara las mismas tareas de la Sección 1 contra cómo quedaron con tu solución, calcula el retorno y llévate el guion de la presentación. La app nunca envía nada por ti."
     }
   };
 
@@ -221,6 +229,8 @@
     }
     if (step === 4) {
       actualizarScrollTabla();
+      if (typeof renderConsultaDudas === "function") renderConsultaDudas();
+      if (typeof renderPresentacion === "function") renderPresentacion();
     }
   }
 
@@ -687,8 +697,13 @@
     }).filter(d => d.auto != null && !isNaN(d.auto));
 
     if (!datos.length) {
-      el.innerHTML = '<p class="comparativo-empty">Carga cuánto tarda cada tarea con la IA (To-Be) para ver el comparativo.</p>';
+      el.innerHTML = filas.length
+        ? '<p class="comparativo-empty">Carga cuánto tarda ahora cada tarea con tu solución (To-Be) para ver el comparativo.</p>'
+        : '<p class="comparativo-empty">Todavía no hay tareas para comparar. Vuelve al <button type="button" class="btn-link" data-goto="1">Paso 1</button> y carga tus tareas habituales: son las mismas que se miden aquí.</p>';
+      el.querySelectorAll("[data-goto]").forEach(b => b.addEventListener("click", () => { collectState(); goToStep(1); }));
       if (impacto) impacto.innerHTML = "";
+      if (typeof actualizarAtajoRoi === "function") actualizarAtajoRoi();
+      if (typeof renderPresentacion === "function") renderPresentacion();
       return;
     }
 
@@ -718,8 +733,12 @@
       impacto.innerHTML = `
         <div class="impacto-card"><div class="value">${cargaPrevia.toFixed(0)}h</div><div class="label">Carga de trabajo previa (As-Is) / mes</div></div>
         <div class="impacto-card"><div class="value">${nuevaCarga.toFixed(0)}h</div><div class="label">Nueva carga estimada (To-Be) / mes</div></div>
-        <div class="impacto-card impacto-card--liberada"><div class="value">${capacidadLiberada.toFixed(0)}h</div><div class="label">Capacidad liberada para tareas de mayor valor</div></div>`;
+        <div class="impacto-card impacto-card--liberada"><div class="value">${capacidadLiberada.toFixed(0)}h</div><div class="label">Capacidad liberada para tareas de mayor valor</div></div>
+        <div class="impacto-card"><div class="value">${totalManual > 0 ? Math.round((capacidadLiberada / cargaPrevia) * 100) : 0}%</div><div class="label">Eficiencia ganada sobre la carga original</div></div>`;
     }
+    // El resto de la Sección 4 (ROI, métricas y presentación) vive de estos números.
+    if (typeof actualizarAtajoRoi === "function") actualizarAtajoRoi();
+    if (typeof renderPresentacion === "function") renderPresentacion();
   }
 
   function initCronogramaViews() {
@@ -1264,22 +1283,101 @@
   }
 
   function updateRoi() {
-    const horas = Number(document.getElementById("s3_ahorro_horas").value || 0);
+    const horasSemana = Number(document.getElementById("s3_ahorro_horas").value || 0);
     const costo = Number(document.getElementById("s3_costo_hora").value || 0);
-    const roiMensual = horas * 4.33 * costo;
+    const horasMes = horasSemana * SEMANAS_MES;
+    const horasAnio = horasSemana * DIAS_HABILES.anio / DIAS_HABILES.semana;
     document.getElementById("roiResumen").innerHTML = `
-      <div class="summary-card"><div class="value">${(horas * 4.33).toFixed(1)}h</div><div class="label">Ahorro estimado / mes</div></div>
-      <div class="summary-card"><div class="value">$${roiMensual.toFixed(0)}</div><div class="label">ROI estimado / mes (USD)</div></div>`;
+      <div class="summary-card"><div class="value">${horasMes.toFixed(1)}h</div><div class="label">Horas liberadas / mes</div></div>
+      <div class="summary-card"><div class="value">${horasAnio.toFixed(0)}h</div><div class="label">Horas liberadas / año</div></div>
+      <div class="summary-card"><div class="value">${dinero(horasMes * costo)}</div><div class="label">Retorno estimado / mes (USD)</div></div>
+      <div class="summary-card summary-card--destacada"><div class="value">${dinero(horasAnio * costo)}</div><div class="label">Retorno estimado / año (USD)</div></div>`;
+    actualizarAtajoRoi();
+    renderPresentacion();
+  }
+
+  /* Ofrece traer el ahorro ya calculado en el comparativo, sin pisar lo que
+     la persona haya escrito a mano: es un botón, no un autocompletado. */
+  function actualizarAtajoRoi() {
+    const btn = document.getElementById("btnRoiDesdeComparativo");
+    if (!btn) return;
+    const imp = calcularImpacto();
+    const actual = Number(document.getElementById("s3_ahorro_horas").value || 0);
+    const sugerido = Number(imp.ahorroSemana.toFixed(1));
+    if (!imp.hayDatos || sugerido <= 0 || Math.abs(sugerido - actual) < 0.05) { btn.hidden = true; return; }
+    btn.hidden = false;
+    btn.textContent = `⤵ Usar el ahorro del comparativo (${sugerido.toFixed(1)} h/semana)`;
+  }
+
+  function dinero(n) {
+    if (!isFinite(n) || n <= 0) return "$0";
+    return "$" + Math.round(n).toLocaleString("es-AR");
+  }
+
+  function n1(n) { return (Math.round(n * 10) / 10).toFixed(1); }
+
+  /* -------------------------------------------------- Impacto medido (Sección 4) */
+  function calcularImpacto() {
+    const filas = readComparativoAutomatizacion().filter(d => d.horas_automatizado != null && !isNaN(d.horas_automatizado));
+    const diaAsIs = filas.reduce((acc, d) => acc + (d.horas_manual || 0), 0);
+    const diaToBe = filas.reduce((acc, d) => acc + d.horas_automatizado, 0);
+    const ahorroDia = diaAsIs - diaToBe;
+    const costoHora = Number(val("s3_costo_hora") || 0);
+    return {
+      hayDatos: filas.length > 0,
+      filas,
+      semanaAsIs: diaAsIs * DIAS_HABILES.semana,
+      semanaToBe: diaToBe * DIAS_HABILES.semana,
+      mesAsIs: diaAsIs * DIAS_HABILES.mes,
+      mesToBe: diaToBe * DIAS_HABILES.mes,
+      ahorroSemana: ahorroDia * DIAS_HABILES.semana,
+      ahorroMes: ahorroDia * DIAS_HABILES.mes,
+      ahorroAnio: ahorroDia * DIAS_HABILES.anio,
+      pct: diaAsIs > 0 ? (ahorroDia / diaAsIs) * 100 : 0,
+      costoHora,
+      ahorroUsdAnio: ahorroDia * DIAS_HABILES.anio * costoHora
+    };
   }
 
   function exportResumenEjecutivo() {
     collectState();
     const s1 = state.seccion_1_ordenar_trabajo, s3 = state.seccion_3_compresion_proyecto;
+    const ent = asegurarCierreSeccion4().entregable;
+    const imp = calcularImpacto();
     const md = [
       `# Resumen ejecutivo — ${s1.metadata_proceso.nombre_proceso || "(sin nombre)"}`,
       `**Departamento:** ${s1.metadata_proceso.departamento || "—"}  `,
-      `**Nivel de solución recomendado:** ${s3.nivel_solucion || "—"}`,
-      "",
+      `**Tipo de desarrollo elegido:** ${s3.nivel_solucion || "—"}`,
+      ""
+    ];
+    if (ent.tipo || ent.resultado) {
+      md.push("## Qué se construyó",
+        `- **Tipo de entregable:** ${ent.tipo || "—"}`,
+        `- **Puesta en marcha:** ${ent.estado_ejecucion || "—"}`,
+        ent.resultado ? `- **Resultado:** ${resumirEntregable(ent.resultado)}` : null,
+        ent.notas_ejecucion ? `- **Notas de ejecución:** ${ent.notas_ejecucion}` : null,
+        "");
+    }
+    if (imp.hayDatos) {
+      md.push("## Impacto medido (antes vs. después)",
+        `- **Carga original:** ${n1(imp.semanaAsIs)} h/semana en ${imp.filas.length} tarea(s).`,
+        `- **Carga actual:** ${n1(imp.semanaToBe)} h/semana.`,
+        `- **Ahorro:** ${n1(imp.ahorroSemana)} h/semana · ${n1(imp.ahorroMes)} h/mes · ${imp.ahorroAnio.toFixed(0)} h/año.`,
+        `- **Eficiencia ganada:** ${Math.round(imp.pct)}%.`,
+        imp.costoHora > 0 ? `- **Retorno estimado:** ${dinero(imp.ahorroUsdAnio)} USD/año (costo hora ${dinero(imp.costoHora)}).` : null,
+        "",
+        "| Tarea | Antes (h/sem) | Ahora (h/sem) | Ahorro |",
+        "|---|---|---|---|",
+        ...imp.filas.map(f => {
+          const antes = f.horas_manual * DIAS_HABILES.semana;
+          const ahora = f.horas_automatizado * DIAS_HABILES.semana;
+          const pct = antes > 0 ? Math.round(((antes - ahora) / antes) * 100) : 0;
+          return `| ${f.nombre} | ${n1(antes)} | ${n1(ahora)} | ${pct >= 0 ? "-" : "+"}${Math.abs(pct)}% |`;
+        }),
+        `\n_Base de cálculo: ${DIAS_HABILES.semana} días hábiles por semana, ${DIAS_HABILES.mes} por mes, ${DIAS_HABILES.anio} por año._`,
+        "");
+    }
+    md.push(
       "## KPIs As-Is vs. To-Be",
       "| KPI | Unidad | As-Is | To-Be | Frecuencia |",
       "|---|---|---|---|---|",
@@ -1292,8 +1390,8 @@
       "",
       "## Puntos de dolor",
       ...s1.puntos_de_dolor.map(p => `- **[${p.nivel_severidad}] ${p.categoria}:** ${p.descripcion}`)
-    ];
-    downloadText(`resumen-ejecutivo-${state.app_meta.id_expediente}.md`, md.join("\n"));
+    );
+    downloadText(`resumen-ejecutivo-${state.app_meta.id_expediente}.md`, md.filter(x => x !== null).join("\n"));
   }
 
   /* ------------------------------------------------------------------ SECCIÓN 4 */
@@ -1308,6 +1406,325 @@
     ["Validar que no se incluyó información confidencial", "Probar con datos sintéticos en sandbox", "Revisar permisos mínimos (least privilege)", "Definir rollback / mecanismo STOP", "Obtener aprobación del sponsor"].forEach(item => addRow("checklistRows", "tpl-checklist-row", { item }, () => { }));
 
     document.getElementById("btnFinalize").addEventListener("click", exportManualCompleto);
+
+    document.getElementById("btnRoiDesdeComparativo").addEventListener("click", () => {
+      const imp = calcularImpacto();
+      setVal("s3_ahorro_horas", n1(imp.ahorroSemana));
+      updateRoi();
+      setIoStatus("Ahorro traído del comparativo. Puedes ajustarlo a mano si quieres ser más conservador.");
+    });
+
+    // El entregable y las dudas alimentan los dos prompts de cierre.
+    ["s4_entregable_tipo", "s4_entregable_estado", "s4_entregable_resultado", "s4_entregable_notas"].forEach(id => {
+      const el = document.getElementById(id);
+      el.addEventListener("input", () => { renderConsultaDudas(); renderPresentacion(); });
+      el.addEventListener("change", () => { renderConsultaDudas(); renderPresentacion(); });
+    });
+    document.getElementById("s4_dudas_detalle").addEventListener("input", renderConsultaDudas);
+    document.getElementById("s4_pres_logo").addEventListener("change", () => {
+      asegurarCierreSeccion4().presentacion.incluir_logo = document.getElementById("s4_pres_logo").checked;
+      actualizarPromptPresentacion();
+    });
+
+    initDudas();
+    initPresentacion();
+  }
+
+  /* ---------------- Módulo de dudas: consulta lista para la IA ---------------- */
+  function initDudas() {
+    const cont = document.getElementById("dudasFrecuentes");
+    if (!cont) return;
+    cont.innerHTML = CONTENIDO.DUDAS_FRECUENTES.map(d => `
+      <label class="idea-card" data-duda="${escAttr(d.id)}">
+        <input type="checkbox" data-duda-check="${escAttr(d.id)}" />
+        <span class="idea-texto"><strong>${escHtml(d.t)}</strong></span>
+      </label>`).join("");
+    cont.querySelectorAll("[data-duda-check]").forEach(chk => {
+      chk.addEventListener("change", () => {
+        const id = chk.dataset.dudaCheck;
+        const dudas = asegurarCierreSeccion4().dudas;
+        dudas.puntos_confusos = chk.checked
+          ? Array.from(new Set((dudas.puntos_confusos || []).concat(id)))
+          : (dudas.puntos_confusos || []).filter(x => x !== id);
+        chk.closest(".idea-card").classList.toggle("is-selected", chk.checked);
+        renderConsultaDudas();
+      });
+    });
+    renderConsultaDudas();
+  }
+
+  function renderConsultaDudas() {
+    const box = document.getElementById("consultaDudas");
+    if (!box) return;
+    const dudas = asegurarCierreSeccion4().dudas;
+    dudas.detalle = val("s4_dudas_detalle");
+    const marcadas = dudas.puntos_confusos || [];
+    if (!marcadas.length && !dudas.detalle.trim()) {
+      box.innerHTML = `<p class="hint-footnote" style="margin-top:.9rem">Marca al menos una casilla o escribe tu duda para que armemos la consulta.</p>`;
+      return;
+    }
+    const yaEstaba = !!document.getElementById("promptDudas");
+    if (!yaEstaba) {
+      box.innerHTML = `
+        <p class="hint-title" style="margin-top:1.1rem">Tu consulta, lista para pegar</p>
+        <pre class="prompt-box" id="promptDudas"></pre>
+        <div class="panel-actions" style="margin-top:.6rem; justify-content:flex-start; gap:.6rem;">
+          <button type="button" class="btn-primary" id="btnCopiarDudas">📋 Copiar consulta</button>
+          <button type="button" class="btn-secondary" id="btnDescargarDudas">⬇️ Descargar (.md)</button>
+        </div>`;
+      document.getElementById("btnCopiarDudas").addEventListener("click", () => copiarTexto(construirConsultaDudas(), "Consulta copiada. Pegala en tu asistente de IA."));
+      document.getElementById("btnDescargarDudas").addEventListener("click", () => {
+        downloadText(`consulta-dudas-${state.app_meta.id_expediente}.md`, construirConsultaDudas());
+        setIoStatus("Consulta descargada.");
+      });
+    }
+    document.getElementById("promptDudas").textContent = construirConsultaDudas();
+  }
+
+  function construirConsultaDudas() {
+    const s1 = state.seccion_1_ordenar_trabajo.metadata_proceso;
+    const s3 = state.seccion_3_compresion_proyecto;
+    const ent = leerEntregable();
+    const dudas = state.seccion_4_indicadores_desarrollo.dudas;
+    const marcadas = CONTENIDO.DUDAS_FRECUENTES.filter(d => (dudas.puntos_confusos || []).includes(d.id));
+
+    const L = [];
+    L.push("Actúa como un mentor técnico que explica sin tecnicismos, como si fuera mi primer proyecto con IA.");
+    L.push("");
+    L.push("## Qué construí");
+    L.push(`- Proceso: ${s1.nombre_proceso || "(sin nombre)"}`);
+    if (s3.nivel_solucion) L.push(`- Tipo de desarrollo: ${s3.nivel_solucion}`);
+    if (ent.tipo) L.push(`- Qué obtuve: ${ent.tipo}`);
+    if (ent.estado_ejecucion) L.push(`- Cómo salió: ${ent.estado_ejecucion}`);
+    if (ent.notas_ejecucion) L.push(`- Notas de ejecución: ${ent.notas_ejecucion}`);
+    L.push("");
+    if (ent.resultado) {
+      L.push("## El resultado que tengo");
+      L.push("```");
+      L.push(ent.resultado);
+      L.push("```");
+      L.push("");
+    } else {
+      L.push("## El resultado que tengo");
+      L.push("[PENDIENTE: pega aquí el script, el prompt o la plantilla sobre la que preguntas]");
+      L.push("");
+    }
+    L.push("## Qué no me queda claro");
+    marcadas.forEach(d => L.push(`- ${d.t}`));
+    if (dudas.detalle.trim()) L.push(`- ${dudas.detalle.trim()}`);
+    L.push("");
+    L.push("## Cómo quiero que me respondas");
+    L.push("- Explícamelo en lenguaje de oficina, sin jerga. Si usas un término técnico, defínelo en la misma línea.");
+    L.push("- Usa un ejemplo concreto con datos inventados para que vea qué entra y qué sale.");
+    L.push("- Si hay que cambiar algo, dime exactamente en qué parte y con qué lo reemplazo.");
+    L.push("- No reescribas todo de cero: quiero entender lo que ya tengo funcionando.");
+    L.push("- Si mi duda parte de un malentendido, corrígeme primero y después responde.");
+    L.push("- Termina con una prueba concreta que pueda hacer yo para confirmar que entendí bien.");
+    return L.join("\n");
+  }
+
+  /* Un expediente exportado antes de esta versión no trae los sub-objetos del
+     cierre. Se completan con los valores por defecto en vez de asumirlos. */
+  function asegurarCierreSeccion4() {
+    const s4 = state.seccion_4_indicadores_desarrollo;
+    s4.entregable = Object.assign({ tipo: "", estado_ejecucion: "", resultado: "", notas_ejecucion: "" }, s4.entregable);
+    s4.dudas = Object.assign({ puntos_confusos: [], detalle: "" }, s4.dudas);
+    s4.presentacion = Object.assign({ audiencia: "", objetivo: "", incluir_logo: false }, s4.presentacion);
+    return s4;
+  }
+
+  function leerEntregable() {
+    const ent = asegurarCierreSeccion4().entregable;
+    ent.tipo = val("s4_entregable_tipo");
+    ent.estado_ejecucion = val("s4_entregable_estado");
+    ent.resultado = val("s4_entregable_resultado");
+    ent.notas_ejecucion = val("s4_entregable_notas");
+    return ent;
+  }
+
+  /* ---------------- Presentación ejecutiva ---------------- */
+  function initPresentacion() {
+    const pres = CONTENIDO.PRESENTACION;
+    if (!pres) return;
+    const estilo = document.getElementById("estiloDefecto");
+    if (estilo) estilo.innerHTML = pres.estilo.map(x => `<li>${escHtml(x)}</li>`).join("");
+
+    const armarPicker = (contenedorId, items, campo) => {
+      const cont = document.getElementById(contenedorId);
+      if (!cont) return;
+      cont.innerHTML = items.map(it => `
+        <div class="level-option" role="radio" tabindex="0" aria-checked="false" data-valor="${escAttr(it.id)}">
+          <strong>${escHtml(it.nombre)}</strong>
+        </div>`).join("");
+      cont.querySelectorAll("[data-valor]").forEach(el => {
+        const elegir = () => {
+          state.seccion_4_indicadores_desarrollo.presentacion[campo] = el.dataset.valor;
+          cont.querySelectorAll("[data-valor]").forEach(o => o.setAttribute("aria-checked", o === el ? "true" : "false"));
+          renderPresentacion();
+        };
+        el.addEventListener("click", elegir);
+        el.addEventListener("keydown", e => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); elegir(); } });
+      });
+    };
+    armarPicker("audienciaPicker", pres.audiencias, "audiencia");
+    armarPicker("objetivoPicker", pres.objetivos, "objetivo");
+
+    document.getElementById("btnCopiarPresentacion").addEventListener("click", () => copiarTexto(construirPromptPresentacion(), "Prompt de presentación copiado."));
+    document.getElementById("btnDescargarPresentacion").addEventListener("click", () => {
+      downloadText(`prompt-presentacion-${state.app_meta.id_expediente}.md`, construirPromptPresentacion());
+      setIoStatus("Prompt de presentación descargado.");
+    });
+    renderPresentacion();
+  }
+
+  function renderPresentacion() {
+    const cont = document.getElementById("presentacionMetricas");
+    if (!cont) return;
+    const imp = calcularImpacto();
+    if (!imp.hayDatos) {
+      cont.innerHTML = `<p class="comparativo-empty" style="grid-column:1/-1">Todavía no hay números que mostrar: carga arriba cuánto tarda ahora cada tarea. El prompt se arma igual, pero con los tiempos en blanco.</p>`;
+    } else {
+      cont.innerHTML = `
+        <div class="impacto-card"><div class="value">${n1(imp.semanaAsIs)}h</div><div class="label">Antes · por semana</div></div>
+        <div class="impacto-card"><div class="value">${n1(imp.semanaToBe)}h</div><div class="label">Ahora · por semana</div></div>
+        <div class="impacto-card impacto-card--liberada"><div class="value">${imp.ahorroAnio.toFixed(0)}h</div><div class="label">Horas liberadas al año</div></div>
+        <div class="impacto-card"><div class="value">${Math.round(imp.pct)}%</div><div class="label">Eficiencia ganada</div></div>
+        ${imp.costoHora > 0 ? `<div class="impacto-card impacto-card--liberada"><div class="value">${dinero(imp.ahorroUsdAnio)}</div><div class="label">Retorno estimado al año</div></div>` : ""}`;
+    }
+    const pres = asegurarCierreSeccion4().presentacion;
+    const aud = (CONTENIDO.PRESENTACION.audiencias || []).find(a => a.id === pres.audiencia);
+    const nota = document.getElementById("audienciaNota");
+    if (nota) nota.textContent = aud ? aud.enfoque : "Elige a quién se lo vas a mostrar: cambia el énfasis del guion, no los números.";
+    document.querySelectorAll("#audienciaPicker [data-valor]").forEach(o => o.setAttribute("aria-checked", o.dataset.valor === pres.audiencia ? "true" : "false"));
+    document.querySelectorAll("#objetivoPicker [data-valor]").forEach(o => o.setAttribute("aria-checked", o.dataset.valor === pres.objetivo ? "true" : "false"));
+    actualizarPromptPresentacion();
+  }
+
+  function actualizarPromptPresentacion() {
+    const pre = document.getElementById("promptPresentacion");
+    if (pre) pre.textContent = construirPromptPresentacion();
+  }
+
+  function construirPromptPresentacion() {
+    const pres = CONTENIDO.PRESENTACION;
+    if (!pres) return "";
+    const meta = state.seccion_1_ordenar_trabajo.metadata_proceso;
+    const s1 = state.seccion_1_ordenar_trabajo;
+    const s3 = state.seccion_3_compresion_proyecto;
+    const cfg = asegurarCierreSeccion4().presentacion;
+    const ent = leerEntregable();
+    const imp = calcularImpacto();
+    const aud = pres.audiencias.find(a => a.id === cfg.audiencia);
+    const obj = pres.objetivos.find(o => o.id === cfg.objetivo);
+    const dolores = (s1.puntos_de_dolor || []).filter(d => d.descripcion);
+    const kpis = (s3.kpis_y_metricas_clave || []).filter(k => k.nombre_kpi);
+    const controles = readRows("checklistRows", ["item", "completado"]).filter(c => c.item && c.completado);
+
+    const L = [];
+    L.push("# Prompt: presentación ejecutiva de 5 diapositivas");
+    L.push("");
+    L.push("Actúa como un Consultor Senior en Estrategia Digital y Comunicación Ejecutiva. Convierte la información de mi proyecto en el guion de una presentación de 5 diapositivas: puntual, visual y orientada a resultados de negocio.");
+    L.push("");
+    L.push("## A quién se lo voy a presentar");
+    if (aud) { L.push(`${aud.nombre}. ${aud.enfoque}`); L.push(aud.pide); }
+    else L.push("[PENDIENTE: elige la audiencia — jefatura, equipo, comité o cliente interno]");
+    L.push("");
+    L.push("## Qué quiero conseguir");
+    if (obj) L.push(`${obj.nombre}. ${obj.pide}`);
+    else L.push("[PENDIENTE: elige el objetivo — escalar, consolidar el piloto, pedir recursos o compartir el aprendizaje]");
+    L.push("");
+    L.push("## Datos del proyecto");
+    L.push(`- Proyecto / proceso: ${meta.nombre_proceso || "[PENDIENTE]"}`);
+    if (meta.departamento) L.push(`- Área: ${meta.departamento}`);
+    if (meta.responsable_proceso) L.push(`- Responsable: ${meta.responsable_proceso}`);
+    if (s3.nivel_solucion) L.push(`- Tipo de desarrollo elegido: ${s3.nivel_solucion}`);
+    if (ent.tipo) L.push(`- Qué se construyó: ${ent.tipo}`);
+    if (ent.resultado) L.push(`- Descripción del entregable: ${resumirEntregable(ent.resultado)}`);
+    if (ent.estado_ejecucion) L.push(`- Cómo salió la puesta en marcha: ${ent.estado_ejecucion}`);
+    if (ent.notas_ejecucion) L.push(`- Notas de ejecución: ${ent.notas_ejecucion}`);
+    L.push("");
+    L.push("## Punto de partida y resultado medido");
+    if (imp.hayDatos) {
+      L.push(`- Carga original: ${n1(imp.semanaAsIs)} h/semana repartidas en ${imp.filas.length} tarea(s) habitual(es).`);
+      L.push(`- Carga actual con la solución: ${n1(imp.semanaToBe)} h/semana.`);
+      L.push(`- Ahorro: ${n1(imp.ahorroSemana)} h/semana · ${n1(imp.ahorroMes)} h/mes · ${imp.ahorroAnio.toFixed(0)} h/año.`);
+      L.push(`- Eficiencia ganada: ${Math.round(imp.pct)}% del tiempo que consumía el proceso.`);
+      if (imp.costoHora > 0) L.push(`- Retorno económico estimado: ${dinero(imp.ahorroUsdAnio)} USD al año (costo hora de referencia: ${dinero(imp.costoHora)}).`);
+      L.push("- Detalle por tarea (horas por semana, antes → ahora):");
+      imp.filas.forEach(f => {
+        const antes = f.horas_manual * DIAS_HABILES.semana;
+        const ahora = f.horas_automatizado * DIAS_HABILES.semana;
+        const pct = antes > 0 ? Math.round(((antes - ahora) / antes) * 100) : 0;
+        L.push(`  - ${f.nombre}: ${n1(antes)} h → ${n1(ahora)} h (${pct >= 0 ? "-" : "+"}${Math.abs(pct)}%)`);
+      });
+      L.push(`- Base de cálculo: ${DIAS_HABILES.semana} días hábiles por semana, ${DIAS_HABILES.mes} por mes, ${DIAS_HABILES.anio} por año.`);
+    } else {
+      L.push("- [PENDIENTE: todavía no cargué el contraste de horas antes/después en la guía]");
+    }
+    if (dolores.length) {
+      L.push("- Problemas que motivaron el proyecto:");
+      dolores.forEach(d => L.push(`  - [${d.nivel_severidad || "—"}] ${d.categoria || ""}: ${d.descripcion}`));
+    }
+    if (kpis.length) {
+      L.push("- Métricas comprometidas:");
+      kpis.forEach(k => L.push(`  - ${k.nombre_kpi}: ${k.valor_actual_as_is} → ${k.meta_esperada_to_be} ${k.unidad_medida || ""} (medición ${k.frecuencia_medicion || "—"})`));
+    }
+    if (controles.length) {
+      L.push("- Controles de calidad y seguridad ya validados:");
+      controles.forEach(c => L.push(`  - ${c.item}`));
+    }
+    const sponsor = val("s4_sponsor"), fecha = val("s4_fecha_revision");
+    if (sponsor) L.push(`- Sponsor que aprueba: ${sponsor}`);
+    if (fecha) L.push(`- Revisión de resultados prevista: ${fecha}`);
+    L.push("");
+    L.push("## Formato de cada diapositiva");
+    L.push("1. **Título impactante:** máximo 6 palabras.");
+    L.push("2. **Hasta 3 viñetas:** máximo 2 líneas cada una, directas al grano.");
+    L.push("3. **Una métrica protagonista:** una sola cifra en caja destacada.");
+    L.push("4. **Nota del orador:** una frase corta con lo que digo en voz alta.");
+    L.push("");
+    L.push("## Las 5 diapositivas");
+    pres.slides.forEach(sl => L.push(`${sl.n}. ${sl.icono} **${sl.titulo}** — ${sl.enfoque}`));
+    L.push("");
+    L.push("## Estilo visual");
+    pres.estilo.forEach(x => L.push(`- ${x}`));
+    if (cfg.incluir_logo) {
+      L.push("- Reserva un espacio libre para el logo de mi empresa en la esquina superior derecha de cada diapositiva. No inventes ni describas un logo: solo deja el lugar.");
+    }
+    L.push("");
+    L.push("## Reglas");
+    L.push("- Tono profesional, moderno y directo. Sin relleno: nada de «es importante destacar» ni «en conclusión».");
+    L.push("- No inventes datos. Si falta un número, escribe [PENDIENTE DE VALIDACIÓN] en su lugar.");
+    L.push("- Los números son estimaciones internas de mi área: preséntalos como estimaciones, no como cifras auditadas.");
+    L.push("- Entrega el guion en texto plano, listo para pegar en Gamma, Canva, Marp o PowerPoint.");
+    return L.join("\n");
+  }
+
+  /* Un entregable puede ser un script largo: en la presentación entra un
+     resumen, no el código entero. */
+  function resumirEntregable(texto) {
+    const limpio = String(texto).replace(/\s+/g, " ").trim();
+    return limpio.length > 300 ? limpio.slice(0, 300) + "… (recortado)" : limpio;
+  }
+
+  function copiarTexto(texto, mensajeOk) {
+    const ok = () => setIoStatus(mensajeOk);
+    const fallback = () => {
+      const ta = document.createElement("textarea");
+      ta.value = texto;
+      ta.setAttribute("readonly", "");
+      ta.style.position = "fixed";
+      ta.style.opacity = "0";
+      document.body.appendChild(ta);
+      ta.select();
+      let copiado = false;
+      try { copiado = document.execCommand("copy"); } catch (e) { copiado = false; }
+      document.body.removeChild(ta);
+      if (copiado) ok();
+      else setIoStatus("⚠️ Tu navegador bloqueó el copiado: selecciona el texto del recuadro y cópialo a mano.");
+    };
+    if (navigator.clipboard && navigator.clipboard.writeText) navigator.clipboard.writeText(texto).then(ok).catch(fallback);
+    else fallback();
   }
 
   function renderGuiaDesarrollo() {
@@ -1424,7 +1841,10 @@
   }
 
   /* ---------------- Galería de ideas y sugerencias (Sección 3) ---------------- */
-  const CONTENIDO = window.AIPG_CONTENT || { SUGERENCIAS: {}, IA_GUIA: [], CATALOGO: null };
+  const CONTENIDO = Object.assign(
+    { SUGERENCIAS: {}, IA_GUIA: [], CATALOGO: null, DUDAS_FRECUENTES: [], PRESENTACION: { audiencias: [], objetivos: [], estilo: [], slides: [] } },
+    window.AIPG_CONTENT || {}
+  );
 
   function sugerenciasDelNivel() {
     return CONTENIDO.SUGERENCIAS[claveNivel(state.seccion_3_compresion_proyecto.nivel_solucion)] || null;
@@ -1601,28 +2021,9 @@
   }
 
   function copiarPromptMaestro() {
-    const texto = construirPromptMaestro();
-    const ok = () => setIoStatus("Prompt maestro copiado. Pégalo en tu asistente de IA.");
-    const fallback = () => {
-      // Al abrir con file:// algunos navegadores bloquean la Clipboard API.
-      const ta = document.createElement("textarea");
-      ta.value = texto;
-      ta.setAttribute("readonly", "");
-      ta.style.position = "fixed";
-      ta.style.opacity = "0";
-      document.body.appendChild(ta);
-      ta.select();
-      let copiado = false;
-      try { copiado = document.execCommand("copy"); } catch (e) { copiado = false; }
-      document.body.removeChild(ta);
-      if (copiado) ok();
-      else setIoStatus("⚠️ Tu navegador bloqueó el copiado: selecciona el texto del recuadro y cópialo a mano.");
-    };
-    if (navigator.clipboard && navigator.clipboard.writeText) {
-      navigator.clipboard.writeText(texto).then(ok).catch(fallback);
-    } else {
-      fallback();
-    }
+    // copiarTexto() cae a execCommand porque con file:// algunos navegadores
+    // bloquean la Clipboard API.
+    copiarTexto(construirPromptMaestro(), "Prompt maestro copiado. Pégalo en tu asistente de IA.");
   }
 
   /* ---------------- Catálogo de recursos: documento imprimible (PDF) ---------------- */
@@ -1742,6 +2143,7 @@
     collectState();
     markStepComplete(4);
     const s = state;
+    const impacto = calcularImpacto();
     const md = [
       `# Manual de Implementación — ${s.seccion_1_ordenar_trabajo.metadata_proceso.nombre_proceso || s.app_meta.id_expediente}`,
       `Expediente: ${s.app_meta.id_expediente} · Generado: ${new Date().toLocaleDateString()}`,
@@ -1749,6 +2151,16 @@
       "## 1. Recomendación y Nivel de Solución",
       `- **Recomendación Técnica:** ${s.seccion_2_clasificacion_proyecto.recomendacion?.nombre_tecnico || "—"}`,
       `- **Nivel:** ${s.seccion_3_compresion_proyecto.nivel_solucion || "—"}`,
+      `- **Entregable construido:** ${s.seccion_4_indicadores_desarrollo.entregable.tipo || "—"} (${s.seccion_4_indicadores_desarrollo.entregable.estado_ejecucion || "sin registrar"})`,
+      "",
+      "## 1.b Impacto medido",
+      ...(impacto.hayDatos
+        ? [
+          `- Carga original: ${n1(impacto.semanaAsIs)} h/semana · actual: ${n1(impacto.semanaToBe)} h/semana.`,
+          `- Ahorro: ${n1(impacto.ahorroSemana)} h/semana · ${impacto.ahorroAnio.toFixed(0)} h/año (${Math.round(impacto.pct)}% de eficiencia ganada).`,
+          impacto.costoHora > 0 ? `- Retorno estimado: ${dinero(impacto.ahorroUsdAnio)} USD/año.` : "- Retorno económico: sin costo hora cargado."
+        ]
+        : ["- Sin contraste de horas cargado en la Sección 4."]),
       "",
       "## 2. Checklist de Seguridad / Emisión al Piloto",
       ...readRows("checklistRows", ["item", "completado"]).map(c => `- [${c.completado ? "x" : " "}] ${c.item}`),
@@ -1757,7 +2169,12 @@
       `- Sponsor: ${document.getElementById("s4_sponsor").value || "—"}`,
       `- Fecha de revisión del piloto: ${document.getElementById("s4_fecha_revision").value || "—"}`,
       "",
-      "## 4. Estado completo del expediente",
+      "## 4. Prompt para la presentación ejecutiva",
+      "```markdown",
+      construirPromptPresentacion(),
+      "```",
+      "",
+      "## 5. Estado completo del expediente",
       "```json",
       JSON.stringify(s, null, 2),
       "```"
@@ -1793,13 +2210,20 @@
 
     state.seccion_3_compresion_proyecto.kpis_y_metricas_clave = readKpis();
     state.seccion_3_compresion_proyecto.comparativo_automatizacion = readComparativoAutomatizacion();
+    const ahorroSemanal = Number(val("s3_ahorro_horas") || 0);
+    const costoHora = Number(val("s3_costo_hora") || 0);
     state.seccion_3_compresion_proyecto.roi_estimado = {
-      potencial_ahorro_horas_mes: Number((Number(val("s3_ahorro_horas") || 0) * 4.33).toFixed(1)),
-      roi_estimado_mensual_usd: Number((Number(val("s3_ahorro_horas") || 0) * 4.33 * Number(val("s3_costo_hora") || 0)).toFixed(0)),
+      potencial_ahorro_horas_mes: Number((ahorroSemanal * SEMANAS_MES).toFixed(1)),
+      roi_estimado_mensual_usd: Number((ahorroSemanal * SEMANAS_MES * costoHora).toFixed(0)),
+      costo_hora_usd: costoHora,
       tiempo_estimado_implementacion: val("s3_tiempo_impl"),
       requiere_aprobacion_seguridad: document.getElementById("s3_requiere_seguridad").checked
     };
 
+    leerEntregable();
+    const cierre = asegurarCierreSeccion4();
+    cierre.dudas.detalle = val("s4_dudas_detalle");
+    cierre.presentacion.incluir_logo = document.getElementById("s4_pres_logo").checked;
     state.seccion_4_indicadores_desarrollo.plan_gestion_cambio.checklist = readRows("checklistRows", ["item", "completado"]);
     state.seccion_4_indicadores_desarrollo.plan_gestion_cambio.responsable_sponsor = val("s4_sponsor");
     state.seccion_4_indicadores_desarrollo.plan_gestion_cambio.fecha_revision_piloto = val("s4_fecha_revision");
@@ -1815,6 +2239,8 @@
   function hydrateState(loaded) {
     state = Object.assign(emptyState(), loaded);
     state.seccion_2_clasificacion_proyecto.evaluacion_ecosistema = state.seccion_2_clasificacion_proyecto.evaluacion_ecosistema || { respuestas: {}, puntaje: 0, nivel: "" };
+    state.seccion_4_indicadores_desarrollo = Object.assign(emptyState().seccion_4_indicadores_desarrollo, state.seccion_4_indicadores_desarrollo);
+    asegurarCierreSeccion4();
     const s1 = state.seccion_1_ordenar_trabajo;
     setVal("s1_nombre_proceso", s1.metadata_proceso.nombre_proceso);
     setVal("s1_departamento", s1.metadata_proceso.departamento);
@@ -1863,6 +2289,10 @@
     if (!s3.kpis_y_metricas_clave.length) addKpiRow();
     setVal("s3_tiempo_impl", s3.roi_estimado.tiempo_estimado_implementacion);
     document.getElementById("s3_requiere_seguridad").checked = !!s3.roi_estimado.requiere_aprobacion_seguridad;
+    // El ahorro se guarda mensual pero se carga por semana, que es como se pide.
+    const ahorroMes = Number(s3.roi_estimado.potencial_ahorro_horas_mes || 0);
+    setVal("s3_ahorro_horas", ahorroMes ? n1(ahorroMes / SEMANAS_MES) : "");
+    setVal("s3_costo_hora", s3.roi_estimado.costo_hora_usd || "");
     updateRoi();
 
     const s4 = state.seccion_4_indicadores_desarrollo;
@@ -1870,6 +2300,22 @@
     (s4.plan_gestion_cambio.checklist.length ? s4.plan_gestion_cambio.checklist : []).forEach(c => addRow("checklistRows", "tpl-checklist-row", c, () => { }));
     setVal("s4_sponsor", s4.plan_gestion_cambio.responsable_sponsor);
     setVal("s4_fecha_revision", s4.plan_gestion_cambio.fecha_revision_piloto);
+
+    asegurarCierreSeccion4();
+    setVal("s4_entregable_tipo", s4.entregable.tipo);
+    setVal("s4_entregable_estado", s4.entregable.estado_ejecucion);
+    setVal("s4_entregable_resultado", s4.entregable.resultado);
+    setVal("s4_entregable_notas", s4.entregable.notas_ejecucion);
+
+    setVal("s4_dudas_detalle", s4.dudas.detalle);
+    document.querySelectorAll("[data-duda-check]").forEach(chk => {
+      chk.checked = (s4.dudas.puntos_confusos || []).includes(chk.dataset.dudaCheck);
+      chk.closest(".idea-card").classList.toggle("is-selected", chk.checked);
+    });
+    renderConsultaDudas();
+
+    document.getElementById("s4_pres_logo").checked = !!s4.presentacion.incluir_logo;
+    renderPresentacion();
 
     goToStep(state.app_meta.etapa_actual || 1);
     setIoStatus(`Expediente ${state.app_meta.id_expediente} cargado — tu avance fue restaurado.`);

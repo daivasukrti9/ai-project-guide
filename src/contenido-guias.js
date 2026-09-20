@@ -296,5 +296,54 @@
     ]
   };
 
-  window.AIPG_CONTENT = { SUGERENCIAS, IA_GUIA, CATALOGO };
+
+  /* ------------------------------------------------------------------
+     Sección 4 — cierre: consulta de dudas y presentación ejecutiva.
+     Fuente: knowledge/pagina-4-especificacion-prompt.md
+     ------------------------------------------------------------------ */
+  const PRESENTACION = {
+    audiencias: [
+      { id: "jefatura", nombre: "Jefatura / dirección", enfoque: "Van directo al resultado y al costo. Pon el número grande primero y el detalle técnico al final, solo si lo piden.", pide: "Usa lenguaje de negocio, no técnico. Abre con el ahorro anual y cierra con qué decisión necesito de ellos." },
+      { id: "equipo", nombre: "Mi equipo", enfoque: "Les importa cómo les cambia el día a día y si van a tener que aprender algo nuevo.", pide: "Usa un tono cercano y concreto. Explica qué tarea deja de hacerse a mano y qué pasos nuevos aparecen." },
+      { id: "comite", nombre: "Comité o varias áreas", enfoque: "Mezcla de perfiles: alguien mide plata, alguien mide riesgo y alguien mide esfuerzo.", pide: "Equilibra las tres miradas: resultado económico, control de calidad/seguridad y esfuerzo de adopción." },
+      { id: "cliente-interno", nombre: "Cliente interno", enfoque: "Le interesa qué recibe distinto y cuándo, no cómo está hecho por dentro.", pide: "Enfócate en el servicio que recibe: qué mejora, en cuánto tiempo y a quién reclama si algo falla." }
+    ],
+    objetivos: [
+      { id: "escalar", nombre: "Escalar a otras áreas", pide: "El cierre debe proponer replicar esto en otras áreas: qué haría falta, en qué orden y qué se puede reutilizar tal cual." },
+      { id: "consolidar", nombre: "Consolidar el piloto", pide: "El cierre debe pedir pasar de prueba a uso estable: qué queda por validar, quién lo aprueba y desde cuándo." },
+      { id: "recursos", nombre: "Pedir tiempo o recursos", pide: "El cierre debe hacer un pedido concreto y acotado (horas, licencia, apoyo técnico), justificado con el retorno ya medido." },
+      { id: "compartir", nombre: "Compartir el aprendizaje", pide: "El cierre debe dejar el método replicable: qué aprendí, qué volvería a hacer igual y qué evitaría." }
+    ],
+    /* Estilo por defecto del guion. La app lo muestra y el usuario puede
+       reemplazarlo: es texto dentro del prompt, no una regla del sistema. */
+    estilo: [
+      "Paleta sobria de tres colores: un azul profundo para los títulos, gris neutro para el cuerpo y un solo acento (verde) reservado para las cifras de ahorro.",
+      "Una idea por diapositiva. Si algo necesita dos, son dos diapositivas.",
+      "Una sola cifra protagonista por diapositiva, en tamaño mucho mayor que el resto.",
+      "Máximo 3 viñetas por diapositiva y máximo 2 líneas por viñeta.",
+      "Sin logos genéricos, sin fotos de stock y sin íconos decorativos que no aporten información.",
+      "Comparaciones antes/después siempre en el mismo orden y con la misma escala, para que se lean de un vistazo."
+    ],
+    slides: [
+      { n: 1, icono: "🟢", titulo: "Portada e impacto principal", enfoque: "El titular del proyecto y el número que resume todo. Quien solo vea esta diapositiva tiene que entender el resultado." },
+      { n: 2, icono: "🔴", titulo: "El punto de partida", enfoque: "Cómo se trabajaba antes: las tareas manuales, cuánto tiempo consumían y qué se rompía seguido. Sin dramatizar, con el dato." },
+      { n: 3, icono: "⚙️", titulo: "La solución implementada", enfoque: "Qué se construyó, con qué enfoque y qué controles de calidad y privacidad tiene. En lenguaje de oficina, no técnico." },
+      { n: 4, icono: "📊", titulo: "Antes vs. después", enfoque: "El contraste tarea por tarea entre el tiempo original y el actual, con el total destacado." },
+      { n: 5, icono: "🚀", titulo: "Retorno y qué sigue", enfoque: "El retorno acumulado, en qué se usa el tiempo liberado y el pedido concreto del cierre." }
+    ]
+  };
+
+  /* Bloqueos típicos al recibir un entregable hecho con IA. Sirven de
+     disparador: la persona marca los que le pasan y escribe el resto. */
+  const DUDAS_FRECUENTES = [
+    { id: "no-entiendo", t: "No entiendo qué hace una parte del resultado" },
+    { id: "no-se-usar", t: "No sé cómo usarlo en mi día a día" },
+    { id: "falla", t: "Falla o da un error que no sé interpretar" },
+    { id: "datos", t: "No sé dónde va cada dato de entrada" },
+    { id: "modificar", t: "No sé dónde tocar si cambia una regla" },
+    { id: "compartir", t: "No sé si puedo compartirlo con mi equipo tal como está" },
+    { id: "mantener", t: "No sé quién lo mantiene si yo no estoy" }
+  ];
+
+  window.AIPG_CONTENT = { SUGERENCIAS, IA_GUIA, CATALOGO, PRESENTACION, DUDAS_FRECUENTES };
 })();
