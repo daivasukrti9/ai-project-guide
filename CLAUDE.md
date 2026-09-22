@@ -63,9 +63,19 @@ docs/
 ```
 
 ## Reglas de testing
-- Sin framework de tests (no hay build/CI todavía). Verificación manual vía `tests/checklist-e2e.md`.
-- `node tests/verificar-textos.js` comprueba que no falte ninguna clave de interfaz
-  y que los idiomas estén parejos. Correrlo después de tocar textos.
+- La app no tiene dependencias ni build. Los verificadores tampoco, salvo el
+  último, que es opcional.
+- `node tests/verificar-textos.js` — claves de interfaz: que no falte ninguna,
+  que los tres idiomas estén parejos, que ningún `data-i18n` cuelgue de un
+  elemento con hijos y que ningún callback llame `t` a su parámetro.
+- `node tests/verificar-referencias.js` — que todo `getElementById` tenga su
+  elemento y toda plantilla exista.
+- `cd tests && npm install && node probar-funcional.js` — **batería funcional
+  sobre jsdom**: ejecuta el código real sin navegador (arranque, cambio de
+  idioma, cálculos, exportables, round-trip del expediente y migración de
+  expedientes viejos). Única dependencia del repo, solo para tests.
+- Verificación manual restante: `tests/checklist-e2e.md` (lo visual y el
+  portapapeles, que necesitan ojos y un gesto real).
 - Cubrir siempre: import/export JSON, las 4 secciones, cálculo 80/20, generación de prompt.
 
 ## Idiomas

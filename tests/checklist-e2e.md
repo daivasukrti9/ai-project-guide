@@ -1,6 +1,14 @@
 # Checklist E2E manual — AI Project Guide
 
-Sin framework de tests todavía; verificación manual con datos sintéticos.
+Antes de lo manual, correr lo automático:
+
+    node tests/verificar-textos.js
+    node tests/verificar-referencias.js
+    cd tests && npm install && node probar-funcional.js
+
+La batería funcional cubre 59 comprobaciones sobre el código real (jsdom).
+Lo de abajo es lo que no se puede automatizar: lo visual, la impresión y el
+portapapeles.
 Marca cada ítem tras probarlo en el navegador (`src/index.html`).
 
 Hay un expediente de ejemplo listo para usar en las pruebas o la demo:

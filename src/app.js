@@ -52,7 +52,36 @@
     if (!document.getElementById("entradasRows")) return; // todavía no inicializó
     collectState();
     applyTheme(document.documentElement.getAttribute("data-theme") || "light");
+
+    const copy = heroCopy(currentStep);
+    document.getElementById("heroTitle").textContent = copy.titulo;
+    document.getElementById("heroLede").textContent = copy.lede;
+
+    // Sección 1
     renderMapeoCompleto();
+    renderDiagnosticoCarga();
+    calcularCapacidad();
+    refrescarVistaActiva();
+
+    // Sección 2 — se reconstruyen las opciones y se recalculan los cuadros
+    renderPickersClasificacion();
+    initEcosistema();
+    renderRecomendacion();
+    renderEcosistema();
+
+    // Sección 3
+    renderLevelPicker();
+    const lvActual = LEVELS.find(l => l.id === state.seccion_3_compresion_proyecto.nivel_solucion);
+    document.getElementById("levelWhy").textContent = lvActual ? `💡 ${textoNivel(lvActual.id, "why")}` : "";
+    renderGuiaDesarrollo();
+    renderGaleriaIdeas();
+    renderPromptLauncher();
+
+    // Sección 4
+    renderComparativoAutomatizacion();
+    updateRoi();
+    initDudas();
+    renderPresentacion();
   }
 
   function initIdioma() {
@@ -611,17 +640,17 @@
     if (d.tiempoLibre < 0) {
       box.className = "status-box error";
       box.innerHTML = `
-        <h4>🔴 Sobrecarga detectada: ${d.cargaOperativa.toFixed(1)} hrs/día en funciones actuales</h4>
+        <h4>${escHtml(t("carga.sobrecarga", { h: d.cargaOperativa.toFixed(1) }))}</h4>
         <p>${escHtml(t("carga.excedido", { h: Math.abs(d.tiempoLibre).toFixed(1), pct: pct.toFixed(0) }))}</p>
-        <p><em>Sugerencia:</em> estandariza o delega algo de tu operación actual antes de programar entregables en el Gantt. Puedes seguir cargando el plan igual, pero tenlo en cuenta.</p>`;
+        <p><em>${escHtml(t("carga.sugerencia"))}</em> ${escHtml(t("carga.sugerenciaTexto"))}</p>`;
     } else if (d.tiempoLibre === 0) {
       box.className = "status-box warning";
-      box.innerHTML = `<h4>🟡 Capacidad al 100%: ${d.jornada.toFixed(1)} hrs/día ocupadas</h4><p>${escHtml(t("carga.sinMargen"))}</p>`;
+      box.innerHTML = `<h4>${escHtml(t("carga.alCien", { h: d.jornada.toFixed(1) }))}</h4><p>${escHtml(t("carga.sinMargen"))}</p>`;
     } else {
       box.className = "status-box success";
       box.innerHTML = `
-        <h4>🟢 Tiempo libre disponible: ${d.tiempoLibre.toFixed(1)} hrs/día para el proyecto</h4>
-        <p>Tu carga operativa actual es de ${d.cargaOperativa.toFixed(1)}h (${pct.toFixed(0)}% de tu jornada).</p>
+        <h4>${escHtml(t("carga.libre", { h: d.tiempoLibre.toFixed(1) }))}</h4>
+        <p>${escHtml(t("carga.actual", { h: d.cargaOperativa.toFixed(1), pct: pct.toFixed(0) }))}</p>
         <p>${escHtml(t("carga.referencia"))}</p>`;
     }
 
@@ -734,7 +763,7 @@
       html += `<div class="gantt-operacion-section"><p class="gantt-section-title">${escHtml(t("gantt.operacionBase"))}</p>`;
       html += tareasHabituales.map(tarea => `
         <div class="gantt-band-row">
-          <div class="gantt-row-label"><span class="id">${tarea.horas_dia.toFixed(1)}h/día</span>${escHtml(tarea.nombre || t("gantt.sinNombre"))}</div>
+          <div class="gantt-row-label"><span class="id">${tarea.horas_dia.toFixed(1)}${escHtml(t("unidad.horasDia"))}</span>${escHtml(tarea.nombre || t("gantt.sinNombre"))}</div>
           <div class="gantt-band">Carga recurrente${tarea.tipo === "Repetitiva" ? ` — ${tarea.cantidad}× ${tarea.minutos_por_unidad}min` : " — tiempo fijo"}</div>
         </div>`).join("");
       html += `</div>`;
@@ -827,18 +856,18 @@
   function renderComparativoAutomatizacion() {
     const container = document.getElementById("comparativoRows");
     if (!container) return;
-    const tareas = readTareasHabituales().filter(t => t.nombre);
+    const tareas = readTareasHabituales().filter(x => x.nombre);
     const previas = new Map((state.seccion_3_compresion_proyecto.comparativo_automatizacion || []).map(p => [p.nombre, p.horas_automatizado]));
     container.innerHTML = "";
-    tareas.forEach(t => {
-      const prev = previas.get(t.nombre);
+    tareas.forEach(tarea => {
+      const prev = previas.get(tarea.nombre);
       const row = document.createElement("div");
       row.className = "row-card row-card--comparativo";
-      row.dataset.nombre = t.nombre;
-      row.dataset.horasManual = t.horas_dia;
+      row.dataset.nombre = tarea.nombre;
+      row.dataset.horasManual = tarea.horas_dia;
       row.innerHTML = `
-        <span class="comparativo-nombre">${escHtml(t.nombre)}</span>
-        <span class="row-result">${t.horas_dia.toFixed(1)} h/día</span>
+        <span class="comparativo-nombre">${escHtml(tarea.nombre)}</span>
+        <span class="row-result">${tarea.horas_dia.toFixed(1)} ${escHtml(t("unidad.horasDia"))}</span>
         <input type="number" min="0" step="0.1" data-f="horas_automatizado" placeholder="—" value="${prev != null && prev !== "" ? escAttr(prev) : ""}" />
         <span class="row-result" data-f="ahorro">—</span>`;
       row.querySelector('[data-f="horas_automatizado"]').addEventListener("input", () => { actualizarAhorroRow(row); renderComparativoVisual(); });
@@ -1087,7 +1116,7 @@
 <html lang="es"><head><meta charset="UTF-8" /><title>Gantt / Kanban — ${escHtml(nombre)}</title><style>${EXPORT_CSS}</style></head>
 <body>
   <h1>Gantt / Kanban — ${escHtml(nombre)}</h1>
-  <p class="meta">Generado por AI Project Guide el ${fmtFecha(new Date())} · Archivo autocontenido, sin conexión a internet.</p>
+  <p class="meta">${escHtml(t("export.pie", { fecha: fmtFecha(new Date()) }))}</p>
   <h2>${escHtml(t("export.gantt"))}</h2>
   <div class="gantt-visual">${ganttMarkup(tasks, habituales)}</div>
   <h2>${escHtml(t("export.kanban"))}</h2>
@@ -1194,7 +1223,16 @@
   }
 
   function initSeccion2() {
+    renderPickersClasificacion();
+    initEcosistema();
+  }
+
+  /* Vacía y reconstruye las opciones: se llama también al cambiar de idioma,
+     restaurando lo que la persona ya había elegido. */
+  function renderPickersClasificacion() {
+    const elegidas = state.seccion_2_clasificacion_proyecto.respuestas || {};
     document.querySelectorAll("#panel-2 .level-picker[data-pregunta]").forEach(container => {
+      container.innerHTML = "";
       const pregunta = PREGUNTAS_CLASIFICACION.find(p => p.id === container.dataset.pregunta);
       pregunta.opciones.forEach(op => {
         const opt = document.createElement("div");
@@ -1206,10 +1244,10 @@
         opt.innerHTML = `<strong>${escHtml(t(`s2.${pregunta.id}.${op.value}.label`))}</strong><span>${escHtml(t(`s2.${pregunta.id}.${op.value}.desc`))}</span>`;
         opt.addEventListener("click", () => seleccionarRespuesta(pregunta.id, op.value));
         opt.addEventListener("keydown", e => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); seleccionarRespuesta(pregunta.id, op.value); } });
+        opt.setAttribute("aria-checked", elegidas[pregunta.id] === op.value ? "true" : "false");
         container.appendChild(opt);
       });
     });
-    initEcosistema();
   }
 
   /* -------------------------------------------------- Evaluación de ecosistema (puntaje) */
@@ -1267,6 +1305,8 @@
 
   function initEcosistema() {
     const wrap = document.getElementById("ecoPreguntas");
+    const elegidas = state.seccion_2_clasificacion_proyecto.evaluacion_ecosistema.respuestas || {};
+    wrap.innerHTML = "";
     PREGUNTAS_ECOSISTEMA.forEach(pregunta => {
       const card = document.createElement("div");
       card.className = "eco-pregunta";
@@ -1283,6 +1323,7 @@
         opt.setAttribute("tabindex", "0");
         opt.setAttribute("aria-checked", "false");
         opt.dataset.valor = op.value;
+        opt.setAttribute("aria-checked", (elegidas[pregunta.id] || {}).valor === op.value ? "true" : "false");
         opt.innerHTML = `<strong>${escHtml(t(`eco.${pregunta.id}.${op.value}`))}</strong>`;
         opt.addEventListener("click", () => seleccionarEcosistema(pregunta.id, op.value, op.puntos, picker));
         opt.addEventListener("keydown", e => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); seleccionarEcosistema(pregunta.id, op.value, op.puntos, picker); } });
@@ -1305,7 +1346,7 @@
     const completas = Object.keys(respuestas).length;
     if (completas < 5) {
       box.className = "status-box";
-      box.innerHTML = `<p style="margin:0;color:var(--color-text-muted);">Responde las 5 preguntas para ver tu puntaje (${completas}/5).</p>`;
+      box.innerHTML = `<p style="margin:0;color:var(--color-text-muted);">${escHtml(t("eco.faltan", { n: completas }))}</p>`;
       state.seccion_2_clasificacion_proyecto.evaluacion_ecosistema.puntaje = 0;
       state.seccion_2_clasificacion_proyecto.evaluacion_ecosistema.nivel = "";
       return;
@@ -1407,7 +1448,15 @@
 
   /* ------------------------------------------------------------------ SECCIÓN 3 */
   function initSeccion3() {
+    renderLevelPicker();
+    document.getElementById("btnExportSkills").addEventListener("click", exportSkillsDictionary);
+    document.getElementById("btnCatalogoPdf").addEventListener("click", imprimirCatalogo);
+  }
+
+  function renderLevelPicker() {
     const picker = document.getElementById("levelPicker");
+    const elegido = state.seccion_3_compresion_proyecto.nivel_solucion;
+    picker.innerHTML = "";
     LEVELS.forEach(lv => {
       const opt = document.createElement("div");
       opt.className = "level-option";
@@ -1415,14 +1464,12 @@
       opt.setAttribute("tabindex", "0");
       opt.setAttribute("aria-checked", "false");
       opt.dataset.level = lv.id;
+      opt.setAttribute("aria-checked", lv.id === elegido ? "true" : "false");
       opt.innerHTML = `<strong>${escHtml(textoNivel(lv.id, "titulo"))}</strong><span>${escHtml(textoNivel(lv.id, "desc"))}</span>`;
       opt.addEventListener("click", () => selectLevel(lv.id));
       opt.addEventListener("keydown", e => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); selectLevel(lv.id); } });
       picker.appendChild(opt);
     });
-
-    document.getElementById("btnExportSkills").addEventListener("click", exportSkillsDictionary);
-    document.getElementById("btnCatalogoPdf").addEventListener("click", imprimirCatalogo);
   }
 
   function selectLevel(levelId) {
@@ -1632,7 +1679,10 @@
         <input type="checkbox" data-duda-check="${escAttr(d.id)}" />
         <span class="idea-texto"><strong>${escHtml(d.t)}</strong></span>
       </label>`).join("");
+    const marcadas = asegurarCierreSeccion4().dudas.puntos_confusos || [];
     cont.querySelectorAll("[data-duda-check]").forEach(chk => {
+      chk.checked = marcadas.includes(chk.dataset.dudaCheck);
+      chk.closest(".idea-card").classList.toggle("is-selected", chk.checked);
       chk.addEventListener("change", () => {
         const id = chk.dataset.dudaCheck;
         const dudas = asegurarCierreSeccion4().dudas;
