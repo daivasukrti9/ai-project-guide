@@ -276,6 +276,39 @@ id("btnExportJson").click();
   ok("Migra el rótulo viejo del Nivel 3",
      [...w3.document.querySelectorAll("#levelPicker .level-option")].some(o => o.getAttribute("aria-checked") === "true"));
 
+  /* ---- Un archivo guardado en un idioma se abre en otro ---- */
+  const wEN = arrancar();
+  try { wEN.localStorage.setItem("aipg-idioma", "en"); } catch (e) {}
+  const selEN = wEN.document.getElementById("idiomaSelect");
+  selEN.value = "en"; selEN.dispatchEvent(new wEN.Event("change", { bubbles: true }));
+  const depEN = wEN.document.getElementById("s1_departamento");
+  depEN.selectedIndex = 1; depEN.dispatchEvent(new wEN.Event("change", { bubbles: true }));
+  const tipoEN = wEN.document.getElementById("s4_entregable_tipo");
+  tipoEN.selectedIndex = 2; tipoEN.dispatchEvent(new wEN.Event("change", { bubbles: true }));
+  let blobEN = null;
+  wEN.URL.createObjectURL = b => { blobEN = b; return "blob:x"; };
+  wEN.HTMLAnchorElement.prototype.click = function () { };
+  wEN.document.getElementById("btnExportJson").click();
+  const jsonEN = JSON.parse(await blobEN.text());
+  ok("Un archivo guardado en inglés no guarda etiquetas traducidas",
+     jsonEN.seccion_1_ordenar_trabajo.metadata_proceso.departamento === "Contabilidad" &&
+     jsonEN.seccion_4_indicadores_desarrollo.entregable.tipo === "Automatización o script",
+     JSON.stringify([jsonEN.seccion_1_ordenar_trabajo.metadata_proceso.departamento,
+                     jsonEN.seccion_4_indicadores_desarrollo.entregable.tipo]));
+
+  const wES = arrancar();
+  const fES = new wES.File([JSON.stringify(jsonEN)], "en.json", { type: "application/json" });
+  const inES = wES.document.getElementById("fileInput");
+  Object.defineProperty(inES, "files", { value: [fES], configurable: true });
+  inES.dispatchEvent(new wES.Event("change", { bubbles: true }));
+  await new Promise(r => setTimeout(r, 400));
+  ok("Ese archivo se abre en español sin perder el departamento",
+     wES.document.getElementById("s1_departamento").value === "Contabilidad",
+     wES.document.getElementById("s1_departamento").value);
+  ok("Ese archivo se abre en español sin perder el tipo de entregable",
+     wES.document.getElementById("s4_entregable_tipo").value === "Automatización o script",
+     wES.document.getElementById("s4_entregable_tipo").value);
+
   /* ---- Versión con marca ---- */
   const w4 = arrancar("index-stt.html");
   ok("La versión con marca arranca igual", !!w4.document.getElementById("idiomaSelect"));

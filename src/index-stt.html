@@ -135,16 +135,16 @@
             </label>
             <label><span data-i18n="ui.departamentoArea">Departamento / área</span><select id="s1_departamento">
                 <option data-i18n="ui.selecciona" value="">Selecciona…</option>
-                <option data-i18n="ui.contabilidad">Contabilidad</option>
-                <option data-i18n="ui.finanzas">Finanzas</option>
-                <option data-i18n="ui.rrhh">RRHH</option>
-                <option data-i18n="ui.operaciones">Operaciones</option>
-                <option data-i18n="ui.soporte">Soporte</option>
-                <option data-i18n="ui.serviciosCompartidosBpo">Servicios compartidos / BPO</option>
-                <option data-i18n="ui.tecnologia">Tecnología</option>
-                <option data-i18n="ui.ventas">Ventas</option>
-                <option data-i18n="ui.logistica">Logística</option>
-                <option data-i18n="ui.otro">Otro</option>
+                <option value="Contabilidad" data-i18n="ui.contabilidad">Contabilidad</option>
+                <option value="Finanzas" data-i18n="ui.finanzas">Finanzas</option>
+                <option value="RRHH" data-i18n="ui.rrhh">RRHH</option>
+                <option value="Operaciones" data-i18n="ui.operaciones">Operaciones</option>
+                <option value="Soporte" data-i18n="ui.soporte">Soporte</option>
+                <option value="Servicios compartidos / BPO" data-i18n="ui.serviciosCompartidosBpo">Servicios compartidos / BPO</option>
+                <option value="Tecnología" data-i18n="ui.tecnologia">Tecnología</option>
+                <option value="Ventas" data-i18n="ui.ventas">Ventas</option>
+                <option value="Logística" data-i18n="ui.logistica">Logística</option>
+                <option value="Otro" data-i18n="ui.otro">Otro</option>
               </select>
             </label>
             <label><span data-i18n="ui.responsableDelProceso">Responsable del proceso</span><input type="text" id="s1_responsable" placeholder="Rol o nombre" data-i18n-ph="ui.rolONombre" />
@@ -516,19 +516,19 @@
           <div class="grid-2">
             <label><span data-i18n="ui.queObtuviste">¿Qué obtuviste?</span><select id="s4_entregable_tipo">
                 <option data-i18n="ui.eligeUnaOpcion" value="">Elige una opción…</option>
-                <option data-i18n="ui.documentoOPresentacion">Documento o presentación</option>
-                <option data-i18n="ui.automatizacionOScript">Automatización o script</option>
-                <option data-i18n="ui.herramientaPlantillaODashboard">Herramienta, plantilla o dashboard</option>
-                <option data-i18n="ui.agenteOAsistenteConfigurado">Agente o asistente configurado</option>
-                <option data-i18n="ui.otro2">Otro</option>
+                <option value="Documento o presentación" data-i18n="ui.documentoOPresentacion">Documento o presentación</option>
+                <option value="Automatización o script" data-i18n="ui.automatizacionOScript">Automatización o script</option>
+                <option value="Herramienta, plantilla o dashboard" data-i18n="ui.herramientaPlantillaODashboard">Herramienta, plantilla o dashboard</option>
+                <option value="Agente o asistente configurado" data-i18n="ui.agenteOAsistenteConfigurado">Agente o asistente configurado</option>
+                <option value="Otro" data-i18n="ui.otro2">Otro</option>
               </select>
             </label>
             <label><span data-i18n="ui.comoSalio">¿Cómo salió?</span><select id="s4_entregable_estado">
                 <option data-i18n="ui.eligeUnaOpcion2" value="">Elige una opción…</option>
-                <option data-i18n="ui.funcionoAlPrimerIntento">Funcionó al primer intento</option>
-                <option data-i18n="ui.requirioAjustesMenores">Requirió ajustes menores</option>
-                <option data-i18n="ui.requirioVariasIteraciones">Requirió varias iteraciones</option>
-                <option data-i18n="ui.todaviaNoLoProbe">Todavía no lo probé con datos reales</option>
+                <option value="Funcionó al primer intento" data-i18n="ui.funcionoAlPrimerIntento">Funcionó al primer intento</option>
+                <option value="Requirió ajustes menores" data-i18n="ui.requirioAjustesMenores">Requirió ajustes menores</option>
+                <option value="Requirió varias iteraciones" data-i18n="ui.requirioVariasIteraciones">Requirió varias iteraciones</option>
+                <option value="Todavía no lo probé con datos reales" data-i18n="ui.todaviaNoLoProbe">Todavía no lo probé con datos reales</option>
               </select>
             </label>
           </div>
@@ -728,18 +728,18 @@
   <template id="tpl-dolor-row">
     <div class="row-card row-card--wide" data-row="dolor">
       <select data-field="categoria">
-        <option data-i18n="ui.entradaDesordenada">Entrada Desordenada</option>
-        <option data-i18n="ui.procesamientoManual">Procesamiento Manual</option>
-        <option data-i18n="ui.esperasSilos">Esperas/Silos</option>
-        <option data-i18n="ui.erroresHumanos">Errores Humanos</option>
-        <option data-i18n="ui.faltaDeVisibilidad">Falta de Visibilidad</option>
+        <option value="Entrada Desordenada" data-i18n="ui.entradaDesordenada">Entrada Desordenada</option>
+        <option value="Procesamiento Manual" data-i18n="ui.procesamientoManual">Procesamiento Manual</option>
+        <option value="Esperas/Silos" data-i18n="ui.esperasSilos">Esperas/Silos</option>
+        <option value="Errores Humanos" data-i18n="ui.erroresHumanos">Errores Humanos</option>
+        <option value="Falta de Visibilidad" data-i18n="ui.faltaDeVisibilidad">Falta de Visibilidad</option>
       </select>
       <input type="text" data-field="descripcion" placeholder="Descripción del punto de dolor" data-i18n-ph="ui.descripcionDelPuntoDe" />
       <select data-field="nivel_severidad">
-        <option data-i18n="ui.bajo">Bajo</option>
-        <option data-i18n="ui.medio">Medio</option>
-        <option data-i18n="ui.alto">Alto</option>
-        <option data-i18n="ui.critico">Crítico</option>
+        <option value="Bajo" data-i18n="ui.bajo">Bajo</option>
+        <option value="Medio" data-i18n="ui.medio">Medio</option>
+        <option value="Alto" data-i18n="ui.alto">Alto</option>
+        <option value="Crítico" data-i18n="ui.critico">Crítico</option>
       </select>
       <button type="button" class="btn-icon" data-remove-row aria-label="Eliminar punto de dolor" data-i18n-aria="ui.eliminarPuntoDeDolor">🗑️</button>
     </div>

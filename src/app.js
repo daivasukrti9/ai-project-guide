@@ -1657,10 +1657,14 @@
     // El entregable y las dudas alimentan los dos prompts de cierre.
     ["s4_entregable_tipo", "s4_entregable_estado", "s4_entregable_resultado", "s4_entregable_notas"].forEach(id => {
       const el = document.getElementById(id);
-      el.addEventListener("input", () => { renderConsultaDudas(); renderPresentacion(); });
-      el.addEventListener("change", () => { renderConsultaDudas(); renderPresentacion(); });
+      const alEditar = () => { leerEntregable(); renderConsultaDudas(); renderPresentacion(); };
+      el.addEventListener("input", alEditar);
+      el.addEventListener("change", alEditar);
     });
-    document.getElementById("s4_dudas_detalle").addEventListener("input", renderConsultaDudas);
+    document.getElementById("s4_dudas_detalle").addEventListener("input", () => {
+      asegurarCierreSeccion4().dudas.detalle = val("s4_dudas_detalle");
+      renderConsultaDudas();
+    });
     document.getElementById("s4_pres_logo").addEventListener("change", () => {
       asegurarCierreSeccion4().presentacion.incluir_logo = document.getElementById("s4_pres_logo").checked;
       actualizarPromptPresentacion();
@@ -1700,7 +1704,6 @@
     const box = document.getElementById("consultaDudas");
     if (!box) return;
     const dudas = asegurarCierreSeccion4().dudas;
-    dudas.detalle = val("s4_dudas_detalle");
     const marcadas = dudas.puntos_confusos || [];
     if (!marcadas.length && !dudas.detalle.trim()) {
       box.innerHTML = `<p class="hint-footnote" style="margin-top:.9rem">${escHtml(t("s4.dudasVacio"))}</p>`;
@@ -1727,7 +1730,7 @@
   function construirConsultaDudas() {
     const s1 = state.seccion_1_ordenar_trabajo.metadata_proceso;
     const s3 = state.seccion_3_compresion_proyecto;
-    const ent = leerEntregable();
+    const ent = asegurarCierreSeccion4().entregable;   // solo lectura
     const dudas = state.seccion_4_indicadores_desarrollo.dudas;
     const marcadas = CONTENIDO.DUDAS_FRECUENTES.filter(d => (dudas.puntos_confusos || []).includes(d.id));
 
@@ -1776,6 +1779,9 @@
     return s4;
   }
 
+  /* Vuelca el DOM al estado. Llamarla SOLO desde los listeners de edición y
+     desde collectState: si la llama un render, puede pisar con campos vacíos
+     lo que todavía no se dibujó (pasaba al cargar un expediente). */
   function leerEntregable() {
     const ent = asegurarCierreSeccion4().entregable;
     ent.tipo = val("s4_entregable_tipo");
@@ -1855,7 +1861,7 @@
     const s1 = state.seccion_1_ordenar_trabajo;
     const s3 = state.seccion_3_compresion_proyecto;
     const cfg = asegurarCierreSeccion4().presentacion;
-    const ent = leerEntregable();
+    const ent = asegurarCierreSeccion4().entregable;   // solo lectura
     const imp = calcularImpacto();
     const aud = pres.audiencias.find(a => a.id === cfg.audiencia);
     const obj = pres.objetivos.find(o => o.id === cfg.objetivo);
@@ -2528,6 +2534,23 @@
 
     // skills_seleccionadas dependencias removidas
 
+    /* El entregable y las dudas se vuelcan primero: updateRoi() (más abajo)
+       encadena renderPresentacion() -> leerEntregable(), que lee el DOM y
+       sobrescribe el estado. Si los campos estuvieran vacíos, se perdería lo
+       que acaba de venir del archivo. */
+    const s4 = state.seccion_4_indicadores_desarrollo;
+    asegurarCierreSeccion4();
+    setVal("s4_entregable_tipo", s4.entregable.tipo);
+    setVal("s4_entregable_estado", s4.entregable.estado_ejecucion);
+    setVal("s4_entregable_resultado", s4.entregable.resultado);
+    setVal("s4_entregable_notas", s4.entregable.notas_ejecucion);
+    setVal("s4_dudas_detalle", s4.dudas.detalle);
+    document.querySelectorAll("[data-duda-check]").forEach(chk => {
+      chk.checked = (s4.dudas.puntos_confusos || []).includes(chk.dataset.dudaCheck);
+      chk.closest(".idea-card").classList.toggle("is-selected", chk.checked);
+    });
+    document.getElementById("s4_pres_logo").checked = !!s4.presentacion.incluir_logo;
+
     const s3 = state.seccion_3_compresion_proyecto;
     s3.sugerencias_seleccionadas = s3.sugerencias_seleccionadas || [];
     if (s3.nivel_solucion) selectLevel(s3.nivel_solucion);
@@ -2542,26 +2565,12 @@
     setVal("s3_costo_hora", s3.roi_estimado.costo_hora_usd || "");
     updateRoi();
 
-    const s4 = state.seccion_4_indicadores_desarrollo;
     document.getElementById("checklistRows").innerHTML = "";
     (s4.plan_gestion_cambio.checklist.length ? s4.plan_gestion_cambio.checklist : []).forEach(c => addRow("checklistRows", "tpl-checklist-row", c, () => { }));
     setVal("s4_sponsor", s4.plan_gestion_cambio.responsable_sponsor);
     setVal("s4_fecha_revision", s4.plan_gestion_cambio.fecha_revision_piloto);
 
-    asegurarCierreSeccion4();
-    setVal("s4_entregable_tipo", s4.entregable.tipo);
-    setVal("s4_entregable_estado", s4.entregable.estado_ejecucion);
-    setVal("s4_entregable_resultado", s4.entregable.resultado);
-    setVal("s4_entregable_notas", s4.entregable.notas_ejecucion);
-
-    setVal("s4_dudas_detalle", s4.dudas.detalle);
-    document.querySelectorAll("[data-duda-check]").forEach(chk => {
-      chk.checked = (s4.dudas.puntos_confusos || []).includes(chk.dataset.dudaCheck);
-      chk.closest(".idea-card").classList.toggle("is-selected", chk.checked);
-    });
     renderConsultaDudas();
-
-    document.getElementById("s4_pres_logo").checked = !!s4.presentacion.incluir_logo;
     renderPresentacion();
 
     goToStep(state.app_meta.etapa_actual || 1);
