@@ -55,6 +55,17 @@ docs/
   y que los idiomas estén parejos. Correrlo después de tocar textos.
 - Cubrir siempre: import/export JSON, las 4 secciones, cálculo 80/20, generación de prompt.
 
+## Idiomas
+- La interfaz se sirve en español, inglés y portugués desde `src/i18n.js`.
+- El **estado nunca guarda etiquetas traducidas**, solo ids (canal, formato,
+  nivel, audiencia…). Un expediente creado en un idioma se abre igual en otro.
+- El contenido editorial largo (galerías de ideas, guías por nivel, catálogo
+  del PDF y los prompts generados) se mantiene en español a propósito.
+- Pendiente: los textos que dibuja `app.js` fuera de los bancos de preguntas
+  (avisos flotantes, tarjetas de impacto/ROI, galería y lanzador) siguen en
+  español. Al traducirlos, agregar la clave a los tres diccionarios y correr
+  `node tests/verificar-textos.js`.
+
 ## Convención de documentación
 - Markdown en `docs/` y `knowledge/`. Un archivo por decisión/tema, sin acumular todo en un solo documento gigante.
 

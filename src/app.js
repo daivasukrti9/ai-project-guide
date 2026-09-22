@@ -27,6 +27,44 @@
     return texto;
   }
 
+  /* Aplica el idioma a todo el DOM marcado con data-i18n*. El estado no se
+     toca: solo cambian las etiquetas que ve la persona. */
+  function aplicarIdioma(codigo) {
+    idiomaActivo = I18N.idiomas[codigo] ? codigo : I18N.idiomaPorDefecto;
+    document.documentElement.setAttribute("lang", idiomaActivo);
+    document.title = t("ui.tituloDocumento");
+
+    document.querySelectorAll("[data-i18n]").forEach(el => { el.textContent = t(el.dataset.i18n); });
+    document.querySelectorAll("[data-i18n-html]").forEach(el => { el.innerHTML = t(el.dataset.i18nHtml); });
+    document.querySelectorAll("[data-i18n-ph]").forEach(el => { el.placeholder = t(el.dataset.i18nPh); });
+    document.querySelectorAll("[data-i18n-aria]").forEach(el => { el.setAttribute("aria-label", t(el.dataset.i18nAria)); });
+    document.querySelectorAll("[data-i18n-title]").forEach(el => { el.setAttribute("title", t(el.dataset.i18nTitle)); });
+
+    try { localStorage.setItem("aipg-idioma", idiomaActivo); } catch (e) { /* modo privado */ }
+    const sel = document.getElementById("idiomaSelect");
+    if (sel && sel.value !== idiomaActivo) sel.value = idiomaActivo;
+    rerenderizarPorIdioma();
+  }
+
+  /* Lo que se dibuja desde JS hay que volver a dibujarlo: se guarda el estado
+     antes para no perder lo cargado. */
+  function rerenderizarPorIdioma() {
+    if (!document.getElementById("entradasRows")) return; // todavía no inicializó
+    collectState();
+    applyTheme(document.documentElement.getAttribute("data-theme") || "light");
+    renderMapeoCompleto();
+  }
+
+  function initIdioma() {
+    let guardado = null;
+    try { guardado = localStorage.getItem("aipg-idioma"); } catch (e) { /* modo privado */ }
+    const navegador = (navigator.language || "es").slice(0, 2).toLowerCase();
+    const inicial = guardado || (I18N.idiomas[navegador] ? navegador : I18N.idiomaPorDefecto);
+    const sel = document.getElementById("idiomaSelect");
+    if (sel) sel.addEventListener("change", () => aplicarIdioma(sel.value));
+    aplicarIdioma(inicial);
+  }
+
   function escAttr(str) {
     return String(str == null ? "" : str).replace(/[&<>"']/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
   }
@@ -123,12 +161,20 @@
   const DIAS_HABILES = { semana: 5, mes: 22, anio: 264 };
   const SEMANAS_MES = DIAS_HABILES.mes / DIAS_HABILES.semana; // 4.4
 
+  /* El id se persiste en el expediente: no se traduce nunca. El resto de
+     las etiquetas sale de i18n.js (claves nivel.N.*). */
   const LEVELS = [
-    { id: "Nivel 1: Presentación / Documento de Asistencia", titulo: "Nivel 1 · Presentación / Documento", desc: "Resumen de actas, diapositivas automatizadas.", why: "Suficiente cuando el proceso es puntual y de bajo volumen: solo necesitas comunicar mejor, no automatizar." },
-    { id: "Nivel 2: Herramienta / Script de Automatización Fija", titulo: "Nivel 2 · Automatización", desc: "Script, macro o flujo que hace la tarea repetitiva.", why: "Ideal cuando el proceso ya está limpio y es repetitivo, pero sigue reglas fijas sin criterio subjetivo." },
-    { id: "Nivel 3: Herramienta / Visualización / Conjunto de Funciones", titulo: "Nivel 3 · Herramienta / Visualización", desc: "Calculadora, dashboard o plantilla interactiva.", why: "Conviene cuando varias personas necesitan consultar, calcular o comparar lo mismo: en vez de explicarlo cada vez, les das la herramienta." },
-    { id: "Nivel 4: Agente Autónomo / Multi-herramienta", titulo: "Nivel 4 · Agente / Autónomo", desc: "Asistente con rol experto y varios pasos de razonamiento.", why: "Solo si ya existen datos estructurados, métricas y aprobación de seguridad. Requiere límites, logs y STOP." }
+    { id: "Nivel 1: Presentación / Documento de Asistencia" },
+    { id: "Nivel 2: Herramienta / Script de Automatización Fija" },
+    { id: "Nivel 3: Herramienta / Visualización / Conjunto de Funciones" },
+    { id: "Nivel 4: Agente Autónomo / Multi-herramienta" }
   ];
+
+  function textoNivel(levelId, campo) {
+    const n = (claveNivel(levelId) || "Nivel 1").replace("Nivel ", "");
+    return t(`nivel.${n}.${campo}`);
+  }
+;
 
   /* ------------------------------------------------------------------ STATE */
   function emptyState() {
@@ -195,27 +241,13 @@
     const btn = document.getElementById("themeToggle");
     btn.textContent = theme === "dark" ? "☀️" : "🌙";
     btn.setAttribute("aria-pressed", theme === "dark" ? "true" : "false");
-    btn.setAttribute("aria-label", theme === "dark" ? "Cambiar a modo claro" : "Cambiar a modo oscuro");
+    btn.setAttribute("aria-label", t(theme === "dark" ? "ui.modoClaro" : "ui.modoOscuro"));
   }
 
   /* ------------------------------------------------------------------ NAV */
-  const HERO_COPY = {
-    1: {
-      titulo: "Ordena tu trabajo antes de automatizarlo",
-      lede: "Mapea tus tareas, descubre tu tiempo libre real y convierte esa idea cotidiana en una hoja de ruta clara — lista para automatizar o potenciar con IA cuando quieras."
-    },
-    2: {
-      titulo: "¿Qué tipo de proyecto necesitas?",
-      lede: "Responde estas preguntas para obtener una recomendación técnica concreta: qué construir y qué investigar en tu próxima interacción con la IA."
-    },
-    3: {
-      titulo: "Elige qué vas a construir",
-      lede: "Cuatro caminos posibles, con ideas concretas para cada uno. Marca las que se parezcan a tu necesidad y te armamos el prompt para el asistente de IA que prefieras."
-    },
-    4: {
-      titulo: "Mide el impacto y cuéntalo",
-      lede: "Compara las mismas tareas de la Sección 1 contra cómo quedaron con tu solución, calcula el retorno y llévate el guion de la presentación. La app nunca envía nada por ti."
-    }
+  /* El texto del encabezado por sección vive en i18n.js (claves hero.N.*). */
+  function heroCopy(step) {
+    return { titulo: t(`hero.${step}.titulo`), lede: t(`hero.${step}.lede`) };
   };
 
   function goToStep(step) {
@@ -234,7 +266,7 @@
     document.getElementById("progressRingFill").setAttribute("stroke-dashoffset", (circunferencia * (1 - step / 4)).toFixed(1));
     document.getElementById("progressRingStep").textContent = step;
     document.querySelector(".progress-ring-wrap").setAttribute("aria-label", `Progreso: paso ${step} de 4`);
-    const copy = HERO_COPY[step];
+    const copy = heroCopy(step);
     if (copy) {
       document.getElementById("heroTitle").textContent = copy.titulo;
       document.getElementById("heroLede").textContent = copy.lede;
@@ -1066,47 +1098,49 @@
   }
 
   /* ------------------------------------------------------------------ SECCIÓN 2 */
+  /* Las etiquetas salen de i18n.js (claves s2.<pregunta>.<valor>.*). */
   const PREGUNTAS_CLASIFICACION = [
     {
       id: "entregable", opciones: [
-        { value: "documento", label: "Documento o Presentación", desc: "Reporte, resumen, propuesta, plantilla o diapositivas — ej. informe contable, manual de onboarding en RRHH." },
-        { value: "datos", label: "Procesamiento de Datos", desc: "Extracción, validación, conciliación o clasificación de datos — ej. revisión de facturas, análisis de nómina, tablas dinámicas." },
-        { value: "automatizacion", label: "Automatización o Script", desc: "Tarea repetitiva que conecta sistemas o ejecuta acciones — ej. envío masivo de correos, sincronización entre planillas y ERP." },
-        { value: "agente", label: "Asistente Conversacional o Agente", desc: "Chatbot o flujo autónomo para responder dudas o ejecutar tareas — ej. atención a consultas internas, soporte a empleados o clientes." }
+        { value: "documento" },
+        { value: "datos" },
+        { value: "automatizacion" },
+        { value: "agente" }
       ]
     },
     {
       id: "mapeo_proceso", opciones: [
-        { value: "eventual", label: "Eventual o manual", desc: "Se hace de forma aislada cuando surge la necesidad." },
-        { value: "fija", label: "Repetitiva con pasos fijos", desc: "Sigue una lista de verificación o instructivo paso a paso claro." },
-        { value: "criterio", label: "Variable con criterio humano", desc: "Cada caso cambia y requiere revisar reglas o políticas de la empresa." },
-        { value: "interdepartamental", label: "Flujo continuo interdepartamental", desc: "Involucra a varias personas o áreas y múltiples aprobaciones." }
+        { value: "eventual" },
+        { value: "fija" },
+        { value: "criterio" },
+        { value: "interdepartamental" }
       ]
     },
     {
       id: "nivel_logica", opciones: [
-        { value: "minima", label: "Mínima (operativa)", desc: "Copiar, mover, formatear o calcular datos estandarizados." },
-        { value: "interpretacion", label: "Interpretación de texto o documentos", desc: "Leer PDFs, correos, contratos o políticas para extraer lo relevante." },
-        { value: "decision", label: "Toma de decisiones / reglas de negocio", desc: "Aplicar políticas (ej. aprobar/rechazar solicitudes, evaluar excepciones)." },
-        { value: "razonamiento", label: "Razonamiento complejo", desc: "Comparar escenarios, proyectar estados financieros o planificar recursos." }
+        { value: "minima" },
+        { value: "interpretacion" },
+        { value: "decision" },
+        { value: "razonamiento" }
       ]
     },
     {
       id: "fuente_datos", opciones: [
-        { value: "plantillas", label: "Plantillas o formularios estandarizados", desc: "Excel, Google Sheets, Forms." },
-        { value: "desestructurados", label: "Documentos desestructurados", desc: "PDFs, escaneos, correos, chats o notas de voz." },
-        { value: "sistemas", label: "Sistemas de la empresa", desc: "ERP, CRM, software de nómina, bases de datos o APIs." },
-        { value: "mezcla", label: "Mezcla de fuentes", desc: "Múltiples fuentes desordenadas." }
+        { value: "plantillas" },
+        { value: "desestructurados" },
+        { value: "sistemas" },
+        { value: "mezcla" }
       ]
     },
     {
       id: "confidencialidad", opciones: [
-        { value: "bajo", label: "Uso interno / bajo riesgo", desc: "Formatos genéricos, minutas, redacción." },
-        { value: "moderado", label: "Operativo / riesgo moderado", desc: "Requiere revisión humana antes de enviar o aplicar." },
-        { value: "alto", label: "Financiero o RRHH / alto riesgo", desc: "Datos sensibles, nóminas, estados financieros o datos personales (requiere validación estricta y seguridad)." }
+        { value: "bajo" },
+        { value: "moderado" },
+        { value: "alto" }
       ]
     }
   ];
+;
 
   function calcularRecomendacionTecnica(r) {
     let rec;
@@ -1169,7 +1203,7 @@
         opt.setAttribute("tabindex", "0");
         opt.setAttribute("aria-checked", "false");
         opt.dataset.valor = op.value;
-        opt.innerHTML = `<strong>${escHtml(op.label)}</strong>${op.desc ? `<span>${escHtml(op.desc)}</span>` : ""}`;
+        opt.innerHTML = `<strong>${escHtml(t(`s2.${pregunta.id}.${op.value}.label`))}</strong><span>${escHtml(t(`s2.${pregunta.id}.${op.value}.desc`))}</span>`;
         opt.addEventListener("click", () => seleccionarRespuesta(pregunta.id, op.value));
         opt.addEventListener("keydown", e => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); seleccionarRespuesta(pregunta.id, op.value); } });
         container.appendChild(opt);
@@ -1179,48 +1213,50 @@
   }
 
   /* -------------------------------------------------- Evaluación de ecosistema (puntaje) */
+  /* Las etiquetas salen de i18n.js (claves eco.*). Los puntos son lógica. */
   const PREGUNTAS_ECOSISTEMA = [
     {
-      id: "eco_frecuencia", pregunta: "1. Frecuencia y naturaleza del proceso", opciones: [
-        { value: "a", label: "Algo puntual, para mostrar una idea", puntos: 1 },
-        { value: "b", label: "Se repite, pero necesita que alguien decida o intervenga", puntos: 2 },
-        { value: "c", label: "Se repite siempre igual, con reglas fijas", puntos: 3 },
-        { value: "d", label: "Es dinámico, de varios pasos, con decisiones autónomas", puntos: 4 }
+      id: "eco_frecuencia", opciones: [
+        { value: "a", puntos: 1 },
+        { value: "b", puntos: 2 },
+        { value: "c", puntos: 3 },
+        { value: "d", puntos: 4 }
       ]
     },
     {
-      id: "eco_datos", pregunta: "2. Formato de los datos de entrada", opciones: [
-        { value: "a", label: "Diapositivas, PDFs o notas de voz", puntos: 1 },
-        { value: "b", label: "Planillas (Excel, CSV, Google Sheets)", puntos: 2 },
-        { value: "c", label: "Formularios web, webhooks o archivos JSON/XML", puntos: 3 },
-        { value: "d", label: "APIs REST, bases de datos o scraping web", puntos: 4 }
+      id: "eco_datos", opciones: [
+        { value: "a", puntos: 1 },
+        { value: "b", puntos: 2 },
+        { value: "c", puntos: 3 },
+        { value: "d", puntos: 4 }
       ]
     },
     {
-      id: "eco_ecosistema", pregunta: "3. Ecosistema tecnológico disponible", opciones: [
-        { value: "a", label: "Solo herramientas de oficina (PowerPoint, Word)", puntos: 1 },
-        { value: "b", label: "Scripts simples (Google Apps Script, VBA)", puntos: 2 },
-        { value: "c", label: "Plataformas iPaaS (Make, Zapier, n8n) o Node.js/Python", puntos: 3 },
-        { value: "d", label: "Servidores dedicados, contenedores o entorno cloud", puntos: 4 }
+      id: "eco_ecosistema", opciones: [
+        { value: "a", puntos: 1 },
+        { value: "b", puntos: 2 },
+        { value: "c", puntos: 3 },
+        { value: "d", puntos: 4 }
       ]
     },
     {
-      id: "eco_tolerancia", pregunta: "4. Tolerancia al error", opciones: [
-        { value: "a", label: "Indiferente, solo para visualizar", puntos: 1 },
-        { value: "b", label: "Moderada — revisas los resultados antes de usarlos", puntos: 2 },
-        { value: "c", label: "Baja — necesita reglas y validación estricta", puntos: 3 },
-        { value: "d", label: "Cero tolerancia — ejecuta acciones directas en otros sistemas", puntos: 4 }
+      id: "eco_tolerancia", opciones: [
+        { value: "a", puntos: 1 },
+        { value: "b", puntos: 2 },
+        { value: "c", puntos: 3 },
+        { value: "d", puntos: 4 }
       ]
     },
     {
-      id: "eco_complejidad", pregunta: "5. Complejidad de las tareas actuales", opciones: [
-        { value: "a", label: "Estética o de presentación", puntos: 1 },
-        { value: "b", label: "Manipulación o limpieza de datos", puntos: 2 },
-        { value: "c", label: "Flujo de trabajo entre varios sistemas", puntos: 3 },
-        { value: "d", label: "Acciones contextuales complejas", puntos: 4 }
+      id: "eco_complejidad", opciones: [
+        { value: "a", puntos: 1 },
+        { value: "b", puntos: 2 },
+        { value: "c", puntos: 3 },
+        { value: "d", puntos: 4 }
       ]
     }
   ];
+;
 
   function calcularNivelEcosistema(puntaje) {
     if (puntaje <= 8) return { tier: "Nivel 1", nombre: "Presentación o prototipo de concepto", recomendacion: "Un mockup en HTML/JS o una presentación dinámica alcanza para validar la idea antes de programar nada." };
@@ -1234,11 +1270,11 @@
     PREGUNTAS_ECOSISTEMA.forEach(pregunta => {
       const card = document.createElement("div");
       card.className = "eco-pregunta";
-      card.innerHTML = `<p class="hint-title">${escHtml(pregunta.pregunta)}</p>`;
+      card.innerHTML = `<p class="hint-title">${escHtml(t(`eco.${pregunta.id}.pregunta`))}</p>`;
       const picker = document.createElement("div");
       picker.className = "level-picker level-picker--compact";
       picker.setAttribute("role", "radiogroup");
-      picker.setAttribute("aria-label", pregunta.pregunta);
+      picker.setAttribute("aria-label", t(`eco.${pregunta.id}.pregunta`));
       picker.dataset.ecoId = pregunta.id;
       pregunta.opciones.forEach(op => {
         const opt = document.createElement("div");
@@ -1247,7 +1283,7 @@
         opt.setAttribute("tabindex", "0");
         opt.setAttribute("aria-checked", "false");
         opt.dataset.valor = op.value;
-        opt.innerHTML = `<strong>${escHtml(op.label)}</strong>`;
+        opt.innerHTML = `<strong>${escHtml(t(`eco.${pregunta.id}.${op.value}`))}</strong>`;
         opt.addEventListener("click", () => seleccionarEcosistema(pregunta.id, op.value, op.puntos, picker));
         opt.addEventListener("keydown", e => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); seleccionarEcosistema(pregunta.id, op.value, op.puntos, picker); } });
         picker.appendChild(opt);
@@ -1379,7 +1415,7 @@
       opt.setAttribute("tabindex", "0");
       opt.setAttribute("aria-checked", "false");
       opt.dataset.level = lv.id;
-      opt.innerHTML = `<strong>${lv.titulo}</strong><span>${lv.desc}</span>`;
+      opt.innerHTML = `<strong>${escHtml(textoNivel(lv.id, "titulo"))}</strong><span>${escHtml(textoNivel(lv.id, "desc"))}</span>`;
       opt.addEventListener("click", () => selectLevel(lv.id));
       opt.addEventListener("keydown", e => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); selectLevel(lv.id); } });
       picker.appendChild(opt);
@@ -1403,7 +1439,7 @@
     s3.nivel_solucion = levelId;
     document.querySelectorAll("#levelPicker .level-option").forEach(el => el.setAttribute("aria-checked", el.dataset.level === levelId ? "true" : "false"));
     const lv = LEVELS.find(l => l.id === levelId);
-    document.getElementById("levelWhy").textContent = lv ? `💡 ${lv.why}` : "";
+    document.getElementById("levelWhy").textContent = lv ? `💡 ${textoNivel(lv.id, "why")}` : "";
     renderGuiaDesarrollo();
     renderGaleriaIdeas();
     renderPromptLauncher();
@@ -2586,6 +2622,7 @@
     initSeccion2();
     initSeccion3();
     initSeccion4();
+    initIdioma();
     goToStep(1);
     window.addEventListener("resize", actualizarScrollTabla);
     document.querySelector("#view-tabla .table-scroll").addEventListener("scroll", actualizarScrollTabla);

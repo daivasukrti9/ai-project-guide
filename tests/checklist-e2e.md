@@ -17,6 +17,15 @@ comparativo manual vs. herramienta y skills seleccionadas).
 - [x] Al cargar un `.json` válido aparece un toast confirmando que el avance fue restaurado.
 - [x] El bloque se oculta completo (card + toast) en la vista de impresión/PDF.
 
+## Idiomas (ES / EN / PT)
+- [ ] El selector del encabezado cambia el idioma al instante, sin recargar ni perder lo cargado.
+- [ ] La elección se recuerda al volver a abrir la app (localStorage); en ventana privada no rompe nada.
+- [ ] Sin elección previa, arranca en el idioma del navegador si es uno de los tres; si no, en español.
+- [ ] Cambiar de idioma NO altera el expediente: canal/formato y niveles se guardan como ids.
+- [ ] Un `.json` guardado en un idioma se abre igual en otro.
+- [ ] `node tests/verificar-textos.js` pasa: claves parejas en los tres idiomas y ninguna faltante.
+- [ ] PENDIENTE: quedan en español los textos que dibuja app.js fuera de los bancos de preguntas (avisos flotantes, etiquetas de las tarjetas de impacto/ROI, galería y lanzador de prompt). Ver nota en CLAUDE.md.
+
 ## Navegación
 - [x] Los 4 pasos del tracker horizontal cambian de panel al hacer clic.
 - [x] El anillo de progreso (arriba a la izquierda) muestra "X/4" y se rellena según el paso actual.
