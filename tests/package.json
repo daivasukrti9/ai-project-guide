@@ -3,9 +3,11 @@
   "private": true,
   "description": "Dependencia opcional solo para la batería funcional. La app no usa ninguna.",
   "scripts": {
-    "test": "node verificar-textos.js && node verificar-referencias.js && node probar-funcional.js"
+    "test": "node verificar-textos.js && node verificar-contenido.js && node verificar-referencias.js && node probar-funcional.js",
+    "test:navegador": "node probar-navegador.js"
   },
   "devDependencies": {
-    "jsdom": "^26.0.0"
+    "jsdom": "^26.0.0",
+    "playwright": "^1.56.0"
   }
 }

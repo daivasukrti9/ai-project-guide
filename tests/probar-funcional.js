@@ -39,7 +39,7 @@ function arrancar(archivo = "index.html") {
   // Idioma fijo: jsdom dice en-US y la app respeta el idioma del navegador.
   try { window.localStorage.setItem("aipg-idioma", "es"); } catch (e) {}
   // Los <script src> no se cargan solos (resources desactivado): se inyectan.
-  for (const js of ["i18n.js", "contenido-guias.js", "app.js"]) {
+  for (const js of ["i18n.js", "contenido-guias.js", "contenido-en.js", "contenido-pt.js", "app.js"]) {
     const code = fs.readFileSync(path.join(SRC, js), "utf8");
     const el = window.document.createElement("script");
     el.textContent = code;

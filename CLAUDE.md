@@ -43,7 +43,9 @@ src/
 ├── styles.css            # tema claro/oscuro, accesible, print-friendly
 ├── app.js                # estado en memoria, cálculos, import/export JSON
 ├── i18n.js               # textos de interfaz + vocabulario de canales/formatos y términos ambiguos
-├── contenido-guias.js    # solo datos: galerías de ideas por nivel, guía de IA y catálogo del PDF
+├── contenido-guias.js    # contenido editorial en español (galerías, guías, catálogo)
+├── contenido-en.js       # el mismo contenido en inglés
+├── contenido-pt.js       # el mismo contenido en portugués
 ├── skills-catalog.json   # catálogo de skills (fuente portable, también embebido en app.js)
 ├── ilustracion-chica.png # hero del wizard
 ├── ilustracion-catalogo.png # portada del catálogo descargable
@@ -70,10 +72,17 @@ docs/
   elemento con hijos y que ningún callback llame `t` a su parámetro.
 - `node tests/verificar-referencias.js` — que todo `getElementById` tenga su
   elemento y toda plantilla exista.
+- `node tests/verificar-contenido.js` — que los tres archivos de contenido
+  tengan la misma forma (ids, cantidades, claves) y nada sin traducir.
 - `cd tests && npm install && node probar-funcional.js` — **batería funcional
   sobre jsdom**: ejecuta el código real sin navegador (arranque, cambio de
   idioma, cálculos, exportables, round-trip del expediente y migración de
-  expedientes viejos). Única dependencia del repo, solo para tests.
+  expedientes viejos).
+- `cd tests && npx playwright install chromium && node probar-navegador.js` —
+  **navegador real**: render, impresión y, sobre todo, que los tres prompts y
+  el catálogo salgan enteros en el idioma elegido.
+- jsdom y playwright son las únicas dependencias del repo, viven en `tests/`
+  y son opcionales: la app no usa ninguna.
 - Verificación manual restante: `tests/checklist-e2e.md` (lo visual y el
   portapapeles, que necesitan ojos y un gesto real).
 - Cubrir siempre: import/export JSON, las 4 secciones, cálculo 80/20, generación de prompt.
@@ -82,8 +91,14 @@ docs/
 - La interfaz se sirve en español, inglés y portugués desde `src/i18n.js`.
 - El **estado nunca guarda etiquetas traducidas**, solo ids (canal, formato,
   nivel, audiencia…). Un expediente creado en un idioma se abre igual en otro.
-- El contenido editorial largo (galerías de ideas, guías por nivel, catálogo
-  del PDF y los prompts generados) se mantiene en español a propósito.
+- **El contenido editorial también está en los tres idiomas**, en archivos
+  paralelos: `contenido-guias.js` (es), `contenido-en.js`, `contenido-pt.js`.
+  Los tres tienen la MISMA estructura; `tests/verificar-contenido.js` falla si
+  alguno se desvía. Al agregar algo, agregarlo en los tres.
+- Los prompts y los descargables salen en el idioma activo. La excepción son
+  los **valores guardados** (departamento, tipo de entregable, estados del
+  Gantt…), que se persisten en español para que el `.json` viaje entre
+  idiomas: al mostrarlos se traducen con `etiquetaOpcion()`.
 - Siguen en español, a propósito, los **valores que se persisten** y viajan en
   el CSV: estados del Gantt (`No Iniciado`…), urgencias (`⚡ Urgente`…), tipo de
   tarea y frecuencia de KPI. Traducir su etiqueta rompería el contrato del CSV.

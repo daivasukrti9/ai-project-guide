@@ -3,8 +3,10 @@
 Antes de lo manual, correr lo automático:
 
     node tests/verificar-textos.js
+    node tests/verificar-contenido.js
     node tests/verificar-referencias.js
     cd tests && npm install && node probar-funcional.js
+    cd tests && npx playwright install chromium && node probar-navegador.js
 
 La batería funcional cubre 59 comprobaciones sobre el código real (jsdom).
 Lo de abajo es lo que no se puede automatizar: lo visual, la impresión y el
@@ -32,6 +34,8 @@ comparativo manual vs. herramienta y skills seleccionadas).
 - [ ] Cambiar de idioma NO altera el expediente: canal/formato y niveles se guardan como ids.
 - [ ] Un `.json` guardado en un idioma se abre igual en otro.
 - [ ] `node tests/verificar-textos.js` pasa: claves parejas en los tres idiomas y ninguna faltante.
+- [ ] Los prompts y los descargables (catálogo, resumen, plan) salen enteros en el idioma elegido.
+- [ ] Los valores guardados (departamento, tipo de entregable) se muestran traducidos aunque en el `.json` estén en español.
 - [ ] Las 4 secciones se ven completas en los tres idiomas: encabezados, preguntas, tarjetas de impacto/ROI, galería, lanzador, Gantt/Kanban y avisos flotantes.
 - [ ] Siguen en español (a propósito) los valores que viajan en el CSV: estados, urgencias, tipo de tarea y frecuencia de KPI.
 - [ ] El Gantt y el Kanban se dibujan sin errores de consola en inglés y portugués (ahí vivía el choque entre la variable `t` y la función de traducción).

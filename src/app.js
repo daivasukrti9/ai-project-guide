@@ -50,6 +50,7 @@
      antes para no perder lo cargado. */
   function rerenderizarPorIdioma() {
     if (!document.getElementById("entradasRows")) return; // todavía no inicializó
+    mapaOpciones = null;
     collectState();
     applyTheme(document.documentElement.getAttribute("data-theme") || "light");
 
@@ -92,6 +93,23 @@
     const sel = document.getElementById("idiomaSelect");
     if (sel) sel.addEventListener("change", () => aplicarIdioma(sel.value));
     aplicarIdioma(inicial);
+  }
+
+  /* Los <option> guardan su texto en español como value (canónico) y su
+     etiqueta traducida vía data-i18n. Para mostrar uno de esos valores en un
+     prompt o documento hay que volver a traducirlo. El mapa se construye del
+     propio DOM: si mañana se agrega una opción, se resuelve sola. */
+  let mapaOpciones = null;
+  function etiquetaOpcion(valor) {
+    if (!valor) return valor;
+    if (!mapaOpciones) {
+      mapaOpciones = {};
+      document.querySelectorAll("option[data-i18n][value]").forEach(op => {
+        if (op.value) mapaOpciones[op.value] = op.dataset.i18n;
+      });
+    }
+    const clave = mapaOpciones[valor];
+    return clave ? t(clave) : valor;
   }
 
   function escAttr(str) {
@@ -1408,7 +1426,7 @@
   }
 
   function exportSkillsDictionary() {
-    const cat = CONTENIDO.CATALOGO;
+    const cat = contenido().CATALOGO;
     const meta = state.seccion_1_ordenar_trabajo.metadata_proceso;
     const nombre = meta.nombre_proceso || "proceso";
     if (!cat) { setIoStatus("⚠️ No se pudo cargar el contenido del catálogo."); return; }
@@ -1585,28 +1603,28 @@
     const ent = asegurarCierreSeccion4().entregable;
     const imp = calcularImpacto();
     const md = [
-      `# Resumen ejecutivo — ${s1.metadata_proceso.nombre_proceso || "(sin nombre)"}`,
-      `**Departamento:** ${s1.metadata_proceso.departamento || "—"}  `,
-      `**Tipo de desarrollo elegido:** ${s3.nivel_solucion || "—"}`,
+      t("re.titulo", { x: s1.metadata_proceso.nombre_proceso || t("gantt.sinNombre") }),
+      t("re.departamento", { x: etiquetaOpcion(s1.metadata_proceso.departamento) || "—" }),
+      t("re.tipo", { x: s3.nivel_solucion ? textoNivel(s3.nivel_solucion, "titulo") : "—" }),
       ""
     ];
     if (ent.tipo || ent.resultado) {
-      md.push("## Qué se construyó",
-        `- **Tipo de entregable:** ${ent.tipo || "—"}`,
-        `- **Puesta en marcha:** ${ent.estado_ejecucion || "—"}`,
-        ent.resultado ? `- **Resultado:** ${resumirEntregable(ent.resultado)}` : null,
-        ent.notas_ejecucion ? `- **Notas de ejecución:** ${ent.notas_ejecucion}` : null,
+      md.push(t("re.construido"),
+        t("re.tipoEntregable", { x: etiquetaOpcion(ent.tipo) || "—" }),
+        t("re.puesta", { x: etiquetaOpcion(ent.estado_ejecucion) || "—" }),
+        ent.resultado ? t("re.resultado", { x: resumirEntregable(ent.resultado) }) : null,
+        ent.notas_ejecucion ? t("re.notas", { x: ent.notas_ejecucion }) : null,
         "");
     }
     if (imp.hayDatos) {
-      md.push("## Impacto medido (antes vs. después)",
-        `- **Carga original:** ${n1(imp.semanaAsIs)} h/semana en ${imp.filas.length} tarea(s).`,
-        `- **Carga actual:** ${n1(imp.semanaToBe)} h/semana.`,
-        `- **Ahorro:** ${n1(imp.ahorroSemana)} h/semana · ${n1(imp.ahorroMes)} h/mes · ${imp.ahorroAnio.toFixed(0)} h/año.`,
-        `- **Eficiencia ganada:** ${Math.round(imp.pct)}%.`,
-        imp.costoHora > 0 ? `- **Retorno estimado:** ${dinero(imp.ahorroUsdAnio)} USD/año (costo hora ${dinero(imp.costoHora)}).` : null,
+      md.push(t("re.impacto"),
+        t("re.cargaOriginal", { h: n1(imp.semanaAsIs), n: imp.filas.length }),
+        t("re.cargaActual", { h: n1(imp.semanaToBe) }),
+        t("re.ahorro", { sem: n1(imp.ahorroSemana), mes: n1(imp.ahorroMes), anio: imp.ahorroAnio.toFixed(0) }),
+        t("re.eficiencia", { pct: Math.round(imp.pct) }),
+        imp.costoHora > 0 ? t("re.retorno", { total: dinero(imp.ahorroUsdAnio), hora: dinero(imp.costoHora) }) : null,
         "",
-        "| Tarea | Antes (h/sem) | Ahora (h/sem) | Ahorro |",
+        t("re.tablaTareas"),
         "|---|---|---|---|",
         ...imp.filas.map(f => {
           const antes = f.horas_manual * DIAS_HABILES.semana;
@@ -1614,21 +1632,21 @@
           const pct = antes > 0 ? Math.round(((antes - ahora) / antes) * 100) : 0;
           return `| ${f.nombre} | ${n1(antes)} | ${n1(ahora)} | ${pct >= 0 ? "-" : "+"}${Math.abs(pct)}% |`;
         }),
-        `\n_Base de cálculo: ${DIAS_HABILES.semana} días hábiles por semana, ${DIAS_HABILES.mes} por mes, ${DIAS_HABILES.anio} por año._`,
+        "\n" + t("re.base", { sem: DIAS_HABILES.semana, mes: DIAS_HABILES.mes, anio: DIAS_HABILES.anio }),
         "");
     }
     md.push(
-      "## KPIs As-Is vs. To-Be",
+      t("re.kpis"),
       "| KPI | Unidad | As-Is | To-Be | Frecuencia |",
       "|---|---|---|---|---|",
       ...s3.kpis_y_metricas_clave.map(k => `| ${k.nombre_kpi} | ${k.unidad_medida} | ${k.valor_actual_as_is} | ${k.meta_esperada_to_be} | ${k.frecuencia_medicion} |`),
       "",
-      "## ROI estimado",
+      t("re.roi"),
       `- Ahorro potencial: ${s3.roi_estimado.potencial_ahorro_horas_mes} h/mes`,
       `- ROI estimado: $${s3.roi_estimado.roi_estimado_mensual_usd} USD/mes`,
       `- Tiempo estimado de implementación: ${s3.roi_estimado.tiempo_estimado_implementacion || "—"}`,
       "",
-      "## Puntos de dolor",
+      t("re.dolores"),
       ...s1.puntos_de_dolor.map(p => `- **[${p.nivel_severidad}] ${p.categoria}:** ${p.descripcion}`)
     );
     downloadText(`resumen-ejecutivo-${state.app_meta.id_expediente}.md`, md.filter(x => x !== null).join("\n"));
@@ -1678,7 +1696,7 @@
   function initDudas() {
     const cont = document.getElementById("dudasFrecuentes");
     if (!cont) return;
-    cont.innerHTML = CONTENIDO.DUDAS_FRECUENTES.map(d => `
+    cont.innerHTML = contenido().DUDAS_FRECUENTES.map(d => `
       <label class="idea-card" data-duda="${escAttr(d.id)}">
         <input type="checkbox" data-duda-check="${escAttr(d.id)}" />
         <span class="idea-texto"><strong>${escHtml(d.t)}</strong></span>
@@ -1732,40 +1750,40 @@
     const s3 = state.seccion_3_compresion_proyecto;
     const ent = asegurarCierreSeccion4().entregable;   // solo lectura
     const dudas = state.seccion_4_indicadores_desarrollo.dudas;
-    const marcadas = CONTENIDO.DUDAS_FRECUENTES.filter(d => (dudas.puntos_confusos || []).includes(d.id));
+    const marcadas = contenido().DUDAS_FRECUENTES.filter(d => (dudas.puntos_confusos || []).includes(d.id));
 
     const L = [];
-    L.push("Actúa como un mentor técnico que explica sin tecnicismos, como si fuera mi primer proyecto con IA.");
+    L.push(t("cd.actua"));
     L.push("");
-    L.push("## Qué construí");
-    L.push(`- Proceso: ${s1.nombre_proceso || "(sin nombre)"}`);
-    if (s3.nivel_solucion) L.push(`- Tipo de desarrollo: ${s3.nivel_solucion}`);
-    if (ent.tipo) L.push(`- Qué obtuve: ${ent.tipo}`);
-    if (ent.estado_ejecucion) L.push(`- Cómo salió: ${ent.estado_ejecucion}`);
-    if (ent.notas_ejecucion) L.push(`- Notas de ejecución: ${ent.notas_ejecucion}`);
+    L.push(t("cd.construi"));
+    L.push(t("cd.proceso", { x: s1.nombre_proceso || t("gantt.sinNombre") }));
+    if (s3.nivel_solucion) L.push(t("cd.tipo", { x: textoNivel(s3.nivel_solucion, "titulo") }));
+    if (ent.tipo) L.push(t("cd.obtuve", { x: etiquetaOpcion(ent.tipo) }));
+    if (ent.estado_ejecucion) L.push(t("cd.salio", { x: etiquetaOpcion(ent.estado_ejecucion) }));
+    if (ent.notas_ejecucion) L.push(t("cd.notas", { x: ent.notas_ejecucion }));
     L.push("");
     if (ent.resultado) {
-      L.push("## El resultado que tengo");
+      L.push(t("cd.resultado"));
       L.push("```");
       L.push(ent.resultado);
       L.push("```");
       L.push("");
     } else {
-      L.push("## El resultado que tengo");
-      L.push("[PENDIENTE: pega aquí el script, el prompt o la plantilla sobre la que preguntas]");
+      L.push(t("cd.resultado"));
+      L.push(t("cd.pendiente"));
       L.push("");
     }
-    L.push("## Qué no me queda claro");
+    L.push(t("cd.noClaro"));
     marcadas.forEach(d => L.push(`- ${d.t}`));
     if (dudas.detalle.trim()) L.push(`- ${dudas.detalle.trim()}`);
     L.push("");
-    L.push("## Cómo quiero que me respondas");
-    L.push("- Explícamelo en lenguaje de oficina, sin jerga. Si usas un término técnico, defínelo en la misma línea.");
-    L.push("- Usa un ejemplo concreto con datos inventados para que vea qué entra y qué sale.");
-    L.push("- Si hay que cambiar algo, dime exactamente en qué parte y con qué lo reemplazo.");
-    L.push("- No reescribas todo de cero: quiero entender lo que ya tengo funcionando.");
-    L.push("- Si mi duda parte de un malentendido, corrígeme primero y después responde.");
-    L.push("- Termina con una prueba concreta que pueda hacer yo para confirmar que entendí bien.");
+    L.push(t("cd.comoResponder"));
+    L.push(t("cd.regla1"));
+    L.push(t("cd.regla2"));
+    L.push(t("cd.regla3"));
+    L.push(t("cd.regla4"));
+    L.push(t("cd.regla5"));
+    L.push(t("cd.regla6"));
     return L.join("\n");
   }
 
@@ -1793,7 +1811,7 @@
 
   /* ---------------- Presentación ejecutiva ---------------- */
   function initPresentacion() {
-    const pres = CONTENIDO.PRESENTACION;
+    const pres = contenido().PRESENTACION;
     if (!pres) return;
     const estilo = document.getElementById("estiloDefecto");
     if (estilo) estilo.innerHTML = pres.estilo.map(x => `<li>${escHtml(x)}</li>`).join("");
@@ -1841,7 +1859,7 @@
         ${imp.costoHora > 0 ? `<div class="impacto-card impacto-card--liberada"><div class="value">${dinero(imp.ahorroUsdAnio)}</div><div class="label">${escHtml(t("card.retornoAnual"))}</div></div>` : ""}`;
     }
     const pres = asegurarCierreSeccion4().presentacion;
-    const aud = (CONTENIDO.PRESENTACION.audiencias || []).find(a => a.id === pres.audiencia);
+    const aud = (contenido().PRESENTACION.audiencias || []).find(a => a.id === pres.audiencia);
     const nota = document.getElementById("audienciaNota");
     if (nota) nota.textContent = aud ? aud.enfoque : t("s4.elegiAudiencia");
     document.querySelectorAll("#audienciaPicker [data-valor]").forEach(o => o.setAttribute("aria-checked", o.dataset.valor === pres.audiencia ? "true" : "false"));
@@ -1855,7 +1873,7 @@
   }
 
   function construirPromptPresentacion() {
-    const pres = CONTENIDO.PRESENTACION;
+    const pres = contenido().PRESENTACION;
     if (!pres) return "";
     const meta = state.seccion_1_ordenar_trabajo.metadata_proceso;
     const s1 = state.seccion_1_ordenar_trabajo;
@@ -1870,82 +1888,82 @@
     const controles = readRows("checklistRows", ["item", "completado"]).filter(c => c.item && c.completado);
 
     const L = [];
-    L.push("# Prompt: presentación ejecutiva de 5 diapositivas");
+    L.push(t("pp.titulo"));
     L.push("");
-    L.push("Actúa como un Consultor Senior en Estrategia Digital y Comunicación Ejecutiva. Convierte la información de mi proyecto en el guion de una presentación de 5 diapositivas: puntual, visual y orientada a resultados de negocio.");
+    L.push(t("pp.actua"));
     L.push("");
-    L.push("## A quién se lo voy a presentar");
+    L.push(t("pp.audiencia"));
     if (aud) { L.push(`${aud.nombre}. ${aud.enfoque}`); L.push(aud.pide); }
-    else L.push("[PENDIENTE: elige la audiencia — jefatura, equipo, comité o cliente interno]");
+    else L.push(t("pp.sinAudiencia"));
     L.push("");
-    L.push("## Qué quiero conseguir");
+    L.push(t("pp.objetivo"));
     if (obj) L.push(`${obj.nombre}. ${obj.pide}`);
-    else L.push("[PENDIENTE: elige el objetivo — escalar, consolidar el piloto, pedir recursos o compartir el aprendizaje]");
+    else L.push(t("pp.sinObjetivo"));
     L.push("");
-    L.push("## Datos del proyecto");
-    L.push(`- Proyecto / proceso: ${meta.nombre_proceso || "[PENDIENTE]"}`);
-    if (meta.departamento) L.push(`- Área: ${meta.departamento}`);
-    if (meta.responsable_proceso) L.push(`- Responsable: ${meta.responsable_proceso}`);
-    if (s3.nivel_solucion) L.push(`- Tipo de desarrollo elegido: ${s3.nivel_solucion}`);
-    if (ent.tipo) L.push(`- Qué se construyó: ${ent.tipo}`);
-    if (ent.resultado) L.push(`- Descripción del entregable: ${resumirEntregable(ent.resultado)}`);
-    if (ent.estado_ejecucion) L.push(`- Cómo salió la puesta en marcha: ${ent.estado_ejecucion}`);
-    if (ent.notas_ejecucion) L.push(`- Notas de ejecución: ${ent.notas_ejecucion}`);
+    L.push(t("pp.datos"));
+    L.push(t("pp.proyecto", { x: meta.nombre_proceso || t("pp.pendiente") }));
+    if (meta.departamento) L.push(t("pm.area", { x: etiquetaOpcion(meta.departamento) }));
+    if (meta.responsable_proceso) L.push(t("pp.responsable", { x: meta.responsable_proceso }));
+    if (s3.nivel_solucion) L.push(t("pp.tipoElegido", { x: textoNivel(s3.nivel_solucion, "titulo") }));
+    if (ent.tipo) L.push(t("pp.construido", { x: etiquetaOpcion(ent.tipo) }));
+    if (ent.resultado) L.push(t("pp.entregable", { x: resumirEntregable(ent.resultado) }));
+    if (ent.estado_ejecucion) L.push(t("pp.puestaMarcha", { x: etiquetaOpcion(ent.estado_ejecucion) }));
+    if (ent.notas_ejecucion) L.push(t("cd.notas", { x: ent.notas_ejecucion }));
     L.push("");
-    L.push("## Punto de partida y resultado medido");
+    L.push(t("pp.partida"));
     if (imp.hayDatos) {
-      L.push(`- Carga original: ${n1(imp.semanaAsIs)} h/semana repartidas en ${imp.filas.length} tarea(s) habitual(es).`);
-      L.push(`- Carga actual con la solución: ${n1(imp.semanaToBe)} h/semana.`);
-      L.push(`- Ahorro: ${n1(imp.ahorroSemana)} h/semana · ${n1(imp.ahorroMes)} h/mes · ${imp.ahorroAnio.toFixed(0)} h/año.`);
-      L.push(`- Eficiencia ganada: ${Math.round(imp.pct)}% del tiempo que consumía el proceso.`);
-      if (imp.costoHora > 0) L.push(`- Retorno económico estimado: ${dinero(imp.ahorroUsdAnio)} USD al año (costo hora de referencia: ${dinero(imp.costoHora)}).`);
-      L.push("- Detalle por tarea (horas por semana, antes → ahora):");
+      L.push(t("pp.cargaOriginal", { h: n1(imp.semanaAsIs), n: imp.filas.length }));
+      L.push(t("pp.cargaActual", { h: n1(imp.semanaToBe) }));
+      L.push(t("pp.ahorro", { sem: n1(imp.ahorroSemana), mes: n1(imp.ahorroMes), anio: imp.ahorroAnio.toFixed(0) }));
+      L.push(t("pp.eficiencia", { pct: Math.round(imp.pct) }));
+      if (imp.costoHora > 0) L.push(t("pp.retorno", { total: dinero(imp.ahorroUsdAnio), hora: dinero(imp.costoHora) }));
+      L.push(t("pp.detalleTarea"));
       imp.filas.forEach(f => {
         const antes = f.horas_manual * DIAS_HABILES.semana;
         const ahora = f.horas_automatizado * DIAS_HABILES.semana;
         const pct = antes > 0 ? Math.round(((antes - ahora) / antes) * 100) : 0;
         L.push(`  - ${f.nombre}: ${n1(antes)} h → ${n1(ahora)} h (${pct >= 0 ? "-" : "+"}${Math.abs(pct)}%)`);
       });
-      L.push(`- Base de cálculo: ${DIAS_HABILES.semana} días hábiles por semana, ${DIAS_HABILES.mes} por mes, ${DIAS_HABILES.anio} por año.`);
+      L.push(t("pp.base", { sem: DIAS_HABILES.semana, mes: DIAS_HABILES.mes, anio: DIAS_HABILES.anio }));
     } else {
-      L.push("- [PENDIENTE: todavía no cargué el contraste de horas antes/después en la guía]");
+      L.push(t("pp.sinContraste"));
     }
     if (dolores.length) {
-      L.push("- Problemas que motivaron el proyecto:");
-      dolores.forEach(d => L.push(`  - [${d.nivel_severidad || "—"}] ${d.categoria || ""}: ${d.descripcion}`));
+      L.push(t("pp.problemas"));
+      dolores.forEach(d => L.push(`  - [${etiquetaOpcion(d.nivel_severidad) || "—"}] ${etiquetaOpcion(d.categoria) || ""}: ${d.descripcion}`));
     }
     if (kpis.length) {
-      L.push("- Métricas comprometidas:");
+      L.push(t("pp.metricas"));
       kpis.forEach(k => L.push(`  - ${k.nombre_kpi}: ${k.valor_actual_as_is} → ${k.meta_esperada_to_be} ${k.unidad_medida || ""} (medición ${k.frecuencia_medicion || "—"})`));
     }
     if (controles.length) {
-      L.push("- Controles de calidad y seguridad ya validados:");
+      L.push(t("pp.controles"));
       controles.forEach(c => L.push(`  - ${c.item}`));
     }
     const sponsor = val("s4_sponsor"), fecha = val("s4_fecha_revision");
-    if (sponsor) L.push(`- Sponsor que aprueba: ${sponsor}`);
-    if (fecha) L.push(`- Revisión de resultados prevista: ${fecha}`);
+    if (sponsor) L.push(t("pp.sponsor", { x: sponsor }));
+    if (fecha) L.push(t("pp.revision", { x: fecha }));
     L.push("");
-    L.push("## Formato de cada diapositiva");
-    L.push("1. **Título impactante:** máximo 6 palabras.");
-    L.push("2. **Hasta 3 viñetas:** máximo 2 líneas cada una, directas al grano.");
-    L.push("3. **Una métrica protagonista:** una sola cifra en caja destacada.");
-    L.push("4. **Nota del orador:** una frase corta con lo que digo en voz alta.");
+    L.push(t("pp.formato"));
+    L.push(t("pp.formato1"));
+    L.push(t("pp.formato2"));
+    L.push(t("pp.formato3"));
+    L.push(t("pp.formato4"));
     L.push("");
-    L.push("## Las 5 diapositivas");
+    L.push(t("pp.slides"));
     pres.slides.forEach(sl => L.push(`${sl.n}. ${sl.icono} **${sl.titulo}** — ${sl.enfoque}`));
     L.push("");
-    L.push("## Estilo visual");
+    L.push(t("pp.estilo"));
     pres.estilo.forEach(x => L.push(`- ${x}`));
     if (cfg.incluir_logo) {
-      L.push("- Reserva un espacio libre para el logo de mi empresa en la esquina superior derecha de cada diapositiva. No inventes ni describas un logo: solo deja el lugar.");
+      L.push(t("pp.logo"));
     }
     L.push("");
-    L.push("## Reglas");
-    L.push("- Tono profesional, moderno y directo. Sin relleno: nada de «es importante destacar» ni «en conclusión».");
-    L.push("- No inventes datos. Si falta un número, escribe [PENDIENTE DE VALIDACIÓN] en su lugar.");
-    L.push("- Los números son estimaciones internas de mi área: preséntalos como estimaciones, no como cifras auditadas.");
-    L.push("- Entrega el guion en texto plano, listo para pegar en Gamma, Canva, Marp o PowerPoint.");
+    L.push(t("pp.reglas"));
+    L.push(t("pp.regla1"));
+    L.push(t("pp.regla2"));
+    L.push(t("pp.regla3"));
+    L.push(t("pp.regla4"));
     return L.join("\n");
   }
 
@@ -1984,105 +2002,11 @@
 
     if (!s3.nivel_solucion) return;
 
-    let guiaAvanzada = "";
+    const guiaAvanzada = (contenido().GUIAS || {})[claveNivel(s3.nivel_solucion)] || "";
 
-    if (s3.nivel_solucion.includes("Nivel 1")) {
-      guiaAvanzada = `
-        <div style="margin-bottom: 1.5rem;">
-          <p class="hint-title"><strong>Arquitectura y Conceptos Básicos</strong></p>
-          <p style="font-size: .85rem; color: var(--color-text);">Para este nivel, el enfoque es conversacional (Chat). La IA actúa como un analista o revisor. No necesitas integraciones técnicas complejas, simplemente debes proporcionar contexto claro y el borrador de lo que deseas mejorar.</p>
-        </div>
-        <div style="margin-bottom: 1.5rem;">
-          <p class="hint-title"><strong>💡 Qué pedir a la IA para generar el material</strong></p>
-          <ul class="hint-list">
-            <li>Pide que te sugiera una estructura óptima para el tipo de documento o presentación (índice, capítulos).</li>
-            <li>Define la <strong>audiencia</strong> (ej. directivos, clientes) y pídele que ajuste el tono y el vocabulario.</li>
-            <li>Solicita una iteración tipo <em>Brainstorming</em> (lluvia de ideas guiada) antes de que la IA genere el contenido final estructurado.</li>
-          </ul>
-        </div>
-        <div style="margin-bottom: 1.5rem;">
-          <p class="hint-title"><strong>⚠️ Prevenciones y Criterio</strong></p>
-          <ul class="hint-list">
-            <li><strong>Desarrollo del Criterio:</strong> No puedes desarrollar criterio si no lees y analizas las discrepancias en lo que la IA te responde. Revisa cuidadosamente cada respuesta, la IA es propensa a inventar datos que suenan convincentes.</li>
-            <li><strong>Seguridad de Datos:</strong> Bajo ningún motivo incluyas datos confidenciales de la empresa (márgenes comerciales reales, balances puros, contraseñas) en la ventana de chat. Usa nombres inventados (datos sintéticos) como "Empresa X".</li>
-            <li><strong>Convierte lo que funcionó en plantilla:</strong> cuando un documento te quede bien, guarda esas instrucciones como una <em>skill</em> reutilizable (instrucciones del sistema o proyecto) en vez de reescribirlas de memoria la próxima vez.</li>
-          </ul>
-        </div>
-      `;
-    } else if (s3.nivel_solucion.includes("Nivel 2")) {
-      guiaAvanzada = `
-        <div style="margin-bottom: 1.5rem;">
-          <p class="hint-title"><strong>Arquitectura y Conceptos Básicos</strong></p>
-          <p style="font-size: .85rem; color: var(--color-text);">La IA actuará como tu desarrollador copiloto. Se trata de construir automatizaciones mediante código simple (ej. Macros, Python, Google Apps Script) en la cual la IA genera el código y tú lo pruebas y pones en funcionamiento en un sistema tradicional.</p>
-        </div>
-        <div style="margin-bottom: 1.5rem;">
-          <p class="hint-title"><strong>💡 Qué pedir a la IA para tu Prompt</strong></p>
-          <ul class="hint-list">
-            <li>Pídele que diseñe pequeños <strong>bloques de código</strong> ("funciones") que hagan una sola cosa a la vez (Divide y Vencerás). No pidas el sistema completo en tu primer mensaje.</li>
-            <li>Solicita que el código esté abundantemente <strong>comentado</strong>. Si no entiendes qué hace una línea crucial, exígele que te la explique con metáforas simples antes de ejecutarla.</li>
-          </ul>
-        </div>
-        <div style="margin-bottom: 1.5rem;">
-          <p class="hint-title"><strong>⚠️ Prevenciones y Criterio</strong></p>
-          <ul class="hint-list">
-            <li><strong>Ahorro de Tokens y Contexto:</strong> No envíes sábanas de código gigantes si sabes que el error está en una sola línea. Al aislar las secciones, liberas tokens y reduces confusión.</li>
-            <li><strong>Test de Código:</strong> Prueba cada paso (Unit Test manual) usando planillas y variables de prueba (sandbox). <em>Nunca ejecutes un código nuevo directamente sobre bases de datos o sistemas de producción reales</em>.</li>
-            <li><strong>Formar el Criterio:</strong> Al usar la IA para depurar (debugging), no copies/pegues los errores ciegamente; reflexiona con la herramienta. Así formarás tu intuición algorítmica sobre por qué fallan ciertas cosas.</li>
-          </ul>
-        </div>
-      `;
-    } else if (s3.nivel_solucion.includes("Nivel 3")) {
-      guiaAvanzada = `
-        <div style="margin-bottom: 1.5rem;">
-          <p class="hint-title"><strong>Arquitectura y Conceptos Básicos</strong></p>
-          <p style="font-size: .85rem; color: var(--color-text);">La IA actúa aquí como diseñadora de herramientas. Vas a construir una utilidad que otras personas usan sin saber qué hay debajo: un archivo HTML/JS local que abre con doble clic, un libro de Excel con botones o un panel de indicadores. La lógica deja de vivir en una conversación y pasa a vivir dentro de la herramienta, que siempre calcula igual.</p>
-        </div>
-        <div style="margin-bottom: 1.5rem;">
-          <p class="hint-title"><strong>💡 Qué pedir a la IA para tu Prompt</strong></p>
-          <ul class="hint-list">
-            <li>Exige un <strong>único archivo autocontenido</strong>, sin instalaciones ni dependencias de internet: en muchas oficinas no vas a poder instalar nada ni abrir puertos.</li>
-            <li>Define de entrada los <strong>3 a 5 indicadores</strong> que van arriba y bien visibles; el resto es detalle secundario.</li>
-            <li>Pide que <strong>valide lo que carga el usuario</strong> (campos vacíos, fechas mal escritas, duplicados) y que avise con un mensaje claro en vez de mostrar un resultado equivocado.</li>
-            <li>Solicita que te señale <strong>exactamente dónde tocar</strong> para cambiar una fórmula o un umbral, para no depender de la IA cada vez que cambie una regla.</li>
-            <li>Si algún paso de la herramienta implica análisis con IA, pídele que ese paso quede como <strong>plantilla de instrucciones fija</strong> (una skill), con formato de salida exacto, en lugar de redactarlo distinto cada vez.</li>
-          </ul>
-        </div>
-        <div style="margin-bottom: 1.5rem;">
-          <p class="hint-title"><strong>⚠️ Prevenciones y Criterio</strong></p>
-          <ul class="hint-list">
-            <li><strong>Datos dentro del archivo:</strong> si vas a compartir la herramienta, revisa que no lleve datos reales pegados adentro. Distribúyela vacía y que cada quien cargue su propio archivo.</li>
-            <li><strong>Prueba con casos límite:</strong> cero registros, un registro, valores negativos y textos donde esperabas números. Una herramienta que se rompe delante de tu jefe pierde toda credibilidad.</li>
-            <li><strong>Formar el criterio:</strong> pídele que te explique la fórmula en palabras y verifícala a mano con un caso que ya conozcas. Si el número no coincide con tu cálculo manual, el error está en la regla, no en quien la usa.</li>
-          </ul>
-        </div>
-      `;
-    } else if (s3.nivel_solucion.includes("Nivel 4")) {
-      guiaAvanzada = `
-        <div style="margin-bottom: 1.5rem;">
-          <p class="hint-title"><strong>Arquitectura y Conceptos Básicos</strong></p>
-          <p style="font-size: .85rem; color: var(--color-text);">Implementación de Agentes Autónomos integrados con herramientas (MCP, APIs, Plugins directos). La IA actuará como orquestador cognitivo: lee opciones, genera su propio razonamiento interno, llama a los sistemas para extraer datos u operar, e interactúa con el usuario final de manera independiente (Agentic Workflow). Requiere profunda gobernanza.</p>
-        </div>
-        <div style="margin-bottom: 1.5rem;">
-          <p class="hint-title"><strong>💡 Qué pedir a la IA al planificar</strong></p>
-          <ul class="hint-list">
-            <li>Pídele a la IA en tu iteración inicial que actúe como un arquitecto enterprise: que diagrame y audite la arquitectura modular detallando cada componente y herramienta externa requerida (bases de datos a afectar, APIs a llamar).</li>
-            <li>Solicita la generación de instrucciones de "Self-Correction" y mecanismos de <em>Escalamiento Humano</em>, forzando a la autonomía a detenerse y generar un trigger si detecta un margen de incertidumbre no mapeado.</li>
-          </ul>
-        </div>
-        <div style="margin-bottom: 1.5rem;">
-          <p class="hint-title"><strong>⚠️ Prevenciones y Criterio Estricto</strong></p>
-          <ul class="hint-list">
-            <li><strong>Micro-Gestión a Macro-Gestión:</strong> Formarte un criterio como orquestador en este nivel implica entender los patrones de fallos, y no operar los flujos por tu cuenta. Se requiere delegar basándote en los reportes del agente, pero supervisando la métrica real.</li>
-            <li><strong>Límites y Consumo (Cortocircuitos):</strong> Un agente atascado puede entrar en un <em>loop o bucle</em> infinito que quema la cuota de tokens. Debes forzar logs robustos y fijar topes duros de intentos antes de un apagado preventivo (Kill Switch).</li>
-            <li><strong>Least Privilege y Aprobación:</strong> Nunca expongas la mutación de bases de datos críticas sin un middleware de aprobación humana incrustado en el flujo (Human-in-the-Loop) como norma absoluta para este tipo de pilotos iniciales.</li>
-          </ul>
-        </div>
-      `;
-    }
-
-    let html = `<h4>Comprensión Estratégica del Nivel de Solución</h4>`;
+    let html = `<h4>${escHtml(t("gd.titulo"))}</h4>`;
     html += `<p style="margin-bottom: 1rem; font-size: 0.85rem; color: var(--color-text-muted);">
-      Proceso: <strong>${escHtml(s1.nombre_proceso || 'tu proceso')}</strong> <br> Recomendación detectada: <strong>${escHtml(s2.nombre_tecnico || 'esperando datos de la Etapa 2')}</strong>.
+      ${escHtml(t("gd.proceso"))} <strong>${escHtml(s1.nombre_proceso || t("gd.tuProceso"))}</strong> <br> ${escHtml(t("gd.recomendacion"))} <strong>${escHtml(s2.nombre_tecnico || t("gd.esperando"))}</strong>.
     </p>`;
     html += guiaAvanzada;
 
@@ -2090,13 +2014,17 @@
   }
 
   /* ---------------- Galería de ideas y sugerencias (Sección 3) ---------------- */
-  const CONTENIDO = Object.assign(
-    { SUGERENCIAS: {}, IA_GUIA: [], CATALOGO: null, DUDAS_FRECUENTES: [], PRESENTACION: { audiencias: [], objetivos: [], estilo: [], slides: [] } },
-    window.AIPG_CONTENT || {}
-  );
+  /* El contenido editorial (galerías, guías, catálogo y prompts) tiene una
+     versión por idioma. Se resuelve en cada llamada porque el idioma cambia
+     en caliente. */
+  const CONTENIDO_VACIO = { SUGERENCIAS: {}, IA_GUIA: [], CATALOGO: null, DUDAS_FRECUENTES: [], GUIAS: {}, PRESENTACION: { audiencias: [], objetivos: [], estilo: [], slides: [] } };
+  function contenido() {
+    const todos = window.AIPG_CONTENIDO || {};
+    return todos[idiomaActivo] || todos[I18N.idiomaPorDefecto] || CONTENIDO_VACIO;
+  }
 
   function sugerenciasDelNivel() {
-    return CONTENIDO.SUGERENCIAS[claveNivel(state.seccion_3_compresion_proyecto.nivel_solucion)] || null;
+    return contenido().SUGERENCIAS[claveNivel(state.seccion_3_compresion_proyecto.nivel_solucion)] || null;
   }
 
   function renderGaleriaIdeas() {
@@ -2175,7 +2103,7 @@
     box.innerHTML = `
       <p class="hint-title">${escHtml(t("s3.pasoIA"))}</p>
       <div class="level-picker level-picker--compact" id="iaPicker" role="radiogroup" aria-label="${escAttr(t("s3.ariaAsistente"))}">
-        ${CONTENIDO.IA_GUIA.map(ia => `
+        ${contenido().IA_GUIA.map(ia => `
           <div class="level-option" role="radio" tabindex="0" aria-checked="${ia.id === iaElegida ? "true" : "false"}" data-ia="${escAttr(ia.id)}">
             <strong>${escHtml(ia.nombre)}${ia.ideal.includes(nivel) ? ` <span class="ia-badge">${escHtml(t("s3.sugerida"))}</span>` : ""}</strong>
           </div>`).join("")}
@@ -2209,7 +2137,7 @@
   function actualizarPromptMaestro() {
     const pre = document.getElementById("promptMaestro");
     if (pre) pre.textContent = construirPromptMaestro();
-    const ia = CONTENIDO.IA_GUIA.find(x => x.id === state.seccion_3_compresion_proyecto.ia_preferida);
+    const ia = contenido().IA_GUIA.find(x => x.id === state.seccion_3_compresion_proyecto.ia_preferida);
     const nota = document.getElementById("iaFortaleza");
     if (nota) nota.textContent = ia
       ? `${ia.nombre}: ${ia.fortaleza}`
@@ -2225,49 +2153,49 @@
     const s3 = state.seccion_3_compresion_proyecto;
     const marcadas = new Set(s3.sugerencias_seleccionadas || []);
     const ideas = data.ideas.filter(i => marcadas.has(i.id));
-    const ia = CONTENIDO.IA_GUIA.find(x => x.id === s3.ia_preferida);
+    const ia = contenido().IA_GUIA.find(x => x.id === s3.ia_preferida);
     const dolores = (s1.puntos_de_dolor || []).filter(d => d.descripcion);
 
     const L = [];
-    L.push(`Actúa como ${data.prompt.rol}.`);
+    L.push(t("pm.actua", { rol: data.prompt.rol }));
     L.push("");
-    L.push("## Contexto de mi trabajo");
-    L.push(`- Proceso: ${meta.nombre_proceso || "(pendiente de completar en la Sección 1)"}`);
-    if (meta.departamento) L.push(`- Área: ${meta.departamento}`);
+    L.push(t("pm.contexto"));
+    L.push(t("pm.proceso", { x: meta.nombre_proceso || t("pm.sinProceso") }));
+    if (meta.departamento) L.push(t("pm.area", { x: etiquetaOpcion(meta.departamento) }));
     const entradas = normalizarMapeo(s1.mapeo_entradas_salidas.entradas);
     const salidas = normalizarMapeo(s1.mapeo_entradas_salidas.salidas);
     if (entradas.length) {
-      L.push("- Entradas con las que trabajo:");
+      L.push(t("pm.entradas"));
       entradas.forEach(e => L.push(`  - ${describirMapeo(e, "entrada")}`));
     }
     if (salidas.length) {
-      L.push("- Salidas que se esperan de mí:");
+      L.push(t("pm.salidas"));
       salidas.forEach(x => L.push(`  - ${describirMapeo(x, "salida")}`));
     }
     if (dolores.length) {
-      L.push("- Principales problemas actuales:");
-      dolores.forEach(d => L.push(`  - [${d.nivel_severidad || "—"}] ${d.categoria || ""}: ${d.descripcion}`));
+      L.push(t("pm.problemas"));
+      dolores.forEach(d => L.push(`  - [${etiquetaOpcion(d.nivel_severidad) || "—"}] ${etiquetaOpcion(d.categoria) || ""}: ${d.descripcion}`));
     }
-    if (rec.nombre_tecnico) L.push(`- Recomendación técnica del diagnóstico previo: ${rec.nombre_tecnico}`);
-    L.push(`- Tipo de desarrollo elegido: ${s3.nivel_solucion} (${data.etiqueta})`);
+    if (rec.nombre_tecnico) L.push(t("pm.recomendacion", { x: rec.nombre_tecnico }));
+    L.push(t("pm.tipo", { nivel: textoNivel(s3.nivel_solucion, "titulo"), etiqueta: data.etiqueta }));
     L.push("");
-    L.push("## Lo que necesito");
+    L.push(t("pm.necesito"));
     L.push(data.prompt.encargo);
     L.push("");
     if (ideas.length) {
-      L.push("## Ideas que quiero incorporar");
+      L.push(t("pm.ideas"));
       ideas.forEach(i => L.push(`- **${i.t}**: ${i.d}`));
       L.push("");
     }
-    L.push("## Cómo quiero que trabajes");
+    L.push(t("pm.comoTrabajes"));
     L.push(data.prompt.exigencia);
-    L.push("- Antes de producir nada, hazme las preguntas que te falten. No inventes datos que no te di.");
-    L.push("- Marca con [PENDIENTE DE VALIDACIÓN] cualquier supuesto que hayas tenido que asumir.");
-    L.push("- Trabajo con datos generalizados o sintéticos: no voy a compartir información confidencial, credenciales ni datos personales reales.");
-    L.push("- Explícame las decisiones en lenguaje sencillo: necesito poder defender esto ante mi equipo.");
+    L.push(t("pm.regla1"));
+    L.push(t("pm.regla2"));
+    L.push(t("pm.regla3"));
+    L.push(t("pm.regla4"));
     if (ia) {
       L.push("");
-      L.push(`> Preparado para ${ia.nombre} — ${ia.fortaleza}`);
+      L.push(t("pm.preparado", { ia: ia.nombre, fuerte: ia.fortaleza }));
     }
     return L.join("\n");
   }
@@ -2280,11 +2208,11 @@
 
   /* ---------------- Catálogo de recursos: documento imprimible (PDF) ---------------- */
   function refGlosario(n) {
-    return n ? ` <sup class="doc-ref">glosario #${n}</sup>` : "";
+    return n ? ` <sup class="doc-ref">${escHtml(t("doc.refGlosario", { n }))}</sup>` : "";
   }
 
   function renderDocCatalogo() {
-    const cat = CONTENIDO.CATALOGO;
+    const cat = contenido().CATALOGO;
     const cont = document.getElementById("docCatalogo");
     if (!cat || !cont) return;
     const meta = state.seccion_1_ordenar_trabajo.metadata_proceso;
@@ -2293,15 +2221,15 @@
     const portada = `
       <header class="doc-portada">
         <div class="doc-portada-texto">
-          <p class="doc-kicker">AI Project Guide · Documento de consulta</p>
+          <p class="doc-kicker">${escHtml(t("doc.kicker"))}</p>
           <h1>${escHtml(cat.titulo)}</h1>
           <p class="doc-bajada">${escHtml(cat.bajada)}</p>
           <dl class="doc-meta">
-            <div><dt>Proyecto</dt><dd>${escHtml(meta.nombre_proceso || "—")}</dd></div>
-            <div><dt>Área</dt><dd>${escHtml(meta.departamento || "—")}</dd></div>
-            <div><dt>Responsable</dt><dd>${escHtml(meta.responsable_proceso || "—")}</dd></div>
-            <div><dt>Expediente</dt><dd>${escHtml(state.app_meta.id_expediente)}</dd></div>
-            <div><dt>Generado</dt><dd>${escHtml(hoy)}</dd></div>
+            <div><dt>${escHtml(t("doc.proyecto"))}</dt><dd>${escHtml(meta.nombre_proceso || "—")}</dd></div>
+            <div><dt>${escHtml(t("doc.area"))}</dt><dd>${escHtml(etiquetaOpcion(meta.departamento) || "—")}</dd></div>
+            <div><dt>${escHtml(t("doc.responsable"))}</dt><dd>${escHtml(meta.responsable_proceso || "—")}</dd></div>
+            <div><dt>${escHtml(t("doc.expediente"))}</dt><dd>${escHtml(state.app_meta.id_expediente)}</dd></div>
+            <div><dt>${escHtml(t("doc.generado"))}</dt><dd>${escHtml(hoy)}</dd></div>
           </dl>
         </div>
         <img class="doc-portada-img" src="ilustracion-catalogo.png" width="800" height="600" alt="" />
@@ -2324,15 +2252,15 @@
 
     const areas = `
       <section class="doc-seccion">
-        <h2><span class="doc-num">2</span> Catálogo de recursos por área</h2>
+        <h2><span class="doc-num">2</span> ${escHtml(t("doc.areas"))}</h2>
         ${cat.areas.map(a => `
           <article class="doc-area">
-            <h3>Área ${a.n} · ${escHtml(a.titulo)}</h3>
+            <h3>${escHtml(t("doc.area_n", { n: a.n }))} · ${escHtml(a.titulo)}</h3>
             <p class="doc-area-desc">${escHtml(a.descripcion)}</p>
-            <p class="doc-area-valor"><strong>Valor para tu proyecto:</strong> ${escHtml(a.valor)}</p>
+            <p class="doc-area-valor"><strong>${escHtml(t("doc.valor"))}</strong> ${escHtml(a.valor)}</p>
             <table class="doc-tabla">
               <thead>
-                <tr><th>Skill / Recurso</th><th>Para qué sirve</th><th>Qué necesita (input)</th><th>Qué te devuelve (output)</th></tr>
+                <tr><th>${escHtml(t("doc.colSkill"))}</th><th>${escHtml(t("doc.colPara"))}</th><th>${escHtml(t("doc.colInput"))}</th><th>${escHtml(t("doc.colOutput"))}</th></tr>
               </thead>
               <tbody>
                 ${a.filas.map(f => `
@@ -2349,7 +2277,7 @@
 
     const gobernanza = `
       <section class="doc-seccion">
-        <h2><span class="doc-num">3</span> Gobernanza digital en la empresa</h2>
+        <h2><span class="doc-num">3</span> ${escHtml(t("doc.gobernanza"))}</h2>
         <ol class="doc-gobernanza">
           ${cat.gobernanza.map(g => `<li><strong>${escHtml(g.t)}:</strong> ${escHtml(g.d)}</li>`).join("")}
         </ol>
@@ -2357,20 +2285,20 @@
 
     const glosario = `
       <section class="doc-seccion doc-seccion--glosario">
-        <h2><span class="doc-num">4</span> Glosario en lenguaje de oficina</h2>
+        <h2><span class="doc-num">4</span> ${escHtml(t("doc.glosario"))}</h2>
         <div class="doc-glosario">
           ${cat.glosario.map(g => `
             <article class="doc-termino">
               <h3><span class="doc-termino-num">${g.n}</span> ${escHtml(g.termino)}</h3>
-              <p><strong>¿Qué es?</strong> ${escHtml(g.que)}</p>
-              <p><strong>¿Para qué sirve?</strong> ${escHtml(g.para)}</p>
-              <p class="doc-ejemplo"><strong>Ejemplo de oficina:</strong> ${escHtml(g.ej)}</p>
+              <p><strong>${escHtml(t("doc.quees"))}</strong> ${escHtml(g.que)}</p>
+              <p><strong>${escHtml(t("doc.parasirve"))}</strong> ${escHtml(g.para)}</p>
+              <p class="doc-ejemplo"><strong>${escHtml(t("doc.ejemplo"))}</strong> ${escHtml(g.ej)}</p>
             </article>`).join("")}
         </div>
       </section>`;
 
     cont.innerHTML = portada + esquema + areas + gobernanza + glosario +
-      `<footer class="doc-pie">AI Project Guide · Documento generado en tu navegador, sin enviar datos a ningún servidor.</footer>`;
+      `<footer class="doc-pie">${escHtml(t("doc.pie"))}</footer>`;
   }
 
   function imprimirCatalogo() {
