@@ -11,6 +11,89 @@
   const SCHEMA_VERSION = "1.0.0";
   const APP_VERSION = "1.0.0";
 
+  /* ------------------------------------------------------------------
+     Textos de interfaz. El idioma activo se resuelve acá; el estado nunca
+     guarda etiquetas traducidas, solo ids.
+     ------------------------------------------------------------------ */
+  const I18N = window.AIPG_I18N || { idiomaPorDefecto: "es", idiomas: { es: {} }, ambiguos: { es: {} }, vocabulario: { entrada: { canales: [], formatos: [] }, salida: { canales: [], formatos: [] } } };
+  let idiomaActivo = I18N.idiomaPorDefecto;
+
+  function t(clave, vars) {
+    const tabla = I18N.idiomas[idiomaActivo] || I18N.idiomas[I18N.idiomaPorDefecto] || {};
+    let texto = tabla[clave];
+    if (texto == null) texto = (I18N.idiomas[I18N.idiomaPorDefecto] || {})[clave];
+    if (texto == null) return clave; // clave sin traducir: visible a propósito
+    if (vars) Object.keys(vars).forEach(k => { texto = texto.split("{" + k + "}").join(vars[k]); });
+    return texto;
+  }
+
+  /* Aplica el idioma a todo el DOM marcado con data-i18n*. El estado no se
+     toca: solo cambian las etiquetas que ve la persona. */
+  function aplicarIdioma(codigo) {
+    idiomaActivo = I18N.idiomas[codigo] ? codigo : I18N.idiomaPorDefecto;
+    document.documentElement.setAttribute("lang", idiomaActivo);
+    document.title = t("ui.tituloDocumento");
+
+    document.querySelectorAll("[data-i18n]").forEach(el => { el.textContent = t(el.dataset.i18n); });
+    document.querySelectorAll("[data-i18n-html]").forEach(el => { el.innerHTML = t(el.dataset.i18nHtml); });
+    document.querySelectorAll("[data-i18n-ph]").forEach(el => { el.placeholder = t(el.dataset.i18nPh); });
+    document.querySelectorAll("[data-i18n-aria]").forEach(el => { el.setAttribute("aria-label", t(el.dataset.i18nAria)); });
+    document.querySelectorAll("[data-i18n-title]").forEach(el => { el.setAttribute("title", t(el.dataset.i18nTitle)); });
+
+    try { localStorage.setItem("aipg-idioma", idiomaActivo); } catch (e) { /* modo privado */ }
+    const sel = document.getElementById("idiomaSelect");
+    if (sel && sel.value !== idiomaActivo) sel.value = idiomaActivo;
+    rerenderizarPorIdioma();
+  }
+
+  /* Lo que se dibuja desde JS hay que volver a dibujarlo: se guarda el estado
+     antes para no perder lo cargado. */
+  function rerenderizarPorIdioma() {
+    if (!document.getElementById("entradasRows")) return; // todavía no inicializó
+    collectState();
+    applyTheme(document.documentElement.getAttribute("data-theme") || "light");
+
+    const copy = heroCopy(currentStep);
+    document.getElementById("heroTitle").textContent = copy.titulo;
+    document.getElementById("heroLede").textContent = copy.lede;
+
+    // Sección 1
+    renderMapeoCompleto();
+    renderDiagnosticoCarga();
+    calcularCapacidad();
+    refrescarVistaActiva();
+
+    // Sección 2 — se reconstruyen las opciones y se recalculan los cuadros
+    renderPickersClasificacion();
+    initEcosistema();
+    renderRecomendacion();
+    renderEcosistema();
+
+    // Sección 3
+    renderLevelPicker();
+    const lvActual = LEVELS.find(l => l.id === state.seccion_3_compresion_proyecto.nivel_solucion);
+    document.getElementById("levelWhy").textContent = lvActual ? `💡 ${textoNivel(lvActual.id, "why")}` : "";
+    renderGuiaDesarrollo();
+    renderGaleriaIdeas();
+    renderPromptLauncher();
+
+    // Sección 4
+    renderComparativoAutomatizacion();
+    updateRoi();
+    initDudas();
+    renderPresentacion();
+  }
+
+  function initIdioma() {
+    let guardado = null;
+    try { guardado = localStorage.getItem("aipg-idioma"); } catch (e) { /* modo privado */ }
+    const navegador = (navigator.language || "es").slice(0, 2).toLowerCase();
+    const inicial = guardado || (I18N.idiomas[navegador] ? navegador : I18N.idiomaPorDefecto);
+    const sel = document.getElementById("idiomaSelect");
+    if (sel) sel.addEventListener("change", () => aplicarIdioma(sel.value));
+    aplicarIdioma(inicial);
+  }
+
   function escAttr(str) {
     return String(str == null ? "" : str).replace(/[&<>"']/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
   }
@@ -107,12 +190,20 @@
   const DIAS_HABILES = { semana: 5, mes: 22, anio: 264 };
   const SEMANAS_MES = DIAS_HABILES.mes / DIAS_HABILES.semana; // 4.4
 
+  /* El id se persiste en el expediente: no se traduce nunca. El resto de
+     las etiquetas sale de i18n.js (claves nivel.N.*). */
   const LEVELS = [
-    { id: "Nivel 1: Presentación / Documento de Asistencia", titulo: "Nivel 1 · Presentación / Documento", desc: "Resumen de actas, diapositivas automatizadas.", why: "Suficiente cuando el proceso es puntual y de bajo volumen: solo necesitas comunicar mejor, no automatizar." },
-    { id: "Nivel 2: Herramienta / Script de Automatización Fija", titulo: "Nivel 2 · Automatización", desc: "Script, macro o flujo que hace la tarea repetitiva.", why: "Ideal cuando el proceso ya está limpio y es repetitivo, pero sigue reglas fijas sin criterio subjetivo." },
-    { id: "Nivel 3: Herramienta / Visualización / Conjunto de Funciones", titulo: "Nivel 3 · Herramienta / Visualización", desc: "Calculadora, dashboard o plantilla interactiva.", why: "Conviene cuando varias personas necesitan consultar, calcular o comparar lo mismo: en vez de explicarlo cada vez, les das la herramienta." },
-    { id: "Nivel 4: Agente Autónomo / Multi-herramienta", titulo: "Nivel 4 · Agente / Autónomo", desc: "Asistente con rol experto y varios pasos de razonamiento.", why: "Solo si ya existen datos estructurados, métricas y aprobación de seguridad. Requiere límites, logs y STOP." }
+    { id: "Nivel 1: Presentación / Documento de Asistencia" },
+    { id: "Nivel 2: Herramienta / Script de Automatización Fija" },
+    { id: "Nivel 3: Herramienta / Visualización / Conjunto de Funciones" },
+    { id: "Nivel 4: Agente Autónomo / Multi-herramienta" }
   ];
+
+  function textoNivel(levelId, campo) {
+    const n = (claveNivel(levelId) || "Nivel 1").replace("Nivel ", "");
+    return t(`nivel.${n}.${campo}`);
+  }
+;
 
   /* ------------------------------------------------------------------ STATE */
   function emptyState() {
@@ -130,6 +221,7 @@
       seccion_1_ordenar_trabajo: {
         metadata_proceso: { id_proceso: "", nombre_proceso: "", departamento: "", responsable_proceso: "", fecha_evaluacion: "", nivel_madurez_actual: "Nivel 1: Asistencia / Presentaciones" },
         mapeo_entradas_salidas: { entradas: [], salidas: [], punto_entrada_unico_definido: false },
+        // entradas/salidas: [{ texto, canal, formato }] — ver normalizarMapeo()
         metricas_tiempo_y_costos: { frecuencia_ejecucion: "Diaria", volumen_ejecuciones_mes: 0, horas_hombre_por_ejecucion: 0, horas_hombre_totales_mes: 0, numero_personas_involucradas: 0, costo_hora_promedio_usd: 0, tiempo_espera_o_bloqueo_horas: 0, jornada_laboral_horas_dia: 8 },
         tareas_habituales: [],
         capacidad_80_20: { modo_equipo: false, horas_jornada_semanal: 40, porcentaje_innovacion: 0.2, colaboradores: [] },
@@ -178,27 +270,13 @@
     const btn = document.getElementById("themeToggle");
     btn.textContent = theme === "dark" ? "☀️" : "🌙";
     btn.setAttribute("aria-pressed", theme === "dark" ? "true" : "false");
-    btn.setAttribute("aria-label", theme === "dark" ? "Cambiar a modo claro" : "Cambiar a modo oscuro");
+    btn.setAttribute("aria-label", t(theme === "dark" ? "ui.modoClaro" : "ui.modoOscuro"));
   }
 
   /* ------------------------------------------------------------------ NAV */
-  const HERO_COPY = {
-    1: {
-      titulo: "Ordena tu trabajo antes de automatizarlo",
-      lede: "Mapea tus tareas, descubre tu tiempo libre real y convierte esa idea cotidiana en una hoja de ruta clara — lista para automatizar o potenciar con IA cuando quieras."
-    },
-    2: {
-      titulo: "¿Qué tipo de proyecto necesitas?",
-      lede: "Responde estas preguntas para obtener una recomendación técnica concreta: qué construir y qué investigar en tu próxima interacción con la IA."
-    },
-    3: {
-      titulo: "Elige qué vas a construir",
-      lede: "Cuatro caminos posibles, con ideas concretas para cada uno. Marca las que se parezcan a tu necesidad y te armamos el prompt para el asistente de IA que prefieras."
-    },
-    4: {
-      titulo: "Mide el impacto y cuéntalo",
-      lede: "Compara las mismas tareas de la Sección 1 contra cómo quedaron con tu solución, calcula el retorno y llévate el guion de la presentación. La app nunca envía nada por ti."
-    }
+  /* El texto del encabezado por sección vive en i18n.js (claves hero.N.*). */
+  function heroCopy(step) {
+    return { titulo: t(`hero.${step}.titulo`), lede: t(`hero.${step}.lede`) };
   };
 
   function goToStep(step) {
@@ -217,7 +295,7 @@
     document.getElementById("progressRingFill").setAttribute("stroke-dashoffset", (circunferencia * (1 - step / 4)).toFixed(1));
     document.getElementById("progressRingStep").textContent = step;
     document.querySelector(".progress-ring-wrap").setAttribute("aria-label", `Progreso: paso ${step} de 4`);
-    const copy = HERO_COPY[step];
+    const copy = heroCopy(step);
     if (copy) {
       document.getElementById("heroTitle").textContent = copy.titulo;
       document.getElementById("heroLede").textContent = copy.lede;
@@ -304,22 +382,26 @@
     const pctCarga = colaboradores.length ? ((totalDisponible / (colaboradores.length * jornada)) * 100).toFixed(1) : "0";
     const colorPct = Number(pctCarga) < 10 ? "🟡" : Number(pctCarga) > 40 ? "🔵" : "🟢";
     resumenEl.innerHTML = `
-      <div class="summary-card"><div class="value">${colaboradores.length}</div><div class="label">Colaboradores</div></div>
-      <div class="summary-card"><div class="value">${totalDisponible.toFixed(1)}h</div><div class="label">Disponibles/semana para mejora</div></div>
-      <div class="summary-card"><div class="value">${colorPct} ${pctCarga}%</div><div class="label">% Promedio para innovación</div></div>`;
+      <div class="summary-card"><div class="value">${colaboradores.length}</div><div class="label">${escHtml(t("cap.colaboradores"))}</div></div>
+      <div class="summary-card"><div class="value">${totalDisponible.toFixed(1)}h</div><div class="label">${escHtml(t("cap.disponibles"))}</div></div>
+      <div class="summary-card"><div class="value">${colorPct} ${pctCarga}%</div><div class="label">${escHtml(t("cap.promedioInnovacion"))}</div></div>`;
 
     const velocidadEl = document.getElementById("velocidadSprint");
     if (velocidadEl) {
       const velocidadSprint = (totalDisponible * 2).toFixed(1);
       velocidadEl.textContent = colaboradores.length
         ? `📊 Velocidad estimada del sprint: ${velocidadSprint} horas-hombre totales para desarrollo en 2 semanas (aproximado: suma la disponibilidad semanal x 2).`
-        : "Agrega al menos un colaborador para estimar la velocidad del sprint.";
+        : t("cap.sinColaboradores");
     }
     return colaboradores;
   }
 
   function initSeccion1() {
     document.getElementById("btnAddColaborador").addEventListener("click", () => addRow("capacidadRows", "tpl-colaborador-row", {}, calcularCapacidad));
+    document.getElementById("btnAddEntrada").addEventListener("click", () => { addMapeoRow("entrada"); renderResumenMapeo("entrada"); });
+    document.getElementById("btnAddSalida").addEventListener("click", () => { addMapeoRow("salida"); renderResumenMapeo("salida"); });
+    renderMapeoCompleto();
+
     document.getElementById("btnAddDolor").addEventListener("click", () => addRow("dolorRows", "tpl-dolor-row", { id_dolor: "" }, () => { }));
     document.getElementById("btnAddTarea").addEventListener("click", () => addGanttRow());
     addRow("capacidadRows", "tpl-colaborador-row", {}, calcularCapacidad);
@@ -352,7 +434,7 @@
       </select>
       <span class="tarea-detalle" data-f="detalle-wrap"></span>
       <span class="row-result" data-f="horas_dia">—</span>
-      <button type="button" class="btn-icon" data-remove aria-label="Eliminar tarea">🗑️</button>`;
+      <button type="button" class="btn-icon" data-remove aria-label="${escAttr(t("aria.eliminarTarea"))}">🗑️</button>`;
 
     const detalleWrap = row.querySelector('[data-f="detalle-wrap"]');
     function pintarDetalle(t) {
@@ -414,6 +496,142 @@
     return { jornada, tareas, cargaOperativa, tiempoLibre };
   }
 
+  /* -------------------------------------------------- Mapeo de entradas y salidas */
+
+  /* Un expediente viejo guardaba ["Correo del cliente", "Planilla"] como
+     texto suelto. Se convierte a la forma estructurada sin perder lo escrito:
+     el texto se conserva y canal/formato quedan vacíos para completar. */
+  function normalizarMapeo(lista) {
+    return (lista || []).map(item => {
+      if (typeof item === "string") return { texto: item, canal: "", formato: "" };
+      return { texto: item.texto || "", canal: item.canal || "", formato: item.formato || "" };
+    }).filter(x => x.texto || x.canal || x.formato);
+  }
+
+  function opcionesSelect(items, prefijo, seleccionado) {
+    const vacia = `<option value="">${escHtml(t("s1.mapeo.elegir"))}</option>`;
+    return vacia + items.map(it =>
+      `<option value="${escAttr(it.id)}"${it.id === seleccionado ? " selected" : ""}>${it.icono} ${escHtml(t(prefijo + it.id))}</option>`
+    ).join("");
+  }
+
+  function addMapeoRow(tipo, data) {
+    data = data || { texto: "", canal: "", formato: "" };
+    const contenedor = tipo === "entrada" ? "entradasRows" : "salidasRows";
+    const vocab = I18N.vocabulario[tipo];
+    const tpl = document.getElementById("tpl-mapeo-row");
+    const node = tpl.content.firstElementChild.cloneNode(true);
+
+    const inputTexto = node.querySelector('[data-field="texto"]');
+    inputTexto.value = data.texto || "";
+    inputTexto.placeholder = t(tipo === "entrada" ? "s1.mapeo.phEntrada" : "s1.mapeo.phSalida");
+
+    const selCanal = node.querySelector('[data-field="canal"]');
+    selCanal.innerHTML = opcionesSelect(vocab.canales, `canal.${tipo}.`, data.canal);
+    selCanal.setAttribute("aria-label", t(tipo === "entrada" ? "s1.mapeo.col.canal" : "s1.mapeo.col.canalSalida"));
+
+    const selFormato = node.querySelector('[data-field="formato"]');
+    selFormato.innerHTML = opcionesSelect(vocab.formatos, `formato.${tipo}.`, data.formato);
+    selFormato.setAttribute("aria-label", t("s1.mapeo.col.formato"));
+
+    node.querySelector("[data-remove-row]").setAttribute("aria-label", t("s1.mapeo.quitar"));
+    node.dataset.tipo = tipo;
+
+    const alCambiar = () => { actualizarFilaMapeo(node); renderResumenMapeo(tipo); };
+    node.querySelectorAll("input, select").forEach(el => el.addEventListener("input", alCambiar));
+    node.querySelector("[data-remove-row]").addEventListener("click", () => { node.remove(); renderResumenMapeo(tipo); });
+
+    document.getElementById(contenedor).appendChild(node);
+    actualizarFilaMapeo(node);
+    return node;
+  }
+
+  /* Semáforo y pista de concreción de una fila. No hay heurística de
+     "palabras cortas": una fila está completa cuando tiene las tres cosas. */
+  function actualizarFilaMapeo(node) {
+    const texto = node.querySelector('[data-field="texto"]').value.trim();
+    const canal = node.querySelector('[data-field="canal"]').value;
+    const formato = node.querySelector('[data-field="formato"]').value;
+    const estado = node.querySelector('[data-field="estado"]');
+    const pista = node.querySelector('[data-field="pista"]');
+
+    if (!texto && !canal && !formato) {
+      estado.textContent = "";
+      estado.removeAttribute("aria-label");
+      estado.removeAttribute("title");
+      pista.hidden = true;
+      return;
+    }
+    const completa = !!(texto && canal && formato);
+    estado.textContent = completa ? "🟢" : "🟡";
+    estado.setAttribute("aria-label", t(completa ? "s1.mapeo.completo" : "s1.mapeo.parcial"));
+    estado.setAttribute("title", t(completa ? "s1.mapeo.completoDetalle" : "s1.mapeo.parcialDetalle"));
+
+    const sugerencia = completa ? null : sugerenciaAmbiguedad(texto);
+    if (sugerencia) { pista.textContent = "💡 " + sugerencia; pista.hidden = false; }
+    else { pista.hidden = true; pista.textContent = ""; }
+  }
+
+  /* Tabla de búsqueda local, sin red ni IA: si el texto menciona un término
+     ambiguo conocido, se ofrece la pregunta que lo concreta. */
+  function sugerenciaAmbiguedad(texto) {
+    const tabla = I18N.ambiguos[idiomaActivo] || I18N.ambiguos[I18N.idiomaPorDefecto] || {};
+    const normalizado = String(texto).toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "");
+    const palabras = normalizado.split(/[^a-z0-9]+/).filter(Boolean);
+    for (const palabra of palabras) {
+      // Se prueba la palabra y su singular simple, para que "facturas" caiga en "factura".
+      const candidatos = [palabra, palabra.replace(/es$/, ""), palabra.replace(/s$/, "")];
+      for (const c of candidatos) if (tabla[c]) return tabla[c];
+    }
+    return null;
+  }
+
+  function leerMapeo(tipo) {
+    const contenedor = document.getElementById(tipo === "entrada" ? "entradasRows" : "salidasRows");
+    return Array.from(contenedor?.children || []).map(row => ({
+      texto: row.querySelector('[data-field="texto"]').value.trim(),
+      canal: row.querySelector('[data-field="canal"]').value,
+      formato: row.querySelector('[data-field="formato"]').value
+    })).filter(x => x.texto || x.canal || x.formato);
+  }
+
+  function renderResumenMapeo(tipo) {
+    const el = document.getElementById(tipo === "entrada" ? "entradasResumen" : "salidasResumen");
+    if (!el) return;
+    const filas = leerMapeo(tipo);
+    if (!filas.length) {
+      el.textContent = t(tipo === "entrada" ? "s1.mapeo.vacioEntradas" : "s1.mapeo.vacioSalidas");
+      el.dataset.estado = "vacio";
+      return;
+    }
+    const completas = filas.filter(f => f.texto && f.canal && f.formato).length;
+    el.textContent = t("s1.mapeo.resumen", { completas, total: filas.length });
+    el.dataset.estado = completas === filas.length ? "completo" : "parcial";
+  }
+
+  function renderMapeoCompleto() {
+    ["entrada", "salida"].forEach(tipo => {
+      const contenedor = document.getElementById(tipo === "entrada" ? "entradasRows" : "salidasRows");
+      const datos = normalizarMapeo(state.seccion_1_ordenar_trabajo.mapeo_entradas_salidas[tipo === "entrada" ? "entradas" : "salidas"]);
+      contenedor.innerHTML = "";
+      (datos.length ? datos : [null]).forEach(d => addMapeoRow(tipo, d));
+      renderResumenMapeo(tipo);
+    });
+  }
+
+  /* Texto legible de una entrada/salida para los prompts y exportables:
+     "Facturas de proveedores (llega por Correo electrónico, en PDF)". */
+  function describirMapeo(item, tipo) {
+    const vocab = I18N.vocabulario[tipo];
+    const canal = vocab.canales.find(c => c.id === item.canal);
+    const formato = vocab.formatos.find(f => f.id === item.formato);
+    const partes = [];
+    if (canal) partes.push(t(`canal.${tipo}.` + canal.id).toLowerCase());
+    if (formato) partes.push(t(`formato.${tipo}.` + formato.id));
+    if (!partes.length) return item.texto;
+    return `${item.texto} (${partes.join(", ")})`;
+  }
+
   function renderDiagnosticoCarga() {
     const d = calcularDiagnostico();
     const box = document.getElementById("diagnosticoCarga");
@@ -422,18 +640,18 @@
     if (d.tiempoLibre < 0) {
       box.className = "status-box error";
       box.innerHTML = `
-        <h4>🔴 Sobrecarga detectada: ${d.cargaOperativa.toFixed(1)} hrs/día en funciones actuales</h4>
-        <p>Estás excedido en <strong>${Math.abs(d.tiempoLibre).toFixed(1)}h</strong> de tu jornada (${pct.toFixed(0)}%). Todavía no hay tiempo libre para un proyecto nuevo.</p>
-        <p><em>Sugerencia:</em> estandariza o delega algo de tu operación actual antes de programar entregables en el Gantt. Puedes seguir cargando el plan igual, pero tenlo en cuenta.</p>`;
+        <h4>${escHtml(t("carga.sobrecarga", { h: d.cargaOperativa.toFixed(1) }))}</h4>
+        <p>${escHtml(t("carga.excedido", { h: Math.abs(d.tiempoLibre).toFixed(1), pct: pct.toFixed(0) }))}</p>
+        <p><em>${escHtml(t("carga.sugerencia"))}</em> ${escHtml(t("carga.sugerenciaTexto"))}</p>`;
     } else if (d.tiempoLibre === 0) {
       box.className = "status-box warning";
-      box.innerHTML = `<h4>🟡 Capacidad al 100%: ${d.jornada.toFixed(1)} hrs/día ocupadas</h4><p>No te queda margen para el proyecto sin hacer horas extra.</p>`;
+      box.innerHTML = `<h4>${escHtml(t("carga.alCien", { h: d.jornada.toFixed(1) }))}</h4><p>${escHtml(t("carga.sinMargen"))}</p>`;
     } else {
       box.className = "status-box success";
       box.innerHTML = `
-        <h4>🟢 Tiempo libre disponible: ${d.tiempoLibre.toFixed(1)} hrs/día para el proyecto</h4>
-        <p>Tu carga operativa actual es de ${d.cargaOperativa.toFixed(1)}h (${pct.toFixed(0)}% de tu jornada).</p>
-        <p>👉 Vas a ver esta cifra como referencia en cada tarea del Gantt para estimar cuántos días hábiles necesita.</p>`;
+        <h4>${escHtml(t("carga.libre", { h: d.tiempoLibre.toFixed(1) }))}</h4>
+        <p>${escHtml(t("carga.actual", { h: d.cargaOperativa.toFixed(1), pct: pct.toFixed(0) }))}</p>
+        <p>${escHtml(t("carga.referencia"))}</p>`;
     }
 
     actualizarSugerenciasDias();
@@ -487,7 +705,7 @@
             <option${data.estado === "En Riesgo" ? " selected" : ""}>En Riesgo</option>
             <option${data.estado === "Completado" ? " selected" : ""}>Completado</option>
           </select></td>
-      <td><button type="button" class="btn-icon" aria-label="Eliminar tarea">🗑️</button></td>`;
+      <td><button type="button" class="btn-icon" aria-label="${escAttr(t("aria.eliminarTarea"))}">🗑️</button></td>`;
     tr.querySelector("button").addEventListener("click", () => { tr.remove(); refrescarVistaActiva(); actualizarScrollTabla(); });
     tr.querySelectorAll("input, select").forEach(el => el.addEventListener("input", () => { actualizarSugerenciasDias(); refrescarVistaActiva(); }));
     tbody.appendChild(tr);
@@ -514,24 +732,24 @@
   function ganttMarkup(tasks, tareasHabituales) {
     tareasHabituales = tareasHabituales || [];
     const validas = tasks
-      .map(t => ({
-        ...t,
-        _inicioPlan: t.fecha_inicio_plan ? new Date(t.fecha_inicio_plan + "T00:00:00") : null,
-        _finPlan: t.fecha_fin_plan ? new Date(t.fecha_fin_plan + "T00:00:00") : null,
-        _inicioReal: t.fecha_inicio_real ? new Date(t.fecha_inicio_real + "T00:00:00") : null,
-        _finReal: t.fecha_fin_real ? new Date(t.fecha_fin_real + "T00:00:00") : null
+      .map(tarea => ({
+        ...tarea,
+        _inicioPlan: tarea.fecha_inicio_plan ? new Date(tarea.fecha_inicio_plan + "T00:00:00") : null,
+        _finPlan: tarea.fecha_fin_plan ? new Date(tarea.fecha_fin_plan + "T00:00:00") : null,
+        _inicioReal: tarea.fecha_inicio_real ? new Date(tarea.fecha_inicio_real + "T00:00:00") : null,
+        _finReal: tarea.fecha_fin_real ? new Date(tarea.fecha_fin_real + "T00:00:00") : null
       }))
-      .filter(t => t._inicioPlan && t._finPlan && !isNaN(t._inicioPlan) && !isNaN(t._finPlan) && t._finPlan >= t._inicioPlan);
+      .filter(tarea => tarea._inicioPlan && tarea._finPlan && !isNaN(tarea._inicioPlan) && !isNaN(tarea._finPlan) && tarea._finPlan >= tarea._inicioPlan);
 
     if (!validas.length && !tareasHabituales.length) {
-      return '<p class="gantt-empty">Agrega tareas del proyecto con fechas (pestaña Tabla) o funciones habituales (Paso 1) para ver el Gantt.</p>';
+      return `<p class="gantt-empty">${escHtml(t("gantt.vacio"))}</p>`;
     }
 
     const allDates = [];
-    validas.forEach(t => {
-      allDates.push(t._inicioPlan, t._finPlan);
-      if (t._inicioReal && !isNaN(t._inicioReal)) allDates.push(t._inicioReal);
-      if (t._finReal && !isNaN(t._finReal)) allDates.push(t._finReal);
+    validas.forEach(tarea => {
+      allDates.push(tarea._inicioPlan, tarea._finPlan);
+      if (tarea._inicioReal && !isNaN(tarea._inicioReal)) allDates.push(tarea._inicioReal);
+      if (tarea._finReal && !isNaN(tarea._finReal)) allDates.push(tarea._finReal);
     });
     const min = allDates.length ? new Date(Math.min(...allDates)) : null;
     const max = allDates.length ? new Date(Math.max(...allDates)) : null;
@@ -542,36 +760,36 @@
     let html = "";
 
     if (tareasHabituales.length) {
-      html += `<div class="gantt-operacion-section"><p class="gantt-section-title">🔵 Operación base (funciones habituales)</p>`;
-      html += tareasHabituales.map(t => `
+      html += `<div class="gantt-operacion-section"><p class="gantt-section-title">${escHtml(t("gantt.operacionBase"))}</p>`;
+      html += tareasHabituales.map(tarea => `
         <div class="gantt-band-row">
-          <div class="gantt-row-label"><span class="id">${t.horas_dia.toFixed(1)}h/día</span>${escHtml(t.nombre || "(sin nombre)")}</div>
-          <div class="gantt-band">Carga recurrente${t.tipo === "Repetitiva" ? ` — ${t.cantidad}× ${t.minutos_por_unidad}min` : " — tiempo fijo"}</div>
+          <div class="gantt-row-label"><span class="id">${tarea.horas_dia.toFixed(1)}${escHtml(t("unidad.horasDia"))}</span>${escHtml(tarea.nombre || t("gantt.sinNombre"))}</div>
+          <div class="gantt-band">Carga recurrente${tarea.tipo === "Repetitiva" ? ` — ${tarea.cantidad}× ${tarea.minutos_por_unidad}min` : " — tiempo fijo"}</div>
         </div>`).join("");
       html += `</div>`;
     }
 
     if (validas.length) {
-      html += `<p class="gantt-section-title">🟢 Proyecto</p>`;
-      html += `<div class="gantt-range">Del ${fmtFecha(min)} al ${fmtFecha(max)}${todayPct !== null ? " · línea roja = hoy" : ""}</div>`;
-      html += validas.map(t => {
-        const estado = t.estado || "No Iniciado";
-        const avance = Math.min(100, Math.max(0, Number(t.porcentaje_avance) || 0));
-        const leftPlan = ((t._inicioPlan - min) / rangeMs) * 100;
-        const widthPlan = Math.max(((t._finPlan - t._inicioPlan) / rangeMs) * 100, 2);
+      html += `<p class="gantt-section-title">${escHtml(t("gantt.proyecto"))}</p>`;
+      html += `<div class="gantt-range">${escHtml(t("gantt.rango", { desde: fmtFecha(min), hasta: fmtFecha(max) }))}${todayPct !== null ? escHtml(t("gantt.hoy")) : ""}</div>`;
+      html += validas.map(tarea => {
+        const estado = tarea.estado || "No Iniciado";
+        const avance = Math.min(100, Math.max(0, Number(tarea.porcentaje_avance) || 0));
+        const leftPlan = ((tarea._inicioPlan - min) / rangeMs) * 100;
+        const widthPlan = Math.max(((tarea._finPlan - tarea._inicioPlan) / rangeMs) * 100, 2);
 
         let realRow = "";
-        if (t._inicioReal && t._finReal && !isNaN(t._inicioReal) && !isNaN(t._finReal) && t._finReal >= t._inicioReal) {
-          const leftReal = ((t._inicioReal - min) / rangeMs) * 100;
-          const widthReal = Math.max(((t._finReal - t._inicioReal) / rangeMs) * 100, 2);
-          const diffDays = Math.round((t._finReal - t._finPlan) / 86400000);
+        if (tarea._inicioReal && tarea._finReal && !isNaN(tarea._inicioReal) && !isNaN(tarea._finReal) && tarea._finReal >= tarea._inicioReal) {
+          const leftReal = ((tarea._inicioReal - min) / rangeMs) * 100;
+          const widthReal = Math.max(((tarea._finReal - tarea._inicioReal) / rangeMs) * 100, 2);
+          const diffDays = Math.round((tarea._finReal - tarea._finPlan) / 86400000);
           const variance = diffDays > 0 ? "tarde" : diffDays < 0 ? "temprano" : "ok";
-          const varLabel = diffDays > 0 ? `🔴 +${diffDays}d` : diffDays < 0 ? `🟢 ${diffDays}d` : "⚪ en fecha";
+          const varLabel = diffDays > 0 ? `🔴 +${diffDays}d` : diffDays < 0 ? `🟢 ${diffDays}d` : t("gantt.enFecha");
           realRow = `
             <div class="gantt-subrow">
-              <span class="gantt-subrow-label">Real</span>
+              <span class="gantt-subrow-label">${escHtml(t("gantt.real"))}</span>
               <div class="gantt-track gantt-track--real">
-                <div class="gantt-bar" data-variance="${variance}" style="left:${leftReal.toFixed(2)}%;width:${widthReal.toFixed(2)}%" title="${fmtFecha(t._inicioReal)} → ${fmtFecha(t._finReal)}"></div>
+                <div class="gantt-bar" data-variance="${variance}" style="left:${leftReal.toFixed(2)}%;width:${widthReal.toFixed(2)}%" title="${fmtFecha(tarea._inicioReal)} → ${fmtFecha(tarea._finReal)}"></div>
               </div>
               <span class="gantt-variance-badge" data-variance="${variance}">${varLabel}</span>
             </div>`;
@@ -579,12 +797,12 @@
 
         return `
           <div class="gantt-task-group">
-            <div class="gantt-task-title"><span class="id">${escHtml(t.id_tarea)}</span>${escHtml(t.simbolo_urgencia || "")} ${escHtml(t.nombre || "(sin nombre)")}</div>
+            <div class="gantt-task-title"><span class="id">${escHtml(tarea.id_tarea)}</span>${escHtml(tarea.simbolo_urgencia || "")} ${escHtml(tarea.nombre || t("gantt.sinNombre"))}</div>
             <div class="gantt-subrow">
-              <span class="gantt-subrow-label">Plan</span>
+              <span class="gantt-subrow-label">${escHtml(t("gantt.plan"))}</span>
               <div class="gantt-track gantt-track--plan">
                 ${todayPct !== null ? `<div class="gantt-today" style="left:${todayPct.toFixed(2)}%"></div>` : ""}
-                <div class="gantt-bar" data-estado="${escAttr(estado)}" style="left:${leftPlan.toFixed(2)}%;width:${widthPlan.toFixed(2)}%" title="${fmtFecha(t._inicioPlan)} → ${fmtFecha(t._finPlan)} · ${avance}%">
+                <div class="gantt-bar" data-estado="${escAttr(estado)}" style="left:${leftPlan.toFixed(2)}%;width:${widthPlan.toFixed(2)}%" title="${fmtFecha(tarea._inicioPlan)} → ${fmtFecha(tarea._finPlan)} · ${avance}%">
                   <div class="gantt-bar-fill" style="width:${avance}%"></div><span>${avance}%</span>
                 </div>
               </div>
@@ -594,23 +812,23 @@
           </div>`;
       }).join("");
     } else if (tareasHabituales.length) {
-      html += '<p class="gantt-empty">Agrega fechas a tus tareas del proyecto (pestaña Tabla) para verlas junto a tu operación base.</p>';
+      html += `<p class="gantt-empty">${escHtml(t("gantt.sinFechas"))}</p>`;
     }
 
     return html;
   }
 
   function kanbanMarkup(tasks) {
-    if (!tasks.length) return '<p class="kanban-empty">Agrega tareas en la pestaña Tabla para ver el Kanban.</p>';
+    if (!tasks.length) return `<p class="kanban-empty">${escHtml(t("kanban.vacio"))}</p>`;
     return KANBAN_COLUMNAS.map(col => {
-      const items = tasks.filter(t => (t.estado || "No Iniciado") === col);
+      const items = tasks.filter(tarea => (tarea.estado || "No Iniciado") === col);
       const cards = items.length
-        ? items.map(t => `
+        ? items.map(tarea => `
             <div class="kanban-card" data-estado="${escAttr(col)}">
-              <strong>${escHtml(t.simbolo_urgencia || "")} ${escHtml(t.id_tarea)} — ${escHtml(t.nombre || "(sin nombre)")}</strong>
-              <div class="meta">${escHtml(t.encargado_proceso || "Sin encargado")} · ${Number(t.porcentaje_avance) || 0}% avance</div>
+              <strong>${escHtml(tarea.simbolo_urgencia || "")} ${escHtml(tarea.id_tarea)} — ${escHtml(tarea.nombre || t("gantt.sinNombre"))}</strong>
+              <div class="meta">${escHtml(tarea.encargado_proceso || t("gantt.sinEncargado"))} · ${escHtml(t("gantt.avance", { pct: Number(tarea.porcentaje_avance) || 0 }))}</div>
             </div>`).join("")
-        : '<p class="kanban-empty">Sin tareas</p>';
+        : `<p class="kanban-empty">${escHtml(t("kanban.sinTareas"))}</p>`;
       return `<div class="kanban-col"><h4>${col} <span>${items.length}</span></h4>${cards}</div>`;
     }).join("");
   }
@@ -638,18 +856,18 @@
   function renderComparativoAutomatizacion() {
     const container = document.getElementById("comparativoRows");
     if (!container) return;
-    const tareas = readTareasHabituales().filter(t => t.nombre);
+    const tareas = readTareasHabituales().filter(x => x.nombre);
     const previas = new Map((state.seccion_3_compresion_proyecto.comparativo_automatizacion || []).map(p => [p.nombre, p.horas_automatizado]));
     container.innerHTML = "";
-    tareas.forEach(t => {
-      const prev = previas.get(t.nombre);
+    tareas.forEach(tarea => {
+      const prev = previas.get(tarea.nombre);
       const row = document.createElement("div");
       row.className = "row-card row-card--comparativo";
-      row.dataset.nombre = t.nombre;
-      row.dataset.horasManual = t.horas_dia;
+      row.dataset.nombre = tarea.nombre;
+      row.dataset.horasManual = tarea.horas_dia;
       row.innerHTML = `
-        <span class="comparativo-nombre">${escHtml(t.nombre)}</span>
-        <span class="row-result">${t.horas_dia.toFixed(1)} h/día</span>
+        <span class="comparativo-nombre">${escHtml(tarea.nombre)}</span>
+        <span class="row-result">${tarea.horas_dia.toFixed(1)} ${escHtml(t("unidad.horasDia"))}</span>
         <input type="number" min="0" step="0.1" data-f="horas_automatizado" placeholder="—" value="${prev != null && prev !== "" ? escAttr(prev) : ""}" />
         <span class="row-result" data-f="ahorro">—</span>`;
       row.querySelector('[data-f="horas_automatizado"]').addEventListener("input", () => { actualizarAhorroRow(row); renderComparativoVisual(); });
@@ -698,8 +916,8 @@
 
     if (!datos.length) {
       el.innerHTML = filas.length
-        ? '<p class="comparativo-empty">Carga cuánto tarda ahora cada tarea con tu solución (To-Be) para ver el comparativo.</p>'
-        : '<p class="comparativo-empty">Todavía no hay tareas para comparar. Vuelve al <button type="button" class="btn-link" data-goto="1">Paso 1</button> y carga tus tareas habituales: son las mismas que se miden aquí.</p>';
+        ? `<p class="comparativo-empty">${escHtml(t("comp.vacioToBe"))}</p>`
+        : `<p class="comparativo-empty">${escHtml(t("comp.vacioTareas1"))} <button type="button" class="btn-link" data-goto="1">${escHtml(t("comp.paso1"))}</button> ${escHtml(t("comp.vacioTareas2"))}</p>`;
       el.querySelectorAll("[data-goto]").forEach(b => b.addEventListener("click", () => { collectState(); goToStep(1); }));
       if (impacto) impacto.innerHTML = "";
       if (typeof actualizarAtajoRoi === "function") actualizarAtajoRoi();
@@ -720,7 +938,7 @@
             <div class="comparativo-bar comparativo-bar--auto" style="width:${Math.max((d.auto / maxHoras) * 100, 8).toFixed(1)}%">${d.auto.toFixed(1)}h · To-Be</div>
           </div>
         </div>
-        <span class="comparativo-pct${peor ? " comparativo-pct--peor" : ""}">⚡ ${peor ? "+" : "-"}${Math.abs(ahorroPct)}% de tiempo</span>
+        <span class="comparativo-pct${peor ? " comparativo-pct--peor" : ""}">⚡ ${peor ? "+" : "-"}${Math.abs(ahorroPct)}% ${escHtml(t("comp.deTiempo"))}</span>
       </div>`;
     }).join("");
 
@@ -731,10 +949,10 @@
     const capacidadLiberada = cargaPrevia - nuevaCarga;
     if (impacto) {
       impacto.innerHTML = `
-        <div class="impacto-card"><div class="value">${cargaPrevia.toFixed(0)}h</div><div class="label">Carga de trabajo previa (As-Is) / mes</div></div>
-        <div class="impacto-card"><div class="value">${nuevaCarga.toFixed(0)}h</div><div class="label">Nueva carga estimada (To-Be) / mes</div></div>
-        <div class="impacto-card impacto-card--liberada"><div class="value">${capacidadLiberada.toFixed(0)}h</div><div class="label">Capacidad liberada para tareas de mayor valor</div></div>
-        <div class="impacto-card"><div class="value">${totalManual > 0 ? Math.round((capacidadLiberada / cargaPrevia) * 100) : 0}%</div><div class="label">Eficiencia ganada sobre la carga original</div></div>`;
+        <div class="impacto-card"><div class="value">${cargaPrevia.toFixed(0)}h</div><div class="label">${escHtml(t("card.cargaPrevia"))}</div></div>
+        <div class="impacto-card"><div class="value">${nuevaCarga.toFixed(0)}h</div><div class="label">${escHtml(t("card.nuevaCarga"))}</div></div>
+        <div class="impacto-card impacto-card--liberada"><div class="value">${capacidadLiberada.toFixed(0)}h</div><div class="label">${escHtml(t("card.capacidadLiberada"))}</div></div>
+        <div class="impacto-card"><div class="value">${totalManual > 0 ? Math.round((capacidadLiberada / cargaPrevia) * 100) : 0}%</div><div class="label">${escHtml(t("card.eficienciaGanada"))}</div></div>`;
     }
     // El resto de la Sección 4 (ROI, métricas y presentación) vive de estos números.
     if (typeof actualizarAtajoRoi === "function") actualizarAtajoRoi();
@@ -789,7 +1007,7 @@
     tasks.forEach(t => rows.push(GANTT_CSV_COLUMNS.map(c => csvField(t[c.field])).join(",")));
     const csv = "﻿" + rows.join("\r\n") + "\r\n";
     downloadBlob(`gantt-${state.app_meta.id_expediente}.csv`, csv, "text/csv");
-    setIoStatus("Gantt descargado en CSV. Complétalo en Excel/Sheets y vuelve a cargarlo cuando quieras.");
+    setIoStatus(t("toast.ganttCsv"));
   }
 
   function parseCsvLine(line) {
@@ -815,7 +1033,7 @@
         let text = reader.result;
         if (text.charCodeAt(0) === 0xFEFF) text = text.slice(1);
         const lines = text.split(/\r\n|\n/).filter(l => l.trim().length);
-        if (!lines.length) throw new Error("el archivo está vacío.");
+        if (!lines.length) throw new Error(t("error.csvVacio"));
         const headers = parseCsvLine(lines[0]).map(h => h.trim());
         const colIndex = {};
         GANTT_CSV_COLUMNS.forEach(c => {
@@ -823,7 +1041,7 @@
           if (idx >= 0) colIndex[c.field] = idx;
         });
         if (colIndex.nombre === undefined && colIndex.id_tarea === undefined) {
-          throw new Error("no encontré las columnas esperadas (ID, Nombre, ...). Usa la plantilla descargada con \"Descargar Gantt (CSV para Excel)\".");
+          throw new Error(t("error.csvColumnas"));
         }
         const nuevasFilas = lines.slice(1)
           .map(line => {
@@ -839,9 +1057,9 @@
         if (!nuevasFilas.length) addGanttRow();
         actualizarSugerenciasDias();
         refrescarVistaActiva();
-        setIoStatus(`Se cargaron ${nuevasFilas.length} tarea(s) desde el CSV, reemplazando la tabla anterior.`);
+        setIoStatus(t("toast.csvCargado", { n: nuevasFilas.length }));
       } catch (e) {
-        setIoStatus("⚠️ No se pudo leer el CSV: " + e.message);
+        setIoStatus(t("toast.csvError", { msg: e.message }));
       }
     };
     reader.readAsText(file, "UTF-8");
@@ -898,58 +1116,60 @@
 <html lang="es"><head><meta charset="UTF-8" /><title>Gantt / Kanban — ${escHtml(nombre)}</title><style>${EXPORT_CSS}</style></head>
 <body>
   <h1>Gantt / Kanban — ${escHtml(nombre)}</h1>
-  <p class="meta">Generado por AI Project Guide el ${fmtFecha(new Date())} · Archivo autocontenido, sin conexión a internet.</p>
-  <h2>📊 Gantt (operación base + proyecto, plan vs. ejecución real)</h2>
+  <p class="meta">${escHtml(t("export.pie", { fecha: fmtFecha(new Date()) }))}</p>
+  <h2>${escHtml(t("export.gantt"))}</h2>
   <div class="gantt-visual">${ganttMarkup(tasks, habituales)}</div>
-  <h2>🗂️ Kanban</h2>
+  <h2>${escHtml(t("export.kanban"))}</h2>
   <div class="kanban-board">${kanbanMarkup(tasks)}</div>
 </body></html>`;
     downloadBlob(`gantt-kanban-${state.app_meta.id_expediente}.html`, html, "text/html");
-    setIoStatus("Gantt/Kanban descargado.");
+    setIoStatus(t("toast.ganttKanban"));
   }
 
   /* ------------------------------------------------------------------ SECCIÓN 2 */
+  /* Las etiquetas salen de i18n.js (claves s2.<pregunta>.<valor>.*). */
   const PREGUNTAS_CLASIFICACION = [
     {
       id: "entregable", opciones: [
-        { value: "documento", label: "Documento o Presentación", desc: "Reporte, resumen, propuesta, plantilla o diapositivas — ej. informe contable, manual de onboarding en RRHH." },
-        { value: "datos", label: "Procesamiento de Datos", desc: "Extracción, validación, conciliación o clasificación de datos — ej. revisión de facturas, análisis de nómina, tablas dinámicas." },
-        { value: "automatizacion", label: "Automatización o Script", desc: "Tarea repetitiva que conecta sistemas o ejecuta acciones — ej. envío masivo de correos, sincronización entre planillas y ERP." },
-        { value: "agente", label: "Asistente Conversacional o Agente", desc: "Chatbot o flujo autónomo para responder dudas o ejecutar tareas — ej. atención a consultas internas, soporte a empleados o clientes." }
+        { value: "documento" },
+        { value: "datos" },
+        { value: "automatizacion" },
+        { value: "agente" }
       ]
     },
     {
       id: "mapeo_proceso", opciones: [
-        { value: "eventual", label: "Eventual o manual", desc: "Se hace de forma aislada cuando surge la necesidad." },
-        { value: "fija", label: "Repetitiva con pasos fijos", desc: "Sigue una lista de verificación o instructivo paso a paso claro." },
-        { value: "criterio", label: "Variable con criterio humano", desc: "Cada caso cambia y requiere revisar reglas o políticas de la empresa." },
-        { value: "interdepartamental", label: "Flujo continuo interdepartamental", desc: "Involucra a varias personas o áreas y múltiples aprobaciones." }
+        { value: "eventual" },
+        { value: "fija" },
+        { value: "criterio" },
+        { value: "interdepartamental" }
       ]
     },
     {
       id: "nivel_logica", opciones: [
-        { value: "minima", label: "Mínima (operativa)", desc: "Copiar, mover, formatear o calcular datos estandarizados." },
-        { value: "interpretacion", label: "Interpretación de texto o documentos", desc: "Leer PDFs, correos, contratos o políticas para extraer lo relevante." },
-        { value: "decision", label: "Toma de decisiones / reglas de negocio", desc: "Aplicar políticas (ej. aprobar/rechazar solicitudes, evaluar excepciones)." },
-        { value: "razonamiento", label: "Razonamiento complejo", desc: "Comparar escenarios, proyectar estados financieros o planificar recursos." }
+        { value: "minima" },
+        { value: "interpretacion" },
+        { value: "decision" },
+        { value: "razonamiento" }
       ]
     },
     {
       id: "fuente_datos", opciones: [
-        { value: "plantillas", label: "Plantillas o formularios estandarizados", desc: "Excel, Google Sheets, Forms." },
-        { value: "desestructurados", label: "Documentos desestructurados", desc: "PDFs, escaneos, correos, chats o notas de voz." },
-        { value: "sistemas", label: "Sistemas de la empresa", desc: "ERP, CRM, software de nómina, bases de datos o APIs." },
-        { value: "mezcla", label: "Mezcla de fuentes", desc: "Múltiples fuentes desordenadas." }
+        { value: "plantillas" },
+        { value: "desestructurados" },
+        { value: "sistemas" },
+        { value: "mezcla" }
       ]
     },
     {
       id: "confidencialidad", opciones: [
-        { value: "bajo", label: "Uso interno / bajo riesgo", desc: "Formatos genéricos, minutas, redacción." },
-        { value: "moderado", label: "Operativo / riesgo moderado", desc: "Requiere revisión humana antes de enviar o aplicar." },
-        { value: "alto", label: "Financiero o RRHH / alto riesgo", desc: "Datos sensibles, nóminas, estados financieros o datos personales (requiere validación estricta y seguridad)." }
+        { value: "bajo" },
+        { value: "moderado" },
+        { value: "alto" }
       ]
     }
   ];
+;
 
   function calcularRecomendacionTecnica(r) {
     let rec;
@@ -1003,7 +1223,16 @@
   }
 
   function initSeccion2() {
+    renderPickersClasificacion();
+    initEcosistema();
+  }
+
+  /* Vacía y reconstruye las opciones: se llama también al cambiar de idioma,
+     restaurando lo que la persona ya había elegido. */
+  function renderPickersClasificacion() {
+    const elegidas = state.seccion_2_clasificacion_proyecto.respuestas || {};
     document.querySelectorAll("#panel-2 .level-picker[data-pregunta]").forEach(container => {
+      container.innerHTML = "";
       const pregunta = PREGUNTAS_CLASIFICACION.find(p => p.id === container.dataset.pregunta);
       pregunta.opciones.forEach(op => {
         const opt = document.createElement("div");
@@ -1012,58 +1241,60 @@
         opt.setAttribute("tabindex", "0");
         opt.setAttribute("aria-checked", "false");
         opt.dataset.valor = op.value;
-        opt.innerHTML = `<strong>${escHtml(op.label)}</strong>${op.desc ? `<span>${escHtml(op.desc)}</span>` : ""}`;
+        opt.innerHTML = `<strong>${escHtml(t(`s2.${pregunta.id}.${op.value}.label`))}</strong><span>${escHtml(t(`s2.${pregunta.id}.${op.value}.desc`))}</span>`;
         opt.addEventListener("click", () => seleccionarRespuesta(pregunta.id, op.value));
         opt.addEventListener("keydown", e => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); seleccionarRespuesta(pregunta.id, op.value); } });
+        opt.setAttribute("aria-checked", elegidas[pregunta.id] === op.value ? "true" : "false");
         container.appendChild(opt);
       });
     });
-    initEcosistema();
   }
 
   /* -------------------------------------------------- Evaluación de ecosistema (puntaje) */
+  /* Las etiquetas salen de i18n.js (claves eco.*). Los puntos son lógica. */
   const PREGUNTAS_ECOSISTEMA = [
     {
-      id: "eco_frecuencia", pregunta: "1. Frecuencia y naturaleza del proceso", opciones: [
-        { value: "a", label: "Algo puntual, para mostrar una idea", puntos: 1 },
-        { value: "b", label: "Se repite, pero necesita que alguien decida o intervenga", puntos: 2 },
-        { value: "c", label: "Se repite siempre igual, con reglas fijas", puntos: 3 },
-        { value: "d", label: "Es dinámico, de varios pasos, con decisiones autónomas", puntos: 4 }
+      id: "eco_frecuencia", opciones: [
+        { value: "a", puntos: 1 },
+        { value: "b", puntos: 2 },
+        { value: "c", puntos: 3 },
+        { value: "d", puntos: 4 }
       ]
     },
     {
-      id: "eco_datos", pregunta: "2. Formato de los datos de entrada", opciones: [
-        { value: "a", label: "Diapositivas, PDFs o notas de voz", puntos: 1 },
-        { value: "b", label: "Planillas (Excel, CSV, Google Sheets)", puntos: 2 },
-        { value: "c", label: "Formularios web, webhooks o archivos JSON/XML", puntos: 3 },
-        { value: "d", label: "APIs REST, bases de datos o scraping web", puntos: 4 }
+      id: "eco_datos", opciones: [
+        { value: "a", puntos: 1 },
+        { value: "b", puntos: 2 },
+        { value: "c", puntos: 3 },
+        { value: "d", puntos: 4 }
       ]
     },
     {
-      id: "eco_ecosistema", pregunta: "3. Ecosistema tecnológico disponible", opciones: [
-        { value: "a", label: "Solo herramientas de oficina (PowerPoint, Word)", puntos: 1 },
-        { value: "b", label: "Scripts simples (Google Apps Script, VBA)", puntos: 2 },
-        { value: "c", label: "Plataformas iPaaS (Make, Zapier, n8n) o Node.js/Python", puntos: 3 },
-        { value: "d", label: "Servidores dedicados, contenedores o entorno cloud", puntos: 4 }
+      id: "eco_ecosistema", opciones: [
+        { value: "a", puntos: 1 },
+        { value: "b", puntos: 2 },
+        { value: "c", puntos: 3 },
+        { value: "d", puntos: 4 }
       ]
     },
     {
-      id: "eco_tolerancia", pregunta: "4. Tolerancia al error", opciones: [
-        { value: "a", label: "Indiferente, solo para visualizar", puntos: 1 },
-        { value: "b", label: "Moderada — revisas los resultados antes de usarlos", puntos: 2 },
-        { value: "c", label: "Baja — necesita reglas y validación estricta", puntos: 3 },
-        { value: "d", label: "Cero tolerancia — ejecuta acciones directas en otros sistemas", puntos: 4 }
+      id: "eco_tolerancia", opciones: [
+        { value: "a", puntos: 1 },
+        { value: "b", puntos: 2 },
+        { value: "c", puntos: 3 },
+        { value: "d", puntos: 4 }
       ]
     },
     {
-      id: "eco_complejidad", pregunta: "5. Complejidad de las tareas actuales", opciones: [
-        { value: "a", label: "Estética o de presentación", puntos: 1 },
-        { value: "b", label: "Manipulación o limpieza de datos", puntos: 2 },
-        { value: "c", label: "Flujo de trabajo entre varios sistemas", puntos: 3 },
-        { value: "d", label: "Acciones contextuales complejas", puntos: 4 }
+      id: "eco_complejidad", opciones: [
+        { value: "a", puntos: 1 },
+        { value: "b", puntos: 2 },
+        { value: "c", puntos: 3 },
+        { value: "d", puntos: 4 }
       ]
     }
   ];
+;
 
   function calcularNivelEcosistema(puntaje) {
     if (puntaje <= 8) return { tier: "Nivel 1", nombre: "Presentación o prototipo de concepto", recomendacion: "Un mockup en HTML/JS o una presentación dinámica alcanza para validar la idea antes de programar nada." };
@@ -1074,14 +1305,16 @@
 
   function initEcosistema() {
     const wrap = document.getElementById("ecoPreguntas");
+    const elegidas = state.seccion_2_clasificacion_proyecto.evaluacion_ecosistema.respuestas || {};
+    wrap.innerHTML = "";
     PREGUNTAS_ECOSISTEMA.forEach(pregunta => {
       const card = document.createElement("div");
       card.className = "eco-pregunta";
-      card.innerHTML = `<p class="hint-title">${escHtml(pregunta.pregunta)}</p>`;
+      card.innerHTML = `<p class="hint-title">${escHtml(t(`eco.${pregunta.id}.pregunta`))}</p>`;
       const picker = document.createElement("div");
       picker.className = "level-picker level-picker--compact";
       picker.setAttribute("role", "radiogroup");
-      picker.setAttribute("aria-label", pregunta.pregunta);
+      picker.setAttribute("aria-label", t(`eco.${pregunta.id}.pregunta`));
       picker.dataset.ecoId = pregunta.id;
       pregunta.opciones.forEach(op => {
         const opt = document.createElement("div");
@@ -1090,7 +1323,8 @@
         opt.setAttribute("tabindex", "0");
         opt.setAttribute("aria-checked", "false");
         opt.dataset.valor = op.value;
-        opt.innerHTML = `<strong>${escHtml(op.label)}</strong>`;
+        opt.setAttribute("aria-checked", (elegidas[pregunta.id] || {}).valor === op.value ? "true" : "false");
+        opt.innerHTML = `<strong>${escHtml(t(`eco.${pregunta.id}.${op.value}`))}</strong>`;
         opt.addEventListener("click", () => seleccionarEcosistema(pregunta.id, op.value, op.puntos, picker));
         opt.addEventListener("keydown", e => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); seleccionarEcosistema(pregunta.id, op.value, op.puntos, picker); } });
         picker.appendChild(opt);
@@ -1112,7 +1346,7 @@
     const completas = Object.keys(respuestas).length;
     if (completas < 5) {
       box.className = "status-box";
-      box.innerHTML = `<p style="margin:0;color:var(--color-text-muted);">Responde las 5 preguntas para ver tu puntaje (${completas}/5).</p>`;
+      box.innerHTML = `<p style="margin:0;color:var(--color-text-muted);">${escHtml(t("eco.faltan", { n: completas }))}</p>`;
       state.seccion_2_clasificacion_proyecto.evaluacion_ecosistema.puntaje = 0;
       state.seccion_2_clasificacion_proyecto.evaluacion_ecosistema.nivel = "";
       return;
@@ -1140,7 +1374,7 @@
     const completas = Object.values(respuestas).filter(Boolean).length;
     if (completas === 0) {
       box.className = "status-box";
-      box.innerHTML = `<p style="margin:0;color:var(--color-text-muted);">Responde las preguntas de arriba para ver tu recomendación.</p>`;
+      box.innerHTML = `<p style="margin:0;color:var(--color-text-muted);">${escHtml(t("s2.sinRespuestas"))}</p>`;
       state.seccion_2_clasificacion_proyecto.recomendacion = { nombre_tecnico: "", guia: "", investigar_con_ia: "", advertencia_seguridad: "" };
       renderMatrizRiesgos({ requisitos: [] });
       return;
@@ -1151,9 +1385,9 @@
     box.innerHTML = `
       <h4>🎯 ${escHtml(rec.nombre_tecnico)}</h4>
       <p>${escHtml(rec.guia)}</p>
-      <p><strong>Investigar con IA:</strong> ${escHtml(rec.investigar_con_ia)}</p>
+      <p><strong>${escHtml(t("s2.investigar"))}</strong> ${escHtml(rec.investigar_con_ia)}</p>
       ${rec.advertencia_seguridad ? `<p style="color:var(--color-danger);margin-top:.5rem;">${escHtml(rec.advertencia_seguridad)}</p>` : ""}
-      ${completas < 5 ? `<p style="margin-top:.5rem;font-size:.78rem;opacity:.75;">Basado en ${completas}/5 respuestas — completa todas para una recomendación más precisa.</p>` : ""}`;
+      ${completas < 5 ? `<p style="margin-top:.5rem;font-size:.78rem;opacity:.75;">${escHtml(t("s2.basadoEn", { n: completas }))}</p>` : ""}`;
     renderMatrizRiesgos(rec);
   }
 
@@ -1164,11 +1398,11 @@
     box.hidden = false;
     box.innerHTML = `
       <div class="riesgos-col">
-        <p class="hint-title">✅ Requisitos previos</p>
+        <p class="hint-title">${escHtml(t("s2.requisitos"))}</p>
         <ul class="hint-list">${rec.requisitos.map(x => `<li>${escHtml(x)}</li>`).join("")}</ul>
       </div>
       <div class="riesgos-col">
-        <p class="hint-title">⚠️ Puntos a vigilar</p>
+        <p class="hint-title">${escHtml(t("s2.riesgos"))}</p>
         <ul class="hint-list">${(rec.riesgos || []).map(x => `<li>${escHtml(x)}</li>`).join("")}</ul>
       </div>`;
   }
@@ -1209,12 +1443,20 @@
     });
 
     downloadText(`catalogo-recursos-${nombre.replace(/\s+/g, "-").toLowerCase() || "proceso"}.md`, md.join("\n"));
-    setIoStatus("Catálogo descargado en Markdown.");
+    setIoStatus(t("toast.catalogoMd"));
   }
 
   /* ------------------------------------------------------------------ SECCIÓN 3 */
   function initSeccion3() {
+    renderLevelPicker();
+    document.getElementById("btnExportSkills").addEventListener("click", exportSkillsDictionary);
+    document.getElementById("btnCatalogoPdf").addEventListener("click", imprimirCatalogo);
+  }
+
+  function renderLevelPicker() {
     const picker = document.getElementById("levelPicker");
+    const elegido = state.seccion_3_compresion_proyecto.nivel_solucion;
+    picker.innerHTML = "";
     LEVELS.forEach(lv => {
       const opt = document.createElement("div");
       opt.className = "level-option";
@@ -1222,14 +1464,12 @@
       opt.setAttribute("tabindex", "0");
       opt.setAttribute("aria-checked", "false");
       opt.dataset.level = lv.id;
-      opt.innerHTML = `<strong>${lv.titulo}</strong><span>${lv.desc}</span>`;
+      opt.setAttribute("aria-checked", lv.id === elegido ? "true" : "false");
+      opt.innerHTML = `<strong>${escHtml(textoNivel(lv.id, "titulo"))}</strong><span>${escHtml(textoNivel(lv.id, "desc"))}</span>`;
       opt.addEventListener("click", () => selectLevel(lv.id));
       opt.addEventListener("keydown", e => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); selectLevel(lv.id); } });
       picker.appendChild(opt);
     });
-
-    document.getElementById("btnExportSkills").addEventListener("click", exportSkillsDictionary);
-    document.getElementById("btnCatalogoPdf").addEventListener("click", imprimirCatalogo);
   }
 
   function selectLevel(levelId) {
@@ -1246,7 +1486,7 @@
     s3.nivel_solucion = levelId;
     document.querySelectorAll("#levelPicker .level-option").forEach(el => el.setAttribute("aria-checked", el.dataset.level === levelId ? "true" : "false"));
     const lv = LEVELS.find(l => l.id === levelId);
-    document.getElementById("levelWhy").textContent = lv ? `💡 ${lv.why}` : "";
+    document.getElementById("levelWhy").textContent = lv ? `💡 ${textoNivel(lv.id, "why")}` : "";
     renderGuiaDesarrollo();
     renderGaleriaIdeas();
     renderPromptLauncher();
@@ -1269,7 +1509,7 @@
       <td><input type="number" step="0.1" data-f="meta_esperada_to_be" value="${data.meta_esperada_to_be || 0}" /></td>
       <td><select data-f="frecuencia_medicion"><option${!data.frecuencia_medicion || data.frecuencia_medicion === "Diario" ? " selected" : ""}>Diario</option><option${data.frecuencia_medicion === "Semanal" ? " selected" : ""}>Semanal</option><option${data.frecuencia_medicion === "Mensual" ? " selected" : ""}>Mensual</option></select></td>
       <td><input data-f="origen_datos_google" value="${data.origen_datos_google || ""}" placeholder="Sheets, Looker…" /></td>
-      <td><button type="button" class="btn-icon" aria-label="Eliminar KPI">🗑️</button></td>`;
+      <td><button type="button" class="btn-icon" aria-label="${escAttr(t("aria.eliminarKpi"))}">🗑️</button></td>`;
     tr.querySelector("button").addEventListener("click", () => tr.remove());
     tbody.appendChild(tr);
   }
@@ -1288,10 +1528,10 @@
     const horasMes = horasSemana * SEMANAS_MES;
     const horasAnio = horasSemana * DIAS_HABILES.anio / DIAS_HABILES.semana;
     document.getElementById("roiResumen").innerHTML = `
-      <div class="summary-card"><div class="value">${horasMes.toFixed(1)}h</div><div class="label">Horas liberadas / mes</div></div>
-      <div class="summary-card"><div class="value">${horasAnio.toFixed(0)}h</div><div class="label">Horas liberadas / año</div></div>
-      <div class="summary-card"><div class="value">${dinero(horasMes * costo)}</div><div class="label">Retorno estimado / mes (USD)</div></div>
-      <div class="summary-card summary-card--destacada"><div class="value">${dinero(horasAnio * costo)}</div><div class="label">Retorno estimado / año (USD)</div></div>`;
+      <div class="summary-card"><div class="value">${horasMes.toFixed(1)}h</div><div class="label">${escHtml(t("card.horasMes"))}</div></div>
+      <div class="summary-card"><div class="value">${horasAnio.toFixed(0)}h</div><div class="label">${escHtml(t("card.horasAnio"))}</div></div>
+      <div class="summary-card"><div class="value">${dinero(horasMes * costo)}</div><div class="label">${escHtml(t("card.retornoMes"))}</div></div>
+      <div class="summary-card summary-card--destacada"><div class="value">${dinero(horasAnio * costo)}</div><div class="label">${escHtml(t("card.retornoAnio"))}</div></div>`;
     actualizarAtajoRoi();
     renderPresentacion();
   }
@@ -1306,7 +1546,7 @@
     const sugerido = Number(imp.ahorroSemana.toFixed(1));
     if (!imp.hayDatos || sugerido <= 0 || Math.abs(sugerido - actual) < 0.05) { btn.hidden = true; return; }
     btn.hidden = false;
-    btn.textContent = `⤵ Usar el ahorro del comparativo (${sugerido.toFixed(1)} h/semana)`;
+    btn.textContent = t("s4.atajoRoi", { h: sugerido.toFixed(1) });
   }
 
   function dinero(n) {
@@ -1403,7 +1643,7 @@
     document.getElementById("btnExportResumen").addEventListener("click", exportResumenEjecutivo);
 
     document.getElementById("btnAddChecklist").addEventListener("click", () => addRow("checklistRows", "tpl-checklist-row", { item: "" }, () => { }));
-    ["Validar que no se incluyó información confidencial", "Probar con datos sintéticos en sandbox", "Revisar permisos mínimos (least privilege)", "Definir rollback / mecanismo STOP", "Obtener aprobación del sponsor"].forEach(item => addRow("checklistRows", "tpl-checklist-row", { item }, () => { }));
+    [t("check.confidencial"), t("check.sandbox"), t("check.permisos"), t("check.rollback"), t("check.sponsor")].forEach(item => addRow("checklistRows", "tpl-checklist-row", { item }, () => { }));
 
     document.getElementById("btnFinalize").addEventListener("click", exportManualCompleto);
 
@@ -1411,16 +1651,20 @@
       const imp = calcularImpacto();
       setVal("s3_ahorro_horas", n1(imp.ahorroSemana));
       updateRoi();
-      setIoStatus("Ahorro traído del comparativo. Puedes ajustarlo a mano si quieres ser más conservador.");
+      setIoStatus(t("toast.ahorroTraido"));
     });
 
     // El entregable y las dudas alimentan los dos prompts de cierre.
     ["s4_entregable_tipo", "s4_entregable_estado", "s4_entregable_resultado", "s4_entregable_notas"].forEach(id => {
       const el = document.getElementById(id);
-      el.addEventListener("input", () => { renderConsultaDudas(); renderPresentacion(); });
-      el.addEventListener("change", () => { renderConsultaDudas(); renderPresentacion(); });
+      const alEditar = () => { leerEntregable(); renderConsultaDudas(); renderPresentacion(); };
+      el.addEventListener("input", alEditar);
+      el.addEventListener("change", alEditar);
     });
-    document.getElementById("s4_dudas_detalle").addEventListener("input", renderConsultaDudas);
+    document.getElementById("s4_dudas_detalle").addEventListener("input", () => {
+      asegurarCierreSeccion4().dudas.detalle = val("s4_dudas_detalle");
+      renderConsultaDudas();
+    });
     document.getElementById("s4_pres_logo").addEventListener("change", () => {
       asegurarCierreSeccion4().presentacion.incluir_logo = document.getElementById("s4_pres_logo").checked;
       actualizarPromptPresentacion();
@@ -1439,7 +1683,10 @@
         <input type="checkbox" data-duda-check="${escAttr(d.id)}" />
         <span class="idea-texto"><strong>${escHtml(d.t)}</strong></span>
       </label>`).join("");
+    const marcadas = asegurarCierreSeccion4().dudas.puntos_confusos || [];
     cont.querySelectorAll("[data-duda-check]").forEach(chk => {
+      chk.checked = marcadas.includes(chk.dataset.dudaCheck);
+      chk.closest(".idea-card").classList.toggle("is-selected", chk.checked);
       chk.addEventListener("change", () => {
         const id = chk.dataset.dudaCheck;
         const dudas = asegurarCierreSeccion4().dudas;
@@ -1457,25 +1704,24 @@
     const box = document.getElementById("consultaDudas");
     if (!box) return;
     const dudas = asegurarCierreSeccion4().dudas;
-    dudas.detalle = val("s4_dudas_detalle");
     const marcadas = dudas.puntos_confusos || [];
     if (!marcadas.length && !dudas.detalle.trim()) {
-      box.innerHTML = `<p class="hint-footnote" style="margin-top:.9rem">Marca al menos una casilla o escribe tu duda para que armemos la consulta.</p>`;
+      box.innerHTML = `<p class="hint-footnote" style="margin-top:.9rem">${escHtml(t("s4.dudasVacio"))}</p>`;
       return;
     }
     const yaEstaba = !!document.getElementById("promptDudas");
     if (!yaEstaba) {
       box.innerHTML = `
-        <p class="hint-title" style="margin-top:1.1rem">Tu consulta, lista para pegar</p>
+        <p class="hint-title" style="margin-top:1.1rem">${escHtml(t("s4.consultaLista"))}</p>
         <pre class="prompt-box" id="promptDudas"></pre>
         <div class="panel-actions" style="margin-top:.6rem; justify-content:flex-start; gap:.6rem;">
-          <button type="button" class="btn-primary" id="btnCopiarDudas">📋 Copiar consulta</button>
-          <button type="button" class="btn-secondary" id="btnDescargarDudas">⬇️ Descargar (.md)</button>
+          <button type="button" class="btn-primary" id="btnCopiarDudas">${escHtml(t("s4.btnCopiarConsulta"))}</button>
+          <button type="button" class="btn-secondary" id="btnDescargarDudas">${escHtml(t("s4.btnDescargarMd"))}</button>
         </div>`;
-      document.getElementById("btnCopiarDudas").addEventListener("click", () => copiarTexto(construirConsultaDudas(), "Consulta copiada. Pegala en tu asistente de IA."));
+      document.getElementById("btnCopiarDudas").addEventListener("click", () => copiarTexto(construirConsultaDudas(), t("toast.consultaCopiada")));
       document.getElementById("btnDescargarDudas").addEventListener("click", () => {
         downloadText(`consulta-dudas-${state.app_meta.id_expediente}.md`, construirConsultaDudas());
-        setIoStatus("Consulta descargada.");
+        setIoStatus(t("toast.consultaDescargada"));
       });
     }
     document.getElementById("promptDudas").textContent = construirConsultaDudas();
@@ -1484,7 +1730,7 @@
   function construirConsultaDudas() {
     const s1 = state.seccion_1_ordenar_trabajo.metadata_proceso;
     const s3 = state.seccion_3_compresion_proyecto;
-    const ent = leerEntregable();
+    const ent = asegurarCierreSeccion4().entregable;   // solo lectura
     const dudas = state.seccion_4_indicadores_desarrollo.dudas;
     const marcadas = CONTENIDO.DUDAS_FRECUENTES.filter(d => (dudas.puntos_confusos || []).includes(d.id));
 
@@ -1533,6 +1779,9 @@
     return s4;
   }
 
+  /* Vuelca el DOM al estado. Llamarla SOLO desde los listeners de edición y
+     desde collectState: si la llama un render, puede pisar con campos vacíos
+     lo que todavía no se dibujó (pasaba al cargar un expediente). */
   function leerEntregable() {
     const ent = asegurarCierreSeccion4().entregable;
     ent.tipo = val("s4_entregable_tipo");
@@ -1569,10 +1818,10 @@
     armarPicker("audienciaPicker", pres.audiencias, "audiencia");
     armarPicker("objetivoPicker", pres.objetivos, "objetivo");
 
-    document.getElementById("btnCopiarPresentacion").addEventListener("click", () => copiarTexto(construirPromptPresentacion(), "Prompt de presentación copiado."));
+    document.getElementById("btnCopiarPresentacion").addEventListener("click", () => copiarTexto(construirPromptPresentacion(), t("toast.presentacionCopiada")));
     document.getElementById("btnDescargarPresentacion").addEventListener("click", () => {
       downloadText(`prompt-presentacion-${state.app_meta.id_expediente}.md`, construirPromptPresentacion());
-      setIoStatus("Prompt de presentación descargado.");
+      setIoStatus(t("toast.presentacionDescargada"));
     });
     renderPresentacion();
   }
@@ -1582,19 +1831,19 @@
     if (!cont) return;
     const imp = calcularImpacto();
     if (!imp.hayDatos) {
-      cont.innerHTML = `<p class="comparativo-empty" style="grid-column:1/-1">Todavía no hay números que mostrar: carga arriba cuánto tarda ahora cada tarea. El prompt se arma igual, pero con los tiempos en blanco.</p>`;
+      cont.innerHTML = `<p class="comparativo-empty" style="grid-column:1/-1">${escHtml(t("s4.sinNumeros"))}</p>`;
     } else {
       cont.innerHTML = `
-        <div class="impacto-card"><div class="value">${n1(imp.semanaAsIs)}h</div><div class="label">Antes · por semana</div></div>
-        <div class="impacto-card"><div class="value">${n1(imp.semanaToBe)}h</div><div class="label">Ahora · por semana</div></div>
-        <div class="impacto-card impacto-card--liberada"><div class="value">${imp.ahorroAnio.toFixed(0)}h</div><div class="label">Horas liberadas al año</div></div>
-        <div class="impacto-card"><div class="value">${Math.round(imp.pct)}%</div><div class="label">Eficiencia ganada</div></div>
-        ${imp.costoHora > 0 ? `<div class="impacto-card impacto-card--liberada"><div class="value">${dinero(imp.ahorroUsdAnio)}</div><div class="label">Retorno estimado al año</div></div>` : ""}`;
+        <div class="impacto-card"><div class="value">${n1(imp.semanaAsIs)}h</div><div class="label">${escHtml(t("card.antesSemana"))}</div></div>
+        <div class="impacto-card"><div class="value">${n1(imp.semanaToBe)}h</div><div class="label">${escHtml(t("card.ahoraSemana"))}</div></div>
+        <div class="impacto-card impacto-card--liberada"><div class="value">${imp.ahorroAnio.toFixed(0)}h</div><div class="label">${escHtml(t("card.horasLiberadasAnio"))}</div></div>
+        <div class="impacto-card"><div class="value">${Math.round(imp.pct)}%</div><div class="label">${escHtml(t("card.eficiencia"))}</div></div>
+        ${imp.costoHora > 0 ? `<div class="impacto-card impacto-card--liberada"><div class="value">${dinero(imp.ahorroUsdAnio)}</div><div class="label">${escHtml(t("card.retornoAnual"))}</div></div>` : ""}`;
     }
     const pres = asegurarCierreSeccion4().presentacion;
     const aud = (CONTENIDO.PRESENTACION.audiencias || []).find(a => a.id === pres.audiencia);
     const nota = document.getElementById("audienciaNota");
-    if (nota) nota.textContent = aud ? aud.enfoque : "Elige a quién se lo vas a mostrar: cambia el énfasis del guion, no los números.";
+    if (nota) nota.textContent = aud ? aud.enfoque : t("s4.elegiAudiencia");
     document.querySelectorAll("#audienciaPicker [data-valor]").forEach(o => o.setAttribute("aria-checked", o.dataset.valor === pres.audiencia ? "true" : "false"));
     document.querySelectorAll("#objetivoPicker [data-valor]").forEach(o => o.setAttribute("aria-checked", o.dataset.valor === pres.objetivo ? "true" : "false"));
     actualizarPromptPresentacion();
@@ -1612,7 +1861,7 @@
     const s1 = state.seccion_1_ordenar_trabajo;
     const s3 = state.seccion_3_compresion_proyecto;
     const cfg = asegurarCierreSeccion4().presentacion;
-    const ent = leerEntregable();
+    const ent = asegurarCierreSeccion4().entregable;   // solo lectura
     const imp = calcularImpacto();
     const aud = pres.audiencias.find(a => a.id === cfg.audiencia);
     const obj = pres.objetivos.find(o => o.id === cfg.objetivo);
@@ -1721,7 +1970,7 @@
       try { copiado = document.execCommand("copy"); } catch (e) { copiado = false; }
       document.body.removeChild(ta);
       if (copiado) ok();
-      else setIoStatus("⚠️ Tu navegador bloqueó el copiado: selecciona el texto del recuadro y cópialo a mano.");
+      else setIoStatus(t("toast.copiadoBloqueado"));
     };
     if (navigator.clipboard && navigator.clipboard.writeText) navigator.clipboard.writeText(texto).then(ok).catch(fallback);
     else fallback();
@@ -1855,7 +2104,7 @@
     if (!box) return;
     const data = sugerenciasDelNivel();
     if (!data) {
-      box.innerHTML = `<p style="margin:0;color:var(--color-text-muted);font-size:.85rem;">Selecciona un tipo de desarrollo para ver las ideas sugeridas.</p>`;
+      box.innerHTML = `<p style="margin:0;color:var(--color-text-muted);font-size:.85rem;">${escHtml(t("s3.sinTipoIdeas"))}</p>`;
       return;
     }
     const marcadas = new Set(state.seccion_3_compresion_proyecto.sugerencias_seleccionadas || []);
@@ -1872,10 +2121,10 @@
       <p class="sugerencias-etiqueta">${escHtml(data.etiqueta)}</p>
       <p class="sugerencias-lede">${escHtml(data.lede)}</p>
       <div class="sugerencias-grid">
-        ${bloque("💡 Construcción y estrategia", data.estrategia)}
-        ${bloque("🛠️ Recursos y enfoque técnico", data.recursos)}
+        ${bloque(t("s3.bloqueEstrategia"), data.estrategia)}
+        ${bloque(t("s3.bloqueRecursos"), data.recursos)}
       </div>
-      <p class="hint-title" style="margin-top:1.1rem">Elige las ideas que se parezcan a lo que necesitas</p>
+      <p class="hint-title" style="margin-top:1.1rem">${escHtml(t("s3.eligeIdeas"))}</p>
       <div class="idea-grid">
         ${data.ideas.map(idea => `
           <label class="idea-card" data-idea="${escAttr(idea.id)}">
@@ -1907,9 +2156,7 @@
     const el = document.getElementById("ideaContador");
     if (!el) return;
     const n = (state.seccion_3_compresion_proyecto.sugerencias_seleccionadas || []).length;
-    el.textContent = n === 0
-      ? "Ninguna idea marcada todavía — el prompt saldrá más genérico."
-      : `${n} idea${n === 1 ? "" : "s"} marcada${n === 1 ? "" : "s"}: van a entrar en el prompt maestro.`;
+    el.textContent = n === 0 ? t("s3.sinIdeas") : t("s3.ideasMarcadas", { n });
   }
 
   /* ---------------- Lanzador de prompt y selección de IA ---------------- */
@@ -1918,7 +2165,7 @@
     if (!box) return;
     const data = sugerenciasDelNivel();
     if (!data) {
-      box.innerHTML = `<p style="margin:0;color:var(--color-text-muted);font-size:.85rem;">Disponible en cuanto selecciones un tipo de desarrollo.</p>`;
+      box.innerHTML = `<p style="margin:0;color:var(--color-text-muted);font-size:.85rem;">${escHtml(t("s3.sinTipoPrompt"))}</p>`;
       return;
     }
     const s3 = state.seccion_3_compresion_proyecto;
@@ -1926,22 +2173,21 @@
     const iaElegida = s3.ia_preferida;
 
     box.innerHTML = `
-      <p class="hint-title">1 · Elige tu asistente de IA</p>
-      <div class="level-picker level-picker--compact" id="iaPicker" role="radiogroup" aria-label="Asistente de IA">
+      <p class="hint-title">${escHtml(t("s3.pasoIA"))}</p>
+      <div class="level-picker level-picker--compact" id="iaPicker" role="radiogroup" aria-label="${escAttr(t("s3.ariaAsistente"))}">
         ${CONTENIDO.IA_GUIA.map(ia => `
           <div class="level-option" role="radio" tabindex="0" aria-checked="${ia.id === iaElegida ? "true" : "false"}" data-ia="${escAttr(ia.id)}">
-            <strong>${escHtml(ia.nombre)}${ia.ideal.includes(nivel) ? ' <span class="ia-badge">sugerida</span>' : ""}</strong>
+            <strong>${escHtml(ia.nombre)}${ia.ideal.includes(nivel) ? ` <span class="ia-badge">${escHtml(t("s3.sugerida"))}</span>` : ""}</strong>
           </div>`).join("")}
       </div>
       <p class="ia-fortaleza" id="iaFortaleza"></p>
-      <p class="hint-title" style="margin-top:1.1rem">2 · Copia tu prompt maestro</p>
+      <p class="hint-title" style="margin-top:1.1rem">${escHtml(t("s3.pasoPrompt"))}</p>
       <pre class="prompt-box" id="promptMaestro"></pre>
       <div class="panel-actions" style="margin-top:.6rem; justify-content:flex-start; gap:.6rem;">
-        <button type="button" class="btn-primary" id="btnCopiarPrompt">📋 Copiar prompt maestro</button>
-        <button type="button" class="btn-secondary" id="btnDescargarPrompt">⬇️ Descargar prompt (.md)</button>
+        <button type="button" class="btn-primary" id="btnCopiarPrompt">${escHtml(t("s3.btnCopiarMaestro"))}</button>
+        <button type="button" class="btn-secondary" id="btnDescargarPrompt">${escHtml(t("s3.btnDescargarPrompt"))}</button>
       </div>
-      <p class="hint-footnote" style="margin-top:.6rem">🛡️ Antes de pegarlo: revisa que no lleve nombres de clientes,
-        cifras confidenciales ni credenciales. Generaliza o usa datos inventados.</p>`;
+      <p class="hint-footnote" style="margin-top:.6rem">${escHtml(t("s3.avisoPegar"))}</p>`;
 
     box.querySelectorAll("[data-ia]").forEach(el => {
       const elegir = () => {
@@ -1955,7 +2201,7 @@
     document.getElementById("btnCopiarPrompt").addEventListener("click", copiarPromptMaestro);
     document.getElementById("btnDescargarPrompt").addEventListener("click", () => {
       downloadText(`prompt-maestro-${state.app_meta.id_expediente}.md`, construirPromptMaestro());
-      setIoStatus("Prompt maestro descargado.");
+      setIoStatus(t("toast.promptDescargado"));
     });
     actualizarPromptMaestro();
   }
@@ -1967,7 +2213,7 @@
     const nota = document.getElementById("iaFortaleza");
     if (nota) nota.textContent = ia
       ? `${ia.nombre}: ${ia.fortaleza}`
-      : "Elige un asistente para ver su punto fuerte — el prompt funciona igual en cualquiera de ellos.";
+      : t("s3.elegiAsistente");
   }
 
   function construirPromptMaestro() {
@@ -1988,10 +2234,16 @@
     L.push("## Contexto de mi trabajo");
     L.push(`- Proceso: ${meta.nombre_proceso || "(pendiente de completar en la Sección 1)"}`);
     if (meta.departamento) L.push(`- Área: ${meta.departamento}`);
-    const entradas = (s1.mapeo_entradas_salidas.entradas || []).filter(Boolean);
-    const salidas = (s1.mapeo_entradas_salidas.salidas || []).filter(Boolean);
-    if (entradas.length) L.push(`- Entradas con las que trabajo: ${entradas.join("; ")}`);
-    if (salidas.length) L.push(`- Salidas que se esperan de mí: ${salidas.join("; ")}`);
+    const entradas = normalizarMapeo(s1.mapeo_entradas_salidas.entradas);
+    const salidas = normalizarMapeo(s1.mapeo_entradas_salidas.salidas);
+    if (entradas.length) {
+      L.push("- Entradas con las que trabajo:");
+      entradas.forEach(e => L.push(`  - ${describirMapeo(e, "entrada")}`));
+    }
+    if (salidas.length) {
+      L.push("- Salidas que se esperan de mí:");
+      salidas.forEach(x => L.push(`  - ${describirMapeo(x, "salida")}`));
+    }
     if (dolores.length) {
       L.push("- Principales problemas actuales:");
       dolores.forEach(d => L.push(`  - [${d.nivel_severidad || "—"}] ${d.categoria || ""}: ${d.descripcion}`));
@@ -2023,7 +2275,7 @@
   function copiarPromptMaestro() {
     // copiarTexto() cae a execCommand porque con file:// algunos navegadores
     // bloquean la Clipboard API.
-    copiarTexto(construirPromptMaestro(), "Prompt maestro copiado. Pégalo en tu asistente de IA.");
+    copiarTexto(construirPromptMaestro(), t("toast.promptCopiado"));
   }
 
   /* ---------------- Catálogo de recursos: documento imprimible (PDF) ---------------- */
@@ -2133,7 +2385,7 @@
       window.removeEventListener("afterprint", restaurar);
     };
     window.addEventListener("afterprint", restaurar);
-    setIoStatus("En el diálogo de impresión elige «Guardar como PDF» y activa «Gráficos de fondo».");
+    setIoStatus(t("toast.imprimirCatalogo"));
     window.print();
     // Algunos navegadores no disparan afterprint de forma fiable: red de seguridad.
     setTimeout(() => { if (document.body.classList.contains("imprimiendo-catalogo")) restaurar(); }, 3000);
@@ -2180,7 +2432,7 @@
       "```"
     ];
     downloadText(`plan-proyecto-${s.app_meta.id_expediente}.md`, md.join("\n"));
-    setIoStatus("Plan de proyecto descargado.");
+    setIoStatus(t("toast.planProyecto"));
   }
 
   /* ------------------------------------------------------------------ COLLECT / HYDRATE */
@@ -2195,8 +2447,8 @@
       nivel_madurez_actual: s1.metadata_proceso.nivel_madurez_actual
     };
     s1.mapeo_entradas_salidas = {
-      entradas: val("s1_entradas").split("\n").filter(Boolean),
-      salidas: val("s1_salidas").split("\n").filter(Boolean),
+      entradas: leerMapeo("entrada"),
+      salidas: leerMapeo("salida"),
       punto_entrada_unico_definido: document.getElementById("s1_punto_entrada_unico").checked
     };
     s1.metricas_tiempo_y_costos.jornada_laboral_horas_dia = Number(val("carga_jornada") || 8);
@@ -2246,8 +2498,9 @@
     setVal("s1_departamento", s1.metadata_proceso.departamento);
     setVal("s1_responsable", s1.metadata_proceso.responsable_proceso);
     setVal("s1_fecha", s1.metadata_proceso.fecha_evaluacion);
-    setVal("s1_entradas", (s1.mapeo_entradas_salidas.entradas || []).join("\n"));
-    setVal("s1_salidas", (s1.mapeo_entradas_salidas.salidas || []).join("\n"));
+    s1.mapeo_entradas_salidas.entradas = normalizarMapeo(s1.mapeo_entradas_salidas.entradas);
+    s1.mapeo_entradas_salidas.salidas = normalizarMapeo(s1.mapeo_entradas_salidas.salidas);
+    renderMapeoCompleto();
     document.getElementById("s1_punto_entrada_unico").checked = !!s1.mapeo_entradas_salidas.punto_entrada_unico_definido;
     const mt = s1.metricas_tiempo_y_costos;
     setVal("carga_jornada", mt.jornada_laboral_horas_dia ?? 8);
@@ -2281,6 +2534,23 @@
 
     // skills_seleccionadas dependencias removidas
 
+    /* El entregable y las dudas se vuelcan primero: updateRoi() (más abajo)
+       encadena renderPresentacion() -> leerEntregable(), que lee el DOM y
+       sobrescribe el estado. Si los campos estuvieran vacíos, se perdería lo
+       que acaba de venir del archivo. */
+    const s4 = state.seccion_4_indicadores_desarrollo;
+    asegurarCierreSeccion4();
+    setVal("s4_entregable_tipo", s4.entregable.tipo);
+    setVal("s4_entregable_estado", s4.entregable.estado_ejecucion);
+    setVal("s4_entregable_resultado", s4.entregable.resultado);
+    setVal("s4_entregable_notas", s4.entregable.notas_ejecucion);
+    setVal("s4_dudas_detalle", s4.dudas.detalle);
+    document.querySelectorAll("[data-duda-check]").forEach(chk => {
+      chk.checked = (s4.dudas.puntos_confusos || []).includes(chk.dataset.dudaCheck);
+      chk.closest(".idea-card").classList.toggle("is-selected", chk.checked);
+    });
+    document.getElementById("s4_pres_logo").checked = !!s4.presentacion.incluir_logo;
+
     const s3 = state.seccion_3_compresion_proyecto;
     s3.sugerencias_seleccionadas = s3.sugerencias_seleccionadas || [];
     if (s3.nivel_solucion) selectLevel(s3.nivel_solucion);
@@ -2295,30 +2565,16 @@
     setVal("s3_costo_hora", s3.roi_estimado.costo_hora_usd || "");
     updateRoi();
 
-    const s4 = state.seccion_4_indicadores_desarrollo;
     document.getElementById("checklistRows").innerHTML = "";
     (s4.plan_gestion_cambio.checklist.length ? s4.plan_gestion_cambio.checklist : []).forEach(c => addRow("checklistRows", "tpl-checklist-row", c, () => { }));
     setVal("s4_sponsor", s4.plan_gestion_cambio.responsable_sponsor);
     setVal("s4_fecha_revision", s4.plan_gestion_cambio.fecha_revision_piloto);
 
-    asegurarCierreSeccion4();
-    setVal("s4_entregable_tipo", s4.entregable.tipo);
-    setVal("s4_entregable_estado", s4.entregable.estado_ejecucion);
-    setVal("s4_entregable_resultado", s4.entregable.resultado);
-    setVal("s4_entregable_notas", s4.entregable.notas_ejecucion);
-
-    setVal("s4_dudas_detalle", s4.dudas.detalle);
-    document.querySelectorAll("[data-duda-check]").forEach(chk => {
-      chk.checked = (s4.dudas.puntos_confusos || []).includes(chk.dataset.dudaCheck);
-      chk.closest(".idea-card").classList.toggle("is-selected", chk.checked);
-    });
     renderConsultaDudas();
-
-    document.getElementById("s4_pres_logo").checked = !!s4.presentacion.incluir_logo;
     renderPresentacion();
 
     goToStep(state.app_meta.etapa_actual || 1);
-    setIoStatus(`Expediente ${state.app_meta.id_expediente} cargado — tu avance fue restaurado.`);
+    setIoStatus(t("toast.expedienteCargado", { id: state.app_meta.id_expediente }));
   }
 
   /* ------------------------------------------------------------------ IMPORT / EXPORT */
@@ -2345,10 +2601,10 @@
     reader.onload = () => {
       try {
         const data = JSON.parse(reader.result);
-        if (!data.schema_version) throw new Error("El archivo no tiene schema_version.");
+        if (!data.schema_version) throw new Error(t("error.sinSchema"));
         hydrateState(data);
       } catch (e) {
-        setIoStatus("⚠️ No se pudo cargar el archivo: " + e.message);
+        setIoStatus(t("toast.archivoError", { msg: e.message }));
       }
     };
     reader.readAsText(file);
@@ -2362,7 +2618,7 @@
       downloadJSON(`expediente-${state.app_meta.id_expediente}-etapa${state.app_meta.etapa_actual}.json`, state);
       markStepComplete(state.app_meta.etapa_actual);
       goToStep(currentStep);
-      setIoStatus("Expediente guardado correctamente. Puedes volver a cargarlo cuando gustes.");
+      setIoStatus(t("toast.expedienteGuardado"));
     });
     document.getElementById("btnExportPrint").addEventListener("click", () => {
       collectState();
@@ -2422,6 +2678,7 @@
     initSeccion2();
     initSeccion3();
     initSeccion4();
+    initIdioma();
     goToStep(1);
     window.addEventListener("resize", actualizarScrollTabla);
     document.querySelector("#view-tabla .table-scroll").addEventListener("scroll", actualizarScrollTabla);

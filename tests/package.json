@@ -1,0 +1,11 @@
+{
+  "name": "ai-project-guide-tests",
+  "private": true,
+  "description": "Dependencia opcional solo para la batería funcional. La app no usa ninguna.",
+  "scripts": {
+    "test": "node verificar-textos.js && node verificar-referencias.js && node probar-funcional.js"
+  },
+  "devDependencies": {
+    "jsdom": "^26.0.0"
+  }
+}

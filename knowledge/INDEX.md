@@ -10,6 +10,7 @@
 - **Fuente del cierre (Sección 4):** [`pagina-4-especificacion-prompt.md`](pagina-4-especificacion-prompt.md)
   > Ambos se editan primero acá y después se reflejan en `src/contenido-guias.js`, que es lo que lee la app.
 - **Checklist de pruebas:** [`tests/checklist-e2e.md`](../tests/checklist-e2e.md)
+- **Verificador de textos:** [`tests/verificar-textos.js`](../tests/verificar-textos.js)
 
 ## Procesos
 - (vacío — se llena a medida que se completan expedientes reales de la empresa)
@@ -25,6 +26,9 @@
 
 ## Glosario
 - **Expediente:** el JSON de estado de un proceso, con sus 4 secciones.
+- **Mapeo estructurado:** cada entrada/salida de la Sección 1 se guarda como
+  `{texto, canal, formato}`. Canal y formato son **ids**, no etiquetas, para que
+  un expediente creado en un idioma se abra igual en otro.
 - **Tipo de desarrollo:** las 4 opciones de la Sección 3 (A documento, B automatización,
   C herramienta/visualización, D agente). Se guardan con el prefijo `Nivel N:` por
   compatibilidad con los expedientes ya exportados.

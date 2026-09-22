@@ -19,6 +19,13 @@ generación de prompts) es determinística y corre en el navegador.
 Abre [`src/index.html`](src/index.html) directamente en el navegador. No
 requiere instalación, servidor ni conexión a internet.
 
+Disponible en **español, inglés y portugués** — se elige desde el selector del
+encabezado y la preferencia se recuerda.
+
+Hay además una versión con el logo corporativo en
+[`src/index-stt.html`](src/index-stt.html), generada desde la neutra con
+`python tools/generar-version-marca.py`.
+
 ## Persistencia
 El progreso se guarda descargando un `.json` (botón "Descargar estado") y
 se reanuda cargándolo de nuevo (botón "Cargar expediente" o arrastrándolo

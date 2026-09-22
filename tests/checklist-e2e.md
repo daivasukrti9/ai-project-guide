@@ -1,6 +1,14 @@
 # Checklist E2E manual — AI Project Guide
 
-Sin framework de tests todavía; verificación manual con datos sintéticos.
+Antes de lo manual, correr lo automático:
+
+    node tests/verificar-textos.js
+    node tests/verificar-referencias.js
+    cd tests && npm install && node probar-funcional.js
+
+La batería funcional cubre 59 comprobaciones sobre el código real (jsdom).
+Lo de abajo es lo que no se puede automatizar: lo visual, la impresión y el
+portapapeles.
 Marca cada ítem tras probarlo en el navegador (`src/index.html`).
 
 Hay un expediente de ejemplo listo para usar en las pruebas o la demo:
@@ -17,6 +25,17 @@ comparativo manual vs. herramienta y skills seleccionadas).
 - [x] Al cargar un `.json` válido aparece un toast confirmando que el avance fue restaurado.
 - [x] El bloque se oculta completo (card + toast) en la vista de impresión/PDF.
 
+## Idiomas (ES / EN / PT)
+- [ ] El selector del encabezado cambia el idioma al instante, sin recargar ni perder lo cargado.
+- [ ] La elección se recuerda al volver a abrir la app (localStorage); en ventana privada no rompe nada.
+- [ ] Sin elección previa, arranca en el idioma del navegador si es uno de los tres; si no, en español.
+- [ ] Cambiar de idioma NO altera el expediente: canal/formato y niveles se guardan como ids.
+- [ ] Un `.json` guardado en un idioma se abre igual en otro.
+- [ ] `node tests/verificar-textos.js` pasa: claves parejas en los tres idiomas y ninguna faltante.
+- [ ] Las 4 secciones se ven completas en los tres idiomas: encabezados, preguntas, tarjetas de impacto/ROI, galería, lanzador, Gantt/Kanban y avisos flotantes.
+- [ ] Siguen en español (a propósito) los valores que viajan en el CSV: estados, urgencias, tipo de tarea y frecuencia de KPI.
+- [ ] El Gantt y el Kanban se dibujan sin errores de consola en inglés y portugués (ahí vivía el choque entre la variable `t` y la función de traducción).
+
 ## Navegación
 - [x] Los 4 pasos del tracker horizontal cambian de panel al hacer clic.
 - [x] El anillo de progreso (arriba a la izquierda) muestra "X/4" y se rellena según el paso actual.
@@ -27,6 +46,16 @@ comparativo manual vs. herramienta y skills seleccionadas).
 - [x] El badge del paso activo se resalta; los pasos completados muestran ✓ y la línea conectora se pinta de verde.
 - [x] "Continuar" avanza de sección y guarda los datos ingresados.
 - [x] "Volver" regresa sin perder lo ya escrito.
+
+## Sección 1 — mapeo de entradas y salidas
+- [ ] Cada entrada/salida es una fila con "qué es" + canal + formato, y se agregan/quitan con sus botones.
+- [ ] El semáforo de la fila pasa a 🟢 solo cuando están los tres campos; con alguno vacío queda 🟡.
+- [ ] Escribir un término ambiguo ("facturas", "datos", "reportes") con canal o formato sin elegir muestra la pista de concreción; al completar ambos, la pista desaparece.
+- [ ] La pista sale de una tabla local: no hay ninguna petición de red (verificar en la pestaña Network del navegador).
+- [ ] El resumen bajo cada lista cuenta cuántas filas están completas.
+- [ ] Un expediente `.json` exportado **antes** de este cambio (entradas como lista de textos) se carga sin errores: conserva los textos y deja canal/formato vacíos.
+- [ ] El prompt maestro de la Sección 3 lista cada entrada con su canal y formato entre paréntesis.
+- [ ] `node tests/verificar-textos.js` termina sin errores.
 
 ## Sección 1
 - [x] La tabla del Paso 3 no desborda la página en ventanas angostas (probado en 375px); la columna queda en un contenedor con scroll propio (`data-scrollable`) en vez de desbordar el body.
@@ -120,6 +149,13 @@ comparativo manual vs. herramienta y skills seleccionadas).
 - [x] "Descargar (.md)" de ambos genera el mismo texto que muestra el recuadro.
 - [x] "Descargar resumen ejecutivo (.md)" incluye qué se construyó, el impacto medido y la tabla por tarea, con el Markdown bien formado (líneas en blanco antes de cada título y tabla).
 - [x] "Completar Plan de Proyecto" incluye el impacto medido y el prompt de presentación además del JSON completo.
+
+## Versión con marca
+- [ ] `src/index-stt.html` abre igual que la neutra y muestra el logo arriba a la derecha.
+- [ ] El logo se ve bien en tema claro y oscuro (fondo transparente, sin recuadro gris).
+- [ ] El logo desaparece al imprimir (no ensucia el PDF del catálogo ni el resumen).
+- [ ] En pantalla angosta el logo se achica y no empuja los controles fuera del encabezado.
+- [ ] `python tools/generar-version-marca.py --verificar` termina en [OK].
 
 ## Persistencia (import/export)
 - [x] "Descargar estado (.json)" en la Sección 1 genera un archivo válido.

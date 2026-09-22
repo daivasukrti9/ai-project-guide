@@ -19,7 +19,16 @@ punto de partida de cada proyecto nuevo.
 
 ## Comandos principales
 - Ejecutar la app: abrir `src/index.html` directamente en el navegador (no requiere servidor).
+- Versión con marca: `src/index-stt.html`, idéntica salvo el logo en el encabezado.
 - No hay `npm install` ni build: es intencional, para minimizar dependencias.
+
+## Versión con marca (index-stt.html)
+`src/index-stt.html` es un **archivo generado**: comparte app.js, styles.css,
+i18n.js y contenido-guias.js con la versión neutra, y solo agrega el logo.
+- Regenerarlo: `python tools/generar-version-marca.py`
+- Comprobar que no se desincronizó: `python tools/generar-version-marca.py --verificar`
+- **Después de tocar `index.html` hay que regenerarlo**, o las dos versiones
+  se separan. El `--verificar` falla con código 1 si eso pasa.
 
 ## Reglas de seguridad
 - **Zero-Data Exposure:** ninguna llamada de red, ninguna API de IA de pago, nada sale del navegador.
@@ -33,10 +42,15 @@ src/
 ├── index.html            # 4 secciones del wizard + sidebar de progreso
 ├── styles.css            # tema claro/oscuro, accesible, print-friendly
 ├── app.js                # estado en memoria, cálculos, import/export JSON
+├── i18n.js               # textos de interfaz + vocabulario de canales/formatos y términos ambiguos
 ├── contenido-guias.js    # solo datos: galerías de ideas por nivel, guía de IA y catálogo del PDF
 ├── skills-catalog.json   # catálogo de skills (fuente portable, también embebido en app.js)
 ├── ilustracion-chica.png # hero del wizard
-└── ilustracion-catalogo.png # portada del catálogo descargable
+├── ilustracion-catalogo.png # portada del catálogo descargable
+├── index-stt.html        # GENERADO: copia con el logo corporativo (no editar a mano)
+└── logo-stt.png          # logo de STT Group, ya recortado y sin fondo
+tools/
+└── generar-version-marca.py  # rehace index-stt.html desde index.html
 knowledge/
 ├── sugerencias-desarrollo-pagina3.md        # fuente editorial de las galerías de la Sección 3
 ├── catalogo-recursos-proyecto-usuario.md    # fuente editorial del catálogo PDF
@@ -49,8 +63,33 @@ docs/
 ```
 
 ## Reglas de testing
-- Sin framework de tests (no hay build/CI todavía). Verificación manual vía `tests/checklist-e2e.md`.
+- La app no tiene dependencias ni build. Los verificadores tampoco, salvo el
+  último, que es opcional.
+- `node tests/verificar-textos.js` — claves de interfaz: que no falte ninguna,
+  que los tres idiomas estén parejos, que ningún `data-i18n` cuelgue de un
+  elemento con hijos y que ningún callback llame `t` a su parámetro.
+- `node tests/verificar-referencias.js` — que todo `getElementById` tenga su
+  elemento y toda plantilla exista.
+- `cd tests && npm install && node probar-funcional.js` — **batería funcional
+  sobre jsdom**: ejecuta el código real sin navegador (arranque, cambio de
+  idioma, cálculos, exportables, round-trip del expediente y migración de
+  expedientes viejos). Única dependencia del repo, solo para tests.
+- Verificación manual restante: `tests/checklist-e2e.md` (lo visual y el
+  portapapeles, que necesitan ojos y un gesto real).
 - Cubrir siempre: import/export JSON, las 4 secciones, cálculo 80/20, generación de prompt.
+
+## Idiomas
+- La interfaz se sirve en español, inglés y portugués desde `src/i18n.js`.
+- El **estado nunca guarda etiquetas traducidas**, solo ids (canal, formato,
+  nivel, audiencia…). Un expediente creado en un idioma se abre igual en otro.
+- El contenido editorial largo (galerías de ideas, guías por nivel, catálogo
+  del PDF y los prompts generados) se mantiene en español a propósito.
+- Siguen en español, a propósito, los **valores que se persisten** y viajan en
+  el CSV: estados del Gantt (`No Iniciado`…), urgencias (`⚡ Urgente`…), tipo de
+  tarea y frecuencia de KPI. Traducir su etiqueta rompería el contrato del CSV.
+- Al agregar un texto nuevo: sumar la clave a los tres diccionarios y correr
+  `node tests/verificar-textos.js`. **No llamar `t` a una variable de callback**:
+  sombrea la función de traducción y el verificador lo rechaza.
 
 ## Convención de documentación
 - Markdown en `docs/` y `knowledge/`. Un archivo por decisión/tema, sin acumular todo en un solo documento gigante.

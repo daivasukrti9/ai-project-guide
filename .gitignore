@@ -4,3 +4,7 @@ Thumbs.db
 
 # Artefactos de pruebas con navegador (Playwright MCP)
 .playwright-mcp/
+
+# Dependencias de la batería funcional (opcional, ver tests/README)
+tests/node_modules/
+tests/package-lock.json
