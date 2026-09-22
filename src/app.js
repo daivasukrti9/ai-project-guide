@@ -353,16 +353,16 @@
     const pctCarga = colaboradores.length ? ((totalDisponible / (colaboradores.length * jornada)) * 100).toFixed(1) : "0";
     const colorPct = Number(pctCarga) < 10 ? "🟡" : Number(pctCarga) > 40 ? "🔵" : "🟢";
     resumenEl.innerHTML = `
-      <div class="summary-card"><div class="value">${colaboradores.length}</div><div class="label">Colaboradores</div></div>
-      <div class="summary-card"><div class="value">${totalDisponible.toFixed(1)}h</div><div class="label">Disponibles/semana para mejora</div></div>
-      <div class="summary-card"><div class="value">${colorPct} ${pctCarga}%</div><div class="label">% Promedio para innovación</div></div>`;
+      <div class="summary-card"><div class="value">${colaboradores.length}</div><div class="label">${escHtml(t("cap.colaboradores"))}</div></div>
+      <div class="summary-card"><div class="value">${totalDisponible.toFixed(1)}h</div><div class="label">${escHtml(t("cap.disponibles"))}</div></div>
+      <div class="summary-card"><div class="value">${colorPct} ${pctCarga}%</div><div class="label">${escHtml(t("cap.promedioInnovacion"))}</div></div>`;
 
     const velocidadEl = document.getElementById("velocidadSprint");
     if (velocidadEl) {
       const velocidadSprint = (totalDisponible * 2).toFixed(1);
       velocidadEl.textContent = colaboradores.length
         ? `📊 Velocidad estimada del sprint: ${velocidadSprint} horas-hombre totales para desarrollo en 2 semanas (aproximado: suma la disponibilidad semanal x 2).`
-        : "Agrega al menos un colaborador para estimar la velocidad del sprint.";
+        : t("cap.sinColaboradores");
     }
     return colaboradores;
   }
@@ -405,7 +405,7 @@
       </select>
       <span class="tarea-detalle" data-f="detalle-wrap"></span>
       <span class="row-result" data-f="horas_dia">—</span>
-      <button type="button" class="btn-icon" data-remove aria-label="Eliminar tarea">🗑️</button>`;
+      <button type="button" class="btn-icon" data-remove aria-label="${escAttr(t("aria.eliminarTarea"))}">🗑️</button>`;
 
     const detalleWrap = row.querySelector('[data-f="detalle-wrap"]');
     function pintarDetalle(t) {
@@ -612,17 +612,17 @@
       box.className = "status-box error";
       box.innerHTML = `
         <h4>🔴 Sobrecarga detectada: ${d.cargaOperativa.toFixed(1)} hrs/día en funciones actuales</h4>
-        <p>Estás excedido en <strong>${Math.abs(d.tiempoLibre).toFixed(1)}h</strong> de tu jornada (${pct.toFixed(0)}%). Todavía no hay tiempo libre para un proyecto nuevo.</p>
+        <p>${escHtml(t("carga.excedido", { h: Math.abs(d.tiempoLibre).toFixed(1), pct: pct.toFixed(0) }))}</p>
         <p><em>Sugerencia:</em> estandariza o delega algo de tu operación actual antes de programar entregables en el Gantt. Puedes seguir cargando el plan igual, pero tenlo en cuenta.</p>`;
     } else if (d.tiempoLibre === 0) {
       box.className = "status-box warning";
-      box.innerHTML = `<h4>🟡 Capacidad al 100%: ${d.jornada.toFixed(1)} hrs/día ocupadas</h4><p>No te queda margen para el proyecto sin hacer horas extra.</p>`;
+      box.innerHTML = `<h4>🟡 Capacidad al 100%: ${d.jornada.toFixed(1)} hrs/día ocupadas</h4><p>${escHtml(t("carga.sinMargen"))}</p>`;
     } else {
       box.className = "status-box success";
       box.innerHTML = `
         <h4>🟢 Tiempo libre disponible: ${d.tiempoLibre.toFixed(1)} hrs/día para el proyecto</h4>
         <p>Tu carga operativa actual es de ${d.cargaOperativa.toFixed(1)}h (${pct.toFixed(0)}% de tu jornada).</p>
-        <p>👉 Vas a ver esta cifra como referencia en cada tarea del Gantt para estimar cuántos días hábiles necesita.</p>`;
+        <p>${escHtml(t("carga.referencia"))}</p>`;
     }
 
     actualizarSugerenciasDias();
@@ -676,7 +676,7 @@
             <option${data.estado === "En Riesgo" ? " selected" : ""}>En Riesgo</option>
             <option${data.estado === "Completado" ? " selected" : ""}>Completado</option>
           </select></td>
-      <td><button type="button" class="btn-icon" aria-label="Eliminar tarea">🗑️</button></td>`;
+      <td><button type="button" class="btn-icon" aria-label="${escAttr(t("aria.eliminarTarea"))}">🗑️</button></td>`;
     tr.querySelector("button").addEventListener("click", () => { tr.remove(); refrescarVistaActiva(); actualizarScrollTabla(); });
     tr.querySelectorAll("input, select").forEach(el => el.addEventListener("input", () => { actualizarSugerenciasDias(); refrescarVistaActiva(); }));
     tbody.appendChild(tr);
@@ -703,24 +703,24 @@
   function ganttMarkup(tasks, tareasHabituales) {
     tareasHabituales = tareasHabituales || [];
     const validas = tasks
-      .map(t => ({
-        ...t,
-        _inicioPlan: t.fecha_inicio_plan ? new Date(t.fecha_inicio_plan + "T00:00:00") : null,
-        _finPlan: t.fecha_fin_plan ? new Date(t.fecha_fin_plan + "T00:00:00") : null,
-        _inicioReal: t.fecha_inicio_real ? new Date(t.fecha_inicio_real + "T00:00:00") : null,
-        _finReal: t.fecha_fin_real ? new Date(t.fecha_fin_real + "T00:00:00") : null
+      .map(tarea => ({
+        ...tarea,
+        _inicioPlan: tarea.fecha_inicio_plan ? new Date(tarea.fecha_inicio_plan + "T00:00:00") : null,
+        _finPlan: tarea.fecha_fin_plan ? new Date(tarea.fecha_fin_plan + "T00:00:00") : null,
+        _inicioReal: tarea.fecha_inicio_real ? new Date(tarea.fecha_inicio_real + "T00:00:00") : null,
+        _finReal: tarea.fecha_fin_real ? new Date(tarea.fecha_fin_real + "T00:00:00") : null
       }))
-      .filter(t => t._inicioPlan && t._finPlan && !isNaN(t._inicioPlan) && !isNaN(t._finPlan) && t._finPlan >= t._inicioPlan);
+      .filter(tarea => tarea._inicioPlan && tarea._finPlan && !isNaN(tarea._inicioPlan) && !isNaN(tarea._finPlan) && tarea._finPlan >= tarea._inicioPlan);
 
     if (!validas.length && !tareasHabituales.length) {
-      return '<p class="gantt-empty">Agrega tareas del proyecto con fechas (pestaña Tabla) o funciones habituales (Paso 1) para ver el Gantt.</p>';
+      return `<p class="gantt-empty">${escHtml(t("gantt.vacio"))}</p>`;
     }
 
     const allDates = [];
-    validas.forEach(t => {
-      allDates.push(t._inicioPlan, t._finPlan);
-      if (t._inicioReal && !isNaN(t._inicioReal)) allDates.push(t._inicioReal);
-      if (t._finReal && !isNaN(t._finReal)) allDates.push(t._finReal);
+    validas.forEach(tarea => {
+      allDates.push(tarea._inicioPlan, tarea._finPlan);
+      if (tarea._inicioReal && !isNaN(tarea._inicioReal)) allDates.push(tarea._inicioReal);
+      if (tarea._finReal && !isNaN(tarea._finReal)) allDates.push(tarea._finReal);
     });
     const min = allDates.length ? new Date(Math.min(...allDates)) : null;
     const max = allDates.length ? new Date(Math.max(...allDates)) : null;
@@ -731,36 +731,36 @@
     let html = "";
 
     if (tareasHabituales.length) {
-      html += `<div class="gantt-operacion-section"><p class="gantt-section-title">🔵 Operación base (funciones habituales)</p>`;
-      html += tareasHabituales.map(t => `
+      html += `<div class="gantt-operacion-section"><p class="gantt-section-title">${escHtml(t("gantt.operacionBase"))}</p>`;
+      html += tareasHabituales.map(tarea => `
         <div class="gantt-band-row">
-          <div class="gantt-row-label"><span class="id">${t.horas_dia.toFixed(1)}h/día</span>${escHtml(t.nombre || "(sin nombre)")}</div>
-          <div class="gantt-band">Carga recurrente${t.tipo === "Repetitiva" ? ` — ${t.cantidad}× ${t.minutos_por_unidad}min` : " — tiempo fijo"}</div>
+          <div class="gantt-row-label"><span class="id">${tarea.horas_dia.toFixed(1)}h/día</span>${escHtml(tarea.nombre || t("gantt.sinNombre"))}</div>
+          <div class="gantt-band">Carga recurrente${tarea.tipo === "Repetitiva" ? ` — ${tarea.cantidad}× ${tarea.minutos_por_unidad}min` : " — tiempo fijo"}</div>
         </div>`).join("");
       html += `</div>`;
     }
 
     if (validas.length) {
-      html += `<p class="gantt-section-title">🟢 Proyecto</p>`;
-      html += `<div class="gantt-range">Del ${fmtFecha(min)} al ${fmtFecha(max)}${todayPct !== null ? " · línea roja = hoy" : ""}</div>`;
-      html += validas.map(t => {
-        const estado = t.estado || "No Iniciado";
-        const avance = Math.min(100, Math.max(0, Number(t.porcentaje_avance) || 0));
-        const leftPlan = ((t._inicioPlan - min) / rangeMs) * 100;
-        const widthPlan = Math.max(((t._finPlan - t._inicioPlan) / rangeMs) * 100, 2);
+      html += `<p class="gantt-section-title">${escHtml(t("gantt.proyecto"))}</p>`;
+      html += `<div class="gantt-range">${escHtml(t("gantt.rango", { desde: fmtFecha(min), hasta: fmtFecha(max) }))}${todayPct !== null ? escHtml(t("gantt.hoy")) : ""}</div>`;
+      html += validas.map(tarea => {
+        const estado = tarea.estado || "No Iniciado";
+        const avance = Math.min(100, Math.max(0, Number(tarea.porcentaje_avance) || 0));
+        const leftPlan = ((tarea._inicioPlan - min) / rangeMs) * 100;
+        const widthPlan = Math.max(((tarea._finPlan - tarea._inicioPlan) / rangeMs) * 100, 2);
 
         let realRow = "";
-        if (t._inicioReal && t._finReal && !isNaN(t._inicioReal) && !isNaN(t._finReal) && t._finReal >= t._inicioReal) {
-          const leftReal = ((t._inicioReal - min) / rangeMs) * 100;
-          const widthReal = Math.max(((t._finReal - t._inicioReal) / rangeMs) * 100, 2);
-          const diffDays = Math.round((t._finReal - t._finPlan) / 86400000);
+        if (tarea._inicioReal && tarea._finReal && !isNaN(tarea._inicioReal) && !isNaN(tarea._finReal) && tarea._finReal >= tarea._inicioReal) {
+          const leftReal = ((tarea._inicioReal - min) / rangeMs) * 100;
+          const widthReal = Math.max(((tarea._finReal - tarea._inicioReal) / rangeMs) * 100, 2);
+          const diffDays = Math.round((tarea._finReal - tarea._finPlan) / 86400000);
           const variance = diffDays > 0 ? "tarde" : diffDays < 0 ? "temprano" : "ok";
-          const varLabel = diffDays > 0 ? `🔴 +${diffDays}d` : diffDays < 0 ? `🟢 ${diffDays}d` : "⚪ en fecha";
+          const varLabel = diffDays > 0 ? `🔴 +${diffDays}d` : diffDays < 0 ? `🟢 ${diffDays}d` : t("gantt.enFecha");
           realRow = `
             <div class="gantt-subrow">
-              <span class="gantt-subrow-label">Real</span>
+              <span class="gantt-subrow-label">${escHtml(t("gantt.real"))}</span>
               <div class="gantt-track gantt-track--real">
-                <div class="gantt-bar" data-variance="${variance}" style="left:${leftReal.toFixed(2)}%;width:${widthReal.toFixed(2)}%" title="${fmtFecha(t._inicioReal)} → ${fmtFecha(t._finReal)}"></div>
+                <div class="gantt-bar" data-variance="${variance}" style="left:${leftReal.toFixed(2)}%;width:${widthReal.toFixed(2)}%" title="${fmtFecha(tarea._inicioReal)} → ${fmtFecha(tarea._finReal)}"></div>
               </div>
               <span class="gantt-variance-badge" data-variance="${variance}">${varLabel}</span>
             </div>`;
@@ -768,12 +768,12 @@
 
         return `
           <div class="gantt-task-group">
-            <div class="gantt-task-title"><span class="id">${escHtml(t.id_tarea)}</span>${escHtml(t.simbolo_urgencia || "")} ${escHtml(t.nombre || "(sin nombre)")}</div>
+            <div class="gantt-task-title"><span class="id">${escHtml(tarea.id_tarea)}</span>${escHtml(tarea.simbolo_urgencia || "")} ${escHtml(tarea.nombre || t("gantt.sinNombre"))}</div>
             <div class="gantt-subrow">
-              <span class="gantt-subrow-label">Plan</span>
+              <span class="gantt-subrow-label">${escHtml(t("gantt.plan"))}</span>
               <div class="gantt-track gantt-track--plan">
                 ${todayPct !== null ? `<div class="gantt-today" style="left:${todayPct.toFixed(2)}%"></div>` : ""}
-                <div class="gantt-bar" data-estado="${escAttr(estado)}" style="left:${leftPlan.toFixed(2)}%;width:${widthPlan.toFixed(2)}%" title="${fmtFecha(t._inicioPlan)} → ${fmtFecha(t._finPlan)} · ${avance}%">
+                <div class="gantt-bar" data-estado="${escAttr(estado)}" style="left:${leftPlan.toFixed(2)}%;width:${widthPlan.toFixed(2)}%" title="${fmtFecha(tarea._inicioPlan)} → ${fmtFecha(tarea._finPlan)} · ${avance}%">
                   <div class="gantt-bar-fill" style="width:${avance}%"></div><span>${avance}%</span>
                 </div>
               </div>
@@ -783,23 +783,23 @@
           </div>`;
       }).join("");
     } else if (tareasHabituales.length) {
-      html += '<p class="gantt-empty">Agrega fechas a tus tareas del proyecto (pestaña Tabla) para verlas junto a tu operación base.</p>';
+      html += `<p class="gantt-empty">${escHtml(t("gantt.sinFechas"))}</p>`;
     }
 
     return html;
   }
 
   function kanbanMarkup(tasks) {
-    if (!tasks.length) return '<p class="kanban-empty">Agrega tareas en la pestaña Tabla para ver el Kanban.</p>';
+    if (!tasks.length) return `<p class="kanban-empty">${escHtml(t("kanban.vacio"))}</p>`;
     return KANBAN_COLUMNAS.map(col => {
-      const items = tasks.filter(t => (t.estado || "No Iniciado") === col);
+      const items = tasks.filter(tarea => (tarea.estado || "No Iniciado") === col);
       const cards = items.length
-        ? items.map(t => `
+        ? items.map(tarea => `
             <div class="kanban-card" data-estado="${escAttr(col)}">
-              <strong>${escHtml(t.simbolo_urgencia || "")} ${escHtml(t.id_tarea)} — ${escHtml(t.nombre || "(sin nombre)")}</strong>
-              <div class="meta">${escHtml(t.encargado_proceso || "Sin encargado")} · ${Number(t.porcentaje_avance) || 0}% avance</div>
+              <strong>${escHtml(tarea.simbolo_urgencia || "")} ${escHtml(tarea.id_tarea)} — ${escHtml(tarea.nombre || t("gantt.sinNombre"))}</strong>
+              <div class="meta">${escHtml(tarea.encargado_proceso || t("gantt.sinEncargado"))} · ${escHtml(t("gantt.avance", { pct: Number(tarea.porcentaje_avance) || 0 }))}</div>
             </div>`).join("")
-        : '<p class="kanban-empty">Sin tareas</p>';
+        : `<p class="kanban-empty">${escHtml(t("kanban.sinTareas"))}</p>`;
       return `<div class="kanban-col"><h4>${col} <span>${items.length}</span></h4>${cards}</div>`;
     }).join("");
   }
@@ -887,8 +887,8 @@
 
     if (!datos.length) {
       el.innerHTML = filas.length
-        ? '<p class="comparativo-empty">Carga cuánto tarda ahora cada tarea con tu solución (To-Be) para ver el comparativo.</p>'
-        : '<p class="comparativo-empty">Todavía no hay tareas para comparar. Vuelve al <button type="button" class="btn-link" data-goto="1">Paso 1</button> y carga tus tareas habituales: son las mismas que se miden aquí.</p>';
+        ? `<p class="comparativo-empty">${escHtml(t("comp.vacioToBe"))}</p>`
+        : `<p class="comparativo-empty">${escHtml(t("comp.vacioTareas1"))} <button type="button" class="btn-link" data-goto="1">${escHtml(t("comp.paso1"))}</button> ${escHtml(t("comp.vacioTareas2"))}</p>`;
       el.querySelectorAll("[data-goto]").forEach(b => b.addEventListener("click", () => { collectState(); goToStep(1); }));
       if (impacto) impacto.innerHTML = "";
       if (typeof actualizarAtajoRoi === "function") actualizarAtajoRoi();
@@ -909,7 +909,7 @@
             <div class="comparativo-bar comparativo-bar--auto" style="width:${Math.max((d.auto / maxHoras) * 100, 8).toFixed(1)}%">${d.auto.toFixed(1)}h · To-Be</div>
           </div>
         </div>
-        <span class="comparativo-pct${peor ? " comparativo-pct--peor" : ""}">⚡ ${peor ? "+" : "-"}${Math.abs(ahorroPct)}% de tiempo</span>
+        <span class="comparativo-pct${peor ? " comparativo-pct--peor" : ""}">⚡ ${peor ? "+" : "-"}${Math.abs(ahorroPct)}% ${escHtml(t("comp.deTiempo"))}</span>
       </div>`;
     }).join("");
 
@@ -920,10 +920,10 @@
     const capacidadLiberada = cargaPrevia - nuevaCarga;
     if (impacto) {
       impacto.innerHTML = `
-        <div class="impacto-card"><div class="value">${cargaPrevia.toFixed(0)}h</div><div class="label">Carga de trabajo previa (As-Is) / mes</div></div>
-        <div class="impacto-card"><div class="value">${nuevaCarga.toFixed(0)}h</div><div class="label">Nueva carga estimada (To-Be) / mes</div></div>
-        <div class="impacto-card impacto-card--liberada"><div class="value">${capacidadLiberada.toFixed(0)}h</div><div class="label">Capacidad liberada para tareas de mayor valor</div></div>
-        <div class="impacto-card"><div class="value">${totalManual > 0 ? Math.round((capacidadLiberada / cargaPrevia) * 100) : 0}%</div><div class="label">Eficiencia ganada sobre la carga original</div></div>`;
+        <div class="impacto-card"><div class="value">${cargaPrevia.toFixed(0)}h</div><div class="label">${escHtml(t("card.cargaPrevia"))}</div></div>
+        <div class="impacto-card"><div class="value">${nuevaCarga.toFixed(0)}h</div><div class="label">${escHtml(t("card.nuevaCarga"))}</div></div>
+        <div class="impacto-card impacto-card--liberada"><div class="value">${capacidadLiberada.toFixed(0)}h</div><div class="label">${escHtml(t("card.capacidadLiberada"))}</div></div>
+        <div class="impacto-card"><div class="value">${totalManual > 0 ? Math.round((capacidadLiberada / cargaPrevia) * 100) : 0}%</div><div class="label">${escHtml(t("card.eficienciaGanada"))}</div></div>`;
     }
     // El resto de la Sección 4 (ROI, métricas y presentación) vive de estos números.
     if (typeof actualizarAtajoRoi === "function") actualizarAtajoRoi();
@@ -978,7 +978,7 @@
     tasks.forEach(t => rows.push(GANTT_CSV_COLUMNS.map(c => csvField(t[c.field])).join(",")));
     const csv = "﻿" + rows.join("\r\n") + "\r\n";
     downloadBlob(`gantt-${state.app_meta.id_expediente}.csv`, csv, "text/csv");
-    setIoStatus("Gantt descargado en CSV. Complétalo en Excel/Sheets y vuelve a cargarlo cuando quieras.");
+    setIoStatus(t("toast.ganttCsv"));
   }
 
   function parseCsvLine(line) {
@@ -1004,7 +1004,7 @@
         let text = reader.result;
         if (text.charCodeAt(0) === 0xFEFF) text = text.slice(1);
         const lines = text.split(/\r\n|\n/).filter(l => l.trim().length);
-        if (!lines.length) throw new Error("el archivo está vacío.");
+        if (!lines.length) throw new Error(t("error.csvVacio"));
         const headers = parseCsvLine(lines[0]).map(h => h.trim());
         const colIndex = {};
         GANTT_CSV_COLUMNS.forEach(c => {
@@ -1012,7 +1012,7 @@
           if (idx >= 0) colIndex[c.field] = idx;
         });
         if (colIndex.nombre === undefined && colIndex.id_tarea === undefined) {
-          throw new Error("no encontré las columnas esperadas (ID, Nombre, ...). Usa la plantilla descargada con \"Descargar Gantt (CSV para Excel)\".");
+          throw new Error(t("error.csvColumnas"));
         }
         const nuevasFilas = lines.slice(1)
           .map(line => {
@@ -1028,9 +1028,9 @@
         if (!nuevasFilas.length) addGanttRow();
         actualizarSugerenciasDias();
         refrescarVistaActiva();
-        setIoStatus(`Se cargaron ${nuevasFilas.length} tarea(s) desde el CSV, reemplazando la tabla anterior.`);
+        setIoStatus(t("toast.csvCargado", { n: nuevasFilas.length }));
       } catch (e) {
-        setIoStatus("⚠️ No se pudo leer el CSV: " + e.message);
+        setIoStatus(t("toast.csvError", { msg: e.message }));
       }
     };
     reader.readAsText(file, "UTF-8");
@@ -1088,13 +1088,13 @@
 <body>
   <h1>Gantt / Kanban — ${escHtml(nombre)}</h1>
   <p class="meta">Generado por AI Project Guide el ${fmtFecha(new Date())} · Archivo autocontenido, sin conexión a internet.</p>
-  <h2>📊 Gantt (operación base + proyecto, plan vs. ejecución real)</h2>
+  <h2>${escHtml(t("export.gantt"))}</h2>
   <div class="gantt-visual">${ganttMarkup(tasks, habituales)}</div>
-  <h2>🗂️ Kanban</h2>
+  <h2>${escHtml(t("export.kanban"))}</h2>
   <div class="kanban-board">${kanbanMarkup(tasks)}</div>
 </body></html>`;
     downloadBlob(`gantt-kanban-${state.app_meta.id_expediente}.html`, html, "text/html");
-    setIoStatus("Gantt/Kanban descargado.");
+    setIoStatus(t("toast.ganttKanban"));
   }
 
   /* ------------------------------------------------------------------ SECCIÓN 2 */
@@ -1333,7 +1333,7 @@
     const completas = Object.values(respuestas).filter(Boolean).length;
     if (completas === 0) {
       box.className = "status-box";
-      box.innerHTML = `<p style="margin:0;color:var(--color-text-muted);">Responde las preguntas de arriba para ver tu recomendación.</p>`;
+      box.innerHTML = `<p style="margin:0;color:var(--color-text-muted);">${escHtml(t("s2.sinRespuestas"))}</p>`;
       state.seccion_2_clasificacion_proyecto.recomendacion = { nombre_tecnico: "", guia: "", investigar_con_ia: "", advertencia_seguridad: "" };
       renderMatrizRiesgos({ requisitos: [] });
       return;
@@ -1344,9 +1344,9 @@
     box.innerHTML = `
       <h4>🎯 ${escHtml(rec.nombre_tecnico)}</h4>
       <p>${escHtml(rec.guia)}</p>
-      <p><strong>Investigar con IA:</strong> ${escHtml(rec.investigar_con_ia)}</p>
+      <p><strong>${escHtml(t("s2.investigar"))}</strong> ${escHtml(rec.investigar_con_ia)}</p>
       ${rec.advertencia_seguridad ? `<p style="color:var(--color-danger);margin-top:.5rem;">${escHtml(rec.advertencia_seguridad)}</p>` : ""}
-      ${completas < 5 ? `<p style="margin-top:.5rem;font-size:.78rem;opacity:.75;">Basado en ${completas}/5 respuestas — completa todas para una recomendación más precisa.</p>` : ""}`;
+      ${completas < 5 ? `<p style="margin-top:.5rem;font-size:.78rem;opacity:.75;">${escHtml(t("s2.basadoEn", { n: completas }))}</p>` : ""}`;
     renderMatrizRiesgos(rec);
   }
 
@@ -1357,11 +1357,11 @@
     box.hidden = false;
     box.innerHTML = `
       <div class="riesgos-col">
-        <p class="hint-title">✅ Requisitos previos</p>
+        <p class="hint-title">${escHtml(t("s2.requisitos"))}</p>
         <ul class="hint-list">${rec.requisitos.map(x => `<li>${escHtml(x)}</li>`).join("")}</ul>
       </div>
       <div class="riesgos-col">
-        <p class="hint-title">⚠️ Puntos a vigilar</p>
+        <p class="hint-title">${escHtml(t("s2.riesgos"))}</p>
         <ul class="hint-list">${(rec.riesgos || []).map(x => `<li>${escHtml(x)}</li>`).join("")}</ul>
       </div>`;
   }
@@ -1402,7 +1402,7 @@
     });
 
     downloadText(`catalogo-recursos-${nombre.replace(/\s+/g, "-").toLowerCase() || "proceso"}.md`, md.join("\n"));
-    setIoStatus("Catálogo descargado en Markdown.");
+    setIoStatus(t("toast.catalogoMd"));
   }
 
   /* ------------------------------------------------------------------ SECCIÓN 3 */
@@ -1462,7 +1462,7 @@
       <td><input type="number" step="0.1" data-f="meta_esperada_to_be" value="${data.meta_esperada_to_be || 0}" /></td>
       <td><select data-f="frecuencia_medicion"><option${!data.frecuencia_medicion || data.frecuencia_medicion === "Diario" ? " selected" : ""}>Diario</option><option${data.frecuencia_medicion === "Semanal" ? " selected" : ""}>Semanal</option><option${data.frecuencia_medicion === "Mensual" ? " selected" : ""}>Mensual</option></select></td>
       <td><input data-f="origen_datos_google" value="${data.origen_datos_google || ""}" placeholder="Sheets, Looker…" /></td>
-      <td><button type="button" class="btn-icon" aria-label="Eliminar KPI">🗑️</button></td>`;
+      <td><button type="button" class="btn-icon" aria-label="${escAttr(t("aria.eliminarKpi"))}">🗑️</button></td>`;
     tr.querySelector("button").addEventListener("click", () => tr.remove());
     tbody.appendChild(tr);
   }
@@ -1481,10 +1481,10 @@
     const horasMes = horasSemana * SEMANAS_MES;
     const horasAnio = horasSemana * DIAS_HABILES.anio / DIAS_HABILES.semana;
     document.getElementById("roiResumen").innerHTML = `
-      <div class="summary-card"><div class="value">${horasMes.toFixed(1)}h</div><div class="label">Horas liberadas / mes</div></div>
-      <div class="summary-card"><div class="value">${horasAnio.toFixed(0)}h</div><div class="label">Horas liberadas / año</div></div>
-      <div class="summary-card"><div class="value">${dinero(horasMes * costo)}</div><div class="label">Retorno estimado / mes (USD)</div></div>
-      <div class="summary-card summary-card--destacada"><div class="value">${dinero(horasAnio * costo)}</div><div class="label">Retorno estimado / año (USD)</div></div>`;
+      <div class="summary-card"><div class="value">${horasMes.toFixed(1)}h</div><div class="label">${escHtml(t("card.horasMes"))}</div></div>
+      <div class="summary-card"><div class="value">${horasAnio.toFixed(0)}h</div><div class="label">${escHtml(t("card.horasAnio"))}</div></div>
+      <div class="summary-card"><div class="value">${dinero(horasMes * costo)}</div><div class="label">${escHtml(t("card.retornoMes"))}</div></div>
+      <div class="summary-card summary-card--destacada"><div class="value">${dinero(horasAnio * costo)}</div><div class="label">${escHtml(t("card.retornoAnio"))}</div></div>`;
     actualizarAtajoRoi();
     renderPresentacion();
   }
@@ -1499,7 +1499,7 @@
     const sugerido = Number(imp.ahorroSemana.toFixed(1));
     if (!imp.hayDatos || sugerido <= 0 || Math.abs(sugerido - actual) < 0.05) { btn.hidden = true; return; }
     btn.hidden = false;
-    btn.textContent = `⤵ Usar el ahorro del comparativo (${sugerido.toFixed(1)} h/semana)`;
+    btn.textContent = t("s4.atajoRoi", { h: sugerido.toFixed(1) });
   }
 
   function dinero(n) {
@@ -1596,7 +1596,7 @@
     document.getElementById("btnExportResumen").addEventListener("click", exportResumenEjecutivo);
 
     document.getElementById("btnAddChecklist").addEventListener("click", () => addRow("checklistRows", "tpl-checklist-row", { item: "" }, () => { }));
-    ["Validar que no se incluyó información confidencial", "Probar con datos sintéticos en sandbox", "Revisar permisos mínimos (least privilege)", "Definir rollback / mecanismo STOP", "Obtener aprobación del sponsor"].forEach(item => addRow("checklistRows", "tpl-checklist-row", { item }, () => { }));
+    [t("check.confidencial"), t("check.sandbox"), t("check.permisos"), t("check.rollback"), t("check.sponsor")].forEach(item => addRow("checklistRows", "tpl-checklist-row", { item }, () => { }));
 
     document.getElementById("btnFinalize").addEventListener("click", exportManualCompleto);
 
@@ -1604,7 +1604,7 @@
       const imp = calcularImpacto();
       setVal("s3_ahorro_horas", n1(imp.ahorroSemana));
       updateRoi();
-      setIoStatus("Ahorro traído del comparativo. Puedes ajustarlo a mano si quieres ser más conservador.");
+      setIoStatus(t("toast.ahorroTraido"));
     });
 
     // El entregable y las dudas alimentan los dos prompts de cierre.
@@ -1653,22 +1653,22 @@
     dudas.detalle = val("s4_dudas_detalle");
     const marcadas = dudas.puntos_confusos || [];
     if (!marcadas.length && !dudas.detalle.trim()) {
-      box.innerHTML = `<p class="hint-footnote" style="margin-top:.9rem">Marca al menos una casilla o escribe tu duda para que armemos la consulta.</p>`;
+      box.innerHTML = `<p class="hint-footnote" style="margin-top:.9rem">${escHtml(t("s4.dudasVacio"))}</p>`;
       return;
     }
     const yaEstaba = !!document.getElementById("promptDudas");
     if (!yaEstaba) {
       box.innerHTML = `
-        <p class="hint-title" style="margin-top:1.1rem">Tu consulta, lista para pegar</p>
+        <p class="hint-title" style="margin-top:1.1rem">${escHtml(t("s4.consultaLista"))}</p>
         <pre class="prompt-box" id="promptDudas"></pre>
         <div class="panel-actions" style="margin-top:.6rem; justify-content:flex-start; gap:.6rem;">
-          <button type="button" class="btn-primary" id="btnCopiarDudas">📋 Copiar consulta</button>
-          <button type="button" class="btn-secondary" id="btnDescargarDudas">⬇️ Descargar (.md)</button>
+          <button type="button" class="btn-primary" id="btnCopiarDudas">${escHtml(t("s4.btnCopiarConsulta"))}</button>
+          <button type="button" class="btn-secondary" id="btnDescargarDudas">${escHtml(t("s4.btnDescargarMd"))}</button>
         </div>`;
-      document.getElementById("btnCopiarDudas").addEventListener("click", () => copiarTexto(construirConsultaDudas(), "Consulta copiada. Pegala en tu asistente de IA."));
+      document.getElementById("btnCopiarDudas").addEventListener("click", () => copiarTexto(construirConsultaDudas(), t("toast.consultaCopiada")));
       document.getElementById("btnDescargarDudas").addEventListener("click", () => {
         downloadText(`consulta-dudas-${state.app_meta.id_expediente}.md`, construirConsultaDudas());
-        setIoStatus("Consulta descargada.");
+        setIoStatus(t("toast.consultaDescargada"));
       });
     }
     document.getElementById("promptDudas").textContent = construirConsultaDudas();
@@ -1762,10 +1762,10 @@
     armarPicker("audienciaPicker", pres.audiencias, "audiencia");
     armarPicker("objetivoPicker", pres.objetivos, "objetivo");
 
-    document.getElementById("btnCopiarPresentacion").addEventListener("click", () => copiarTexto(construirPromptPresentacion(), "Prompt de presentación copiado."));
+    document.getElementById("btnCopiarPresentacion").addEventListener("click", () => copiarTexto(construirPromptPresentacion(), t("toast.presentacionCopiada")));
     document.getElementById("btnDescargarPresentacion").addEventListener("click", () => {
       downloadText(`prompt-presentacion-${state.app_meta.id_expediente}.md`, construirPromptPresentacion());
-      setIoStatus("Prompt de presentación descargado.");
+      setIoStatus(t("toast.presentacionDescargada"));
     });
     renderPresentacion();
   }
@@ -1775,19 +1775,19 @@
     if (!cont) return;
     const imp = calcularImpacto();
     if (!imp.hayDatos) {
-      cont.innerHTML = `<p class="comparativo-empty" style="grid-column:1/-1">Todavía no hay números que mostrar: carga arriba cuánto tarda ahora cada tarea. El prompt se arma igual, pero con los tiempos en blanco.</p>`;
+      cont.innerHTML = `<p class="comparativo-empty" style="grid-column:1/-1">${escHtml(t("s4.sinNumeros"))}</p>`;
     } else {
       cont.innerHTML = `
-        <div class="impacto-card"><div class="value">${n1(imp.semanaAsIs)}h</div><div class="label">Antes · por semana</div></div>
-        <div class="impacto-card"><div class="value">${n1(imp.semanaToBe)}h</div><div class="label">Ahora · por semana</div></div>
-        <div class="impacto-card impacto-card--liberada"><div class="value">${imp.ahorroAnio.toFixed(0)}h</div><div class="label">Horas liberadas al año</div></div>
-        <div class="impacto-card"><div class="value">${Math.round(imp.pct)}%</div><div class="label">Eficiencia ganada</div></div>
-        ${imp.costoHora > 0 ? `<div class="impacto-card impacto-card--liberada"><div class="value">${dinero(imp.ahorroUsdAnio)}</div><div class="label">Retorno estimado al año</div></div>` : ""}`;
+        <div class="impacto-card"><div class="value">${n1(imp.semanaAsIs)}h</div><div class="label">${escHtml(t("card.antesSemana"))}</div></div>
+        <div class="impacto-card"><div class="value">${n1(imp.semanaToBe)}h</div><div class="label">${escHtml(t("card.ahoraSemana"))}</div></div>
+        <div class="impacto-card impacto-card--liberada"><div class="value">${imp.ahorroAnio.toFixed(0)}h</div><div class="label">${escHtml(t("card.horasLiberadasAnio"))}</div></div>
+        <div class="impacto-card"><div class="value">${Math.round(imp.pct)}%</div><div class="label">${escHtml(t("card.eficiencia"))}</div></div>
+        ${imp.costoHora > 0 ? `<div class="impacto-card impacto-card--liberada"><div class="value">${dinero(imp.ahorroUsdAnio)}</div><div class="label">${escHtml(t("card.retornoAnual"))}</div></div>` : ""}`;
     }
     const pres = asegurarCierreSeccion4().presentacion;
     const aud = (CONTENIDO.PRESENTACION.audiencias || []).find(a => a.id === pres.audiencia);
     const nota = document.getElementById("audienciaNota");
-    if (nota) nota.textContent = aud ? aud.enfoque : "Elige a quién se lo vas a mostrar: cambia el énfasis del guion, no los números.";
+    if (nota) nota.textContent = aud ? aud.enfoque : t("s4.elegiAudiencia");
     document.querySelectorAll("#audienciaPicker [data-valor]").forEach(o => o.setAttribute("aria-checked", o.dataset.valor === pres.audiencia ? "true" : "false"));
     document.querySelectorAll("#objetivoPicker [data-valor]").forEach(o => o.setAttribute("aria-checked", o.dataset.valor === pres.objetivo ? "true" : "false"));
     actualizarPromptPresentacion();
@@ -1914,7 +1914,7 @@
       try { copiado = document.execCommand("copy"); } catch (e) { copiado = false; }
       document.body.removeChild(ta);
       if (copiado) ok();
-      else setIoStatus("⚠️ Tu navegador bloqueó el copiado: selecciona el texto del recuadro y cópialo a mano.");
+      else setIoStatus(t("toast.copiadoBloqueado"));
     };
     if (navigator.clipboard && navigator.clipboard.writeText) navigator.clipboard.writeText(texto).then(ok).catch(fallback);
     else fallback();
@@ -2048,7 +2048,7 @@
     if (!box) return;
     const data = sugerenciasDelNivel();
     if (!data) {
-      box.innerHTML = `<p style="margin:0;color:var(--color-text-muted);font-size:.85rem;">Selecciona un tipo de desarrollo para ver las ideas sugeridas.</p>`;
+      box.innerHTML = `<p style="margin:0;color:var(--color-text-muted);font-size:.85rem;">${escHtml(t("s3.sinTipoIdeas"))}</p>`;
       return;
     }
     const marcadas = new Set(state.seccion_3_compresion_proyecto.sugerencias_seleccionadas || []);
@@ -2065,10 +2065,10 @@
       <p class="sugerencias-etiqueta">${escHtml(data.etiqueta)}</p>
       <p class="sugerencias-lede">${escHtml(data.lede)}</p>
       <div class="sugerencias-grid">
-        ${bloque("💡 Construcción y estrategia", data.estrategia)}
-        ${bloque("🛠️ Recursos y enfoque técnico", data.recursos)}
+        ${bloque(t("s3.bloqueEstrategia"), data.estrategia)}
+        ${bloque(t("s3.bloqueRecursos"), data.recursos)}
       </div>
-      <p class="hint-title" style="margin-top:1.1rem">Elige las ideas que se parezcan a lo que necesitas</p>
+      <p class="hint-title" style="margin-top:1.1rem">${escHtml(t("s3.eligeIdeas"))}</p>
       <div class="idea-grid">
         ${data.ideas.map(idea => `
           <label class="idea-card" data-idea="${escAttr(idea.id)}">
@@ -2100,9 +2100,7 @@
     const el = document.getElementById("ideaContador");
     if (!el) return;
     const n = (state.seccion_3_compresion_proyecto.sugerencias_seleccionadas || []).length;
-    el.textContent = n === 0
-      ? "Ninguna idea marcada todavía — el prompt saldrá más genérico."
-      : `${n} idea${n === 1 ? "" : "s"} marcada${n === 1 ? "" : "s"}: van a entrar en el prompt maestro.`;
+    el.textContent = n === 0 ? t("s3.sinIdeas") : t("s3.ideasMarcadas", { n });
   }
 
   /* ---------------- Lanzador de prompt y selección de IA ---------------- */
@@ -2111,7 +2109,7 @@
     if (!box) return;
     const data = sugerenciasDelNivel();
     if (!data) {
-      box.innerHTML = `<p style="margin:0;color:var(--color-text-muted);font-size:.85rem;">Disponible en cuanto selecciones un tipo de desarrollo.</p>`;
+      box.innerHTML = `<p style="margin:0;color:var(--color-text-muted);font-size:.85rem;">${escHtml(t("s3.sinTipoPrompt"))}</p>`;
       return;
     }
     const s3 = state.seccion_3_compresion_proyecto;
@@ -2119,22 +2117,21 @@
     const iaElegida = s3.ia_preferida;
 
     box.innerHTML = `
-      <p class="hint-title">1 · Elige tu asistente de IA</p>
-      <div class="level-picker level-picker--compact" id="iaPicker" role="radiogroup" aria-label="Asistente de IA">
+      <p class="hint-title">${escHtml(t("s3.pasoIA"))}</p>
+      <div class="level-picker level-picker--compact" id="iaPicker" role="radiogroup" aria-label="${escAttr(t("s3.ariaAsistente"))}">
         ${CONTENIDO.IA_GUIA.map(ia => `
           <div class="level-option" role="radio" tabindex="0" aria-checked="${ia.id === iaElegida ? "true" : "false"}" data-ia="${escAttr(ia.id)}">
-            <strong>${escHtml(ia.nombre)}${ia.ideal.includes(nivel) ? ' <span class="ia-badge">sugerida</span>' : ""}</strong>
+            <strong>${escHtml(ia.nombre)}${ia.ideal.includes(nivel) ? ` <span class="ia-badge">${escHtml(t("s3.sugerida"))}</span>` : ""}</strong>
           </div>`).join("")}
       </div>
       <p class="ia-fortaleza" id="iaFortaleza"></p>
-      <p class="hint-title" style="margin-top:1.1rem">2 · Copia tu prompt maestro</p>
+      <p class="hint-title" style="margin-top:1.1rem">${escHtml(t("s3.pasoPrompt"))}</p>
       <pre class="prompt-box" id="promptMaestro"></pre>
       <div class="panel-actions" style="margin-top:.6rem; justify-content:flex-start; gap:.6rem;">
-        <button type="button" class="btn-primary" id="btnCopiarPrompt">📋 Copiar prompt maestro</button>
-        <button type="button" class="btn-secondary" id="btnDescargarPrompt">⬇️ Descargar prompt (.md)</button>
+        <button type="button" class="btn-primary" id="btnCopiarPrompt">${escHtml(t("s3.btnCopiarMaestro"))}</button>
+        <button type="button" class="btn-secondary" id="btnDescargarPrompt">${escHtml(t("s3.btnDescargarPrompt"))}</button>
       </div>
-      <p class="hint-footnote" style="margin-top:.6rem">🛡️ Antes de pegarlo: revisa que no lleve nombres de clientes,
-        cifras confidenciales ni credenciales. Generaliza o usa datos inventados.</p>`;
+      <p class="hint-footnote" style="margin-top:.6rem">${escHtml(t("s3.avisoPegar"))}</p>`;
 
     box.querySelectorAll("[data-ia]").forEach(el => {
       const elegir = () => {
@@ -2148,7 +2145,7 @@
     document.getElementById("btnCopiarPrompt").addEventListener("click", copiarPromptMaestro);
     document.getElementById("btnDescargarPrompt").addEventListener("click", () => {
       downloadText(`prompt-maestro-${state.app_meta.id_expediente}.md`, construirPromptMaestro());
-      setIoStatus("Prompt maestro descargado.");
+      setIoStatus(t("toast.promptDescargado"));
     });
     actualizarPromptMaestro();
   }
@@ -2160,7 +2157,7 @@
     const nota = document.getElementById("iaFortaleza");
     if (nota) nota.textContent = ia
       ? `${ia.nombre}: ${ia.fortaleza}`
-      : "Elige un asistente para ver su punto fuerte — el prompt funciona igual en cualquiera de ellos.";
+      : t("s3.elegiAsistente");
   }
 
   function construirPromptMaestro() {
@@ -2222,7 +2219,7 @@
   function copiarPromptMaestro() {
     // copiarTexto() cae a execCommand porque con file:// algunos navegadores
     // bloquean la Clipboard API.
-    copiarTexto(construirPromptMaestro(), "Prompt maestro copiado. Pégalo en tu asistente de IA.");
+    copiarTexto(construirPromptMaestro(), t("toast.promptCopiado"));
   }
 
   /* ---------------- Catálogo de recursos: documento imprimible (PDF) ---------------- */
@@ -2332,7 +2329,7 @@
       window.removeEventListener("afterprint", restaurar);
     };
     window.addEventListener("afterprint", restaurar);
-    setIoStatus("En el diálogo de impresión elige «Guardar como PDF» y activa «Gráficos de fondo».");
+    setIoStatus(t("toast.imprimirCatalogo"));
     window.print();
     // Algunos navegadores no disparan afterprint de forma fiable: red de seguridad.
     setTimeout(() => { if (document.body.classList.contains("imprimiendo-catalogo")) restaurar(); }, 3000);
@@ -2379,7 +2376,7 @@
       "```"
     ];
     downloadText(`plan-proyecto-${s.app_meta.id_expediente}.md`, md.join("\n"));
-    setIoStatus("Plan de proyecto descargado.");
+    setIoStatus(t("toast.planProyecto"));
   }
 
   /* ------------------------------------------------------------------ COLLECT / HYDRATE */
@@ -2518,7 +2515,7 @@
     renderPresentacion();
 
     goToStep(state.app_meta.etapa_actual || 1);
-    setIoStatus(`Expediente ${state.app_meta.id_expediente} cargado — tu avance fue restaurado.`);
+    setIoStatus(t("toast.expedienteCargado", { id: state.app_meta.id_expediente }));
   }
 
   /* ------------------------------------------------------------------ IMPORT / EXPORT */
@@ -2545,10 +2542,10 @@
     reader.onload = () => {
       try {
         const data = JSON.parse(reader.result);
-        if (!data.schema_version) throw new Error("El archivo no tiene schema_version.");
+        if (!data.schema_version) throw new Error(t("error.sinSchema"));
         hydrateState(data);
       } catch (e) {
-        setIoStatus("⚠️ No se pudo cargar el archivo: " + e.message);
+        setIoStatus(t("toast.archivoError", { msg: e.message }));
       }
     };
     reader.readAsText(file);
@@ -2562,7 +2559,7 @@
       downloadJSON(`expediente-${state.app_meta.id_expediente}-etapa${state.app_meta.etapa_actual}.json`, state);
       markStepComplete(state.app_meta.etapa_actual);
       goToStep(currentStep);
-      setIoStatus("Expediente guardado correctamente. Puedes volver a cargarlo cuando gustes.");
+      setIoStatus(t("toast.expedienteGuardado"));
     });
     document.getElementById("btnExportPrint").addEventListener("click", () => {
       collectState();

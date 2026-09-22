@@ -24,7 +24,9 @@ comparativo manual vs. herramienta y skills seleccionadas).
 - [ ] Cambiar de idioma NO altera el expediente: canal/formato y niveles se guardan como ids.
 - [ ] Un `.json` guardado en un idioma se abre igual en otro.
 - [ ] `node tests/verificar-textos.js` pasa: claves parejas en los tres idiomas y ninguna faltante.
-- [ ] PENDIENTE: quedan en español los textos que dibuja app.js fuera de los bancos de preguntas (avisos flotantes, etiquetas de las tarjetas de impacto/ROI, galería y lanzador de prompt). Ver nota en CLAUDE.md.
+- [ ] Las 4 secciones se ven completas en los tres idiomas: encabezados, preguntas, tarjetas de impacto/ROI, galería, lanzador, Gantt/Kanban y avisos flotantes.
+- [ ] Siguen en español (a propósito) los valores que viajan en el CSV: estados, urgencias, tipo de tarea y frecuencia de KPI.
+- [ ] El Gantt y el Kanban se dibujan sin errores de consola en inglés y portugués (ahí vivía el choque entre la variable `t` y la función de traducción).
 
 ## Navegación
 - [x] Los 4 pasos del tracker horizontal cambian de panel al hacer clic.

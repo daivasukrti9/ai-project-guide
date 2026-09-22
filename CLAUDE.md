@@ -61,10 +61,12 @@ docs/
   nivel, audiencia…). Un expediente creado en un idioma se abre igual en otro.
 - El contenido editorial largo (galerías de ideas, guías por nivel, catálogo
   del PDF y los prompts generados) se mantiene en español a propósito.
-- Pendiente: los textos que dibuja `app.js` fuera de los bancos de preguntas
-  (avisos flotantes, tarjetas de impacto/ROI, galería y lanzador) siguen en
-  español. Al traducirlos, agregar la clave a los tres diccionarios y correr
-  `node tests/verificar-textos.js`.
+- Siguen en español, a propósito, los **valores que se persisten** y viajan en
+  el CSV: estados del Gantt (`No Iniciado`…), urgencias (`⚡ Urgente`…), tipo de
+  tarea y frecuencia de KPI. Traducir su etiqueta rompería el contrato del CSV.
+- Al agregar un texto nuevo: sumar la clave a los tres diccionarios y correr
+  `node tests/verificar-textos.js`. **No llamar `t` a una variable de callback**:
+  sombrea la función de traducción y el verificador lo rechaza.
 
 ## Convención de documentación
 - Markdown en `docs/` y `knowledge/`. Un archivo por decisión/tema, sin acumular todo en un solo documento gigante.

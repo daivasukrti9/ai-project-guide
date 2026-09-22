@@ -135,6 +135,32 @@ for (let n = 1; n <= 4; n++) {
   }
 }
 
+/* ---- 2.e `t` sombreada. Si un callback recibe un parámetro llamado t,
+        dentro de su cuerpo t("clave") llama a ese valor y revienta. ---- */
+for (const m of app.matchAll(/[(,]\s*t\s*=>\s*/g)) {
+  let i = m.index + m[0].length;
+  let fin = i;
+  if (app[i] === "{" || app[i] === "(") {
+    const abre = app[i], cierra = abre === "{" ? "}" : ")";
+    let prof = 0;
+    for (let j = i; j < app.length; j++) {
+      if (app[j] === abre) prof++;
+      else if (app[j] === cierra) { prof--; if (prof === 0) { fin = j; break; } }
+    }
+  } else if (app[i] === "`") {
+    const j = app.indexOf("`", i + 1);
+    fin = j === -1 ? i : j;
+  } else {
+    fin = app.indexOf("\n", i);
+  }
+  const cuerpo = app.slice(i, fin);
+  const usos = cuerpo.match(/(?<![\w.])t\(\s*["`]/g);
+  if (usos) {
+    const linea = app.slice(0, m.index).split("\n").length;
+    errores.push(`app.js:${linea} — el callback recibe un parámetro llamado "t" y adentro hay ${usos.length} llamada(s) t("…"): renombrar el parámetro (la traducción quedaría invocando la variable)`);
+  }
+}
+
 /* ---- 3. Paridad entre idiomas ---- */
 for (const idioma of idiomas) {
   if (idioma === base) continue;
