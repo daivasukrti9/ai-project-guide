@@ -20,7 +20,8 @@ Abre [`src/index.html`](src/index.html) directamente en el navegador. No
 requiere instalación, servidor ni conexión a internet.
 
 Disponible en **español, inglés y portugués** — se elige desde el selector del
-encabezado y la preferencia se recuerda.
+encabezado y la preferencia se recuerda. Se traduce todo: la interfaz, las
+guías, los prompts que genera y los descargables.
 
 Hay además una versión con el logo corporativo en
 [`src/index-stt.html`](src/index-stt.html), generada desde la neutra con

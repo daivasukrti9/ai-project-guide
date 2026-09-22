@@ -187,6 +187,15 @@ body{
 .step-item[data-state="done"] .step-badge::before{ content:"✓"; }
 .step-title{ font-weight:600; font-size:.76rem; line-height:1.25; color:var(--color-text-muted); }
 .step-item[data-state="active"] .step-title{ color:var(--color-primary); }
+@media (max-width:440px){
+  /* En pantalla de teléfono el tracker se comprime en vez de desbordar:
+     los rótulos se achican y las líneas conectoras casi desaparecen. */
+  .step-list{ max-width:100%; }
+  .step-item{ flex:1 1 0; min-width:0; }
+  .step-btn{ width:100%; padding:0 .15rem; }
+  .step-title{ font-size:.62rem; hyphens:auto; }
+  .tracker-line{ flex:0 1 10px; min-width:6px; }
+}
 @media (max-width:760px){
   .step-title{ display:none; }
   .tracker-line{ flex-basis:20px; }
@@ -360,7 +369,16 @@ button{ font: inherit; cursor:pointer; }
   display:grid; grid-template-columns:1.3fr .9fr 1.3fr .8fr auto; gap:.5rem; padding:0 .5rem;
   font-size:.72rem; text-transform:uppercase; letter-spacing:.03em; color:var(--color-text-muted); margin-bottom:.4rem;
 }
-@media (max-width:760px){ .habitual-header{ display:none; } }
+@media (max-width:760px){
+  .habitual-header{ display:none; }
+  /* La fila se apila: nombre completo arriba, y tipo/detalle/resultado
+     debajo, sin empujar la página a lo ancho. */
+  .row-card--habitual{ grid-template-columns:1fr 1fr auto; row-gap:.4rem; }
+  .row-card--habitual > *{ min-width:0; }
+  .row-card--habitual input[data-f="nombre"]{ grid-column:1/-1; }
+  .row-card--habitual .tarea-detalle{ grid-column:1/-1; flex-wrap:wrap; }
+  .row-card--habitual .tarea-detalle input{ width:3.5rem; }
+}
 .row-card--habitual{ grid-template-columns:1.3fr .9fr 1.3fr .8fr auto; }
 .row-card--habitual .tarea-detalle{ display:flex; align-items:center; gap:.3rem; font-size:.78rem; color:var(--color-text-muted); }
 .row-card--habitual .tarea-detalle input{ width:4rem; padding:.35rem; }

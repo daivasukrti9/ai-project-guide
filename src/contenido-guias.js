@@ -1,7 +1,7 @@
 /* ==========================================================================
    AI Project Guide — contenido editorial (datos, sin lógica)
 
-   Se carga antes de app.js y expone window.AIPG_CONTENT. Vive en su propio
+   Se carga antes de app.js y registra window.AIPG_CONTENIDO.es. Vive en su propio
    archivo para que app.js siga siendo legible: aquí solo hay texto.
 
    Fuentes (copiadas en knowledge/):
@@ -345,5 +345,103 @@
     { id: "mantener", t: "No sé quién lo mantiene si yo no estoy" }
   ];
 
-  window.AIPG_CONTENT = { SUGERENCIAS, IA_GUIA, CATALOGO, PRESENTACION, DUDAS_FRECUENTES };
+  /* ------------------------------------------------------------------
+     Guía larga que se muestra al elegir un tipo de desarrollo. Es HTML
+     porque ya venía así; al traducir, conservar las etiquetas.
+     ------------------------------------------------------------------ */
+  const GUIAS = {
+    "Nivel 1": `
+        <div style="margin-bottom: 1.5rem;">
+          <p class="hint-title"><strong>Arquitectura y Conceptos Básicos</strong></p>
+          <p style="font-size: .85rem; color: var(--color-text);">Para este nivel, el enfoque es conversacional (Chat). La IA actúa como un analista o revisor. No necesitas integraciones técnicas complejas, simplemente debes proporcionar contexto claro y el borrador de lo que deseas mejorar.</p>
+        </div>
+        <div style="margin-bottom: 1.5rem;">
+          <p class="hint-title"><strong>💡 Qué pedir a la IA para generar el material</strong></p>
+          <ul class="hint-list">
+            <li>Pide que te sugiera una estructura óptima para el tipo de documento o presentación (índice, capítulos).</li>
+            <li>Define la <strong>audiencia</strong> (ej. directivos, clientes) y pídele que ajuste el tono y el vocabulario.</li>
+            <li>Solicita una iteración tipo <em>Brainstorming</em> (lluvia de ideas guiada) antes de que la IA genere el contenido final estructurado.</li>
+          </ul>
+        </div>
+        <div style="margin-bottom: 1.5rem;">
+          <p class="hint-title"><strong>⚠️ Prevenciones y Criterio</strong></p>
+          <ul class="hint-list">
+            <li><strong>Desarrollo del Criterio:</strong> No puedes desarrollar criterio si no lees y analizas las discrepancias en lo que la IA te responde. Revisa cuidadosamente cada respuesta, la IA es propensa a inventar datos que suenan convincentes.</li>
+            <li><strong>Seguridad de Datos:</strong> Bajo ningún motivo incluyas datos confidenciales de la empresa (márgenes comerciales reales, balances puros, contraseñas) en la ventana de chat. Usa nombres inventados (datos sintéticos) como "Empresa X".</li>
+            <li><strong>Convierte lo que funcionó en plantilla:</strong> cuando un documento te quede bien, guarda esas instrucciones como una <em>skill</em> reutilizable (instrucciones del sistema o proyecto) en vez de reescribirlas de memoria la próxima vez.</li>
+          </ul>
+        </div>
+      `,
+    "Nivel 2": `
+        <div style="margin-bottom: 1.5rem;">
+          <p class="hint-title"><strong>Arquitectura y Conceptos Básicos</strong></p>
+          <p style="font-size: .85rem; color: var(--color-text);">La IA actuará como tu desarrollador copiloto. Se trata de construir automatizaciones mediante código simple (ej. Macros, Python, Google Apps Script) en la cual la IA genera el código y tú lo pruebas y pones en funcionamiento en un sistema tradicional.</p>
+        </div>
+        <div style="margin-bottom: 1.5rem;">
+          <p class="hint-title"><strong>💡 Qué pedir a la IA para tu Prompt</strong></p>
+          <ul class="hint-list">
+            <li>Pídele que diseñe pequeños <strong>bloques de código</strong> ("funciones") que hagan una sola cosa a la vez (Divide y Vencerás). No pidas el sistema completo en tu primer mensaje.</li>
+            <li>Solicita que el código esté abundantemente <strong>comentado</strong>. Si no entiendes qué hace una línea crucial, exígele que te la explique con metáforas simples antes de ejecutarla.</li>
+          </ul>
+        </div>
+        <div style="margin-bottom: 1.5rem;">
+          <p class="hint-title"><strong>⚠️ Prevenciones y Criterio</strong></p>
+          <ul class="hint-list">
+            <li><strong>Ahorro de Tokens y Contexto:</strong> No envíes sábanas de código gigantes si sabes que el error está en una sola línea. Al aislar las secciones, liberas tokens y reduces confusión.</li>
+            <li><strong>Test de Código:</strong> Prueba cada paso (Unit Test manual) usando planillas y variables de prueba (sandbox). <em>Nunca ejecutes un código nuevo directamente sobre bases de datos o sistemas de producción reales</em>.</li>
+            <li><strong>Formar el Criterio:</strong> Al usar la IA para depurar (debugging), no copies/pegues los errores ciegamente; reflexiona con la herramienta. Así formarás tu intuición algorítmica sobre por qué fallan ciertas cosas.</li>
+          </ul>
+        </div>
+      `,
+    "Nivel 3": `
+        <div style="margin-bottom: 1.5rem;">
+          <p class="hint-title"><strong>Arquitectura y Conceptos Básicos</strong></p>
+          <p style="font-size: .85rem; color: var(--color-text);">La IA actúa aquí como diseñadora de herramientas. Vas a construir una utilidad que otras personas usan sin saber qué hay debajo: un archivo HTML/JS local que abre con doble clic, un libro de Excel con botones o un panel de indicadores. La lógica deja de vivir en una conversación y pasa a vivir dentro de la herramienta, que siempre calcula igual.</p>
+        </div>
+        <div style="margin-bottom: 1.5rem;">
+          <p class="hint-title"><strong>💡 Qué pedir a la IA para tu Prompt</strong></p>
+          <ul class="hint-list">
+            <li>Exige un <strong>único archivo autocontenido</strong>, sin instalaciones ni dependencias de internet: en muchas oficinas no vas a poder instalar nada ni abrir puertos.</li>
+            <li>Define de entrada los <strong>3 a 5 indicadores</strong> que van arriba y bien visibles; el resto es detalle secundario.</li>
+            <li>Pide que <strong>valide lo que carga el usuario</strong> (campos vacíos, fechas mal escritas, duplicados) y que avise con un mensaje claro en vez de mostrar un resultado equivocado.</li>
+            <li>Solicita que te señale <strong>exactamente dónde tocar</strong> para cambiar una fórmula o un umbral, para no depender de la IA cada vez que cambie una regla.</li>
+            <li>Si algún paso de la herramienta implica análisis con IA, pídele que ese paso quede como <strong>plantilla de instrucciones fija</strong> (una skill), con formato de salida exacto, en lugar de redactarlo distinto cada vez.</li>
+          </ul>
+        </div>
+        <div style="margin-bottom: 1.5rem;">
+          <p class="hint-title"><strong>⚠️ Prevenciones y Criterio</strong></p>
+          <ul class="hint-list">
+            <li><strong>Datos dentro del archivo:</strong> si vas a compartir la herramienta, revisa que no lleve datos reales pegados adentro. Distribúyela vacía y que cada quien cargue su propio archivo.</li>
+            <li><strong>Prueba con casos límite:</strong> cero registros, un registro, valores negativos y textos donde esperabas números. Una herramienta que se rompe delante de tu jefe pierde toda credibilidad.</li>
+            <li><strong>Formar el criterio:</strong> pídele que te explique la fórmula en palabras y verifícala a mano con un caso que ya conozcas. Si el número no coincide con tu cálculo manual, el error está en la regla, no en quien la usa.</li>
+          </ul>
+        </div>
+      `,
+    "Nivel 4": `
+        <div style="margin-bottom: 1.5rem;">
+          <p class="hint-title"><strong>Arquitectura y Conceptos Básicos</strong></p>
+          <p style="font-size: .85rem; color: var(--color-text);">Implementación de Agentes Autónomos integrados con herramientas (MCP, APIs, Plugins directos). La IA actuará como orquestador cognitivo: lee opciones, genera su propio razonamiento interno, llama a los sistemas para extraer datos u operar, e interactúa con el usuario final de manera independiente (Agentic Workflow). Requiere profunda gobernanza.</p>
+        </div>
+        <div style="margin-bottom: 1.5rem;">
+          <p class="hint-title"><strong>💡 Qué pedir a la IA al planificar</strong></p>
+          <ul class="hint-list">
+            <li>Pídele a la IA en tu iteración inicial que actúe como un arquitecto enterprise: que diagrame y audite la arquitectura modular detallando cada componente y herramienta externa requerida (bases de datos a afectar, APIs a llamar).</li>
+            <li>Solicita la generación de instrucciones de "Self-Correction" y mecanismos de <em>Escalamiento Humano</em>, forzando a la autonomía a detenerse y generar un trigger si detecta un margen de incertidumbre no mapeado.</li>
+          </ul>
+        </div>
+        <div style="margin-bottom: 1.5rem;">
+          <p class="hint-title"><strong>⚠️ Prevenciones y Criterio Estricto</strong></p>
+          <ul class="hint-list">
+            <li><strong>Micro-Gestión a Macro-Gestión:</strong> Formarte un criterio como orquestador en este nivel implica entender los patrones de fallos, y no operar los flujos por tu cuenta. Se requiere delegar basándote en los reportes del agente, pero supervisando la métrica real.</li>
+            <li><strong>Límites y Consumo (Cortocircuitos):</strong> Un agente atascado puede entrar en un <em>loop o bucle</em> infinito que quema la cuota de tokens. Debes forzar logs robustos y fijar topes duros de intentos antes de un apagado preventivo (Kill Switch).</li>
+            <li><strong>Least Privilege y Aprobación:</strong> Nunca expongas la mutación de bases de datos críticas sin un middleware de aprobación humana incrustado en el flujo (Human-in-the-Loop) como norma absoluta para este tipo de pilotos iniciales.</li>
+          </ul>
+        </div>
+      `
+  };
+
+  /* Cada idioma registra su propio contenido con la MISMA estructura.
+     tests/verificar-contenido.js falla si alguno se desvía. */
+  window.AIPG_CONTENIDO = window.AIPG_CONTENIDO || {};
+  window.AIPG_CONTENIDO.es = { SUGERENCIAS, IA_GUIA, CATALOGO, PRESENTACION, DUDAS_FRECUENTES, GUIAS };
 })();
