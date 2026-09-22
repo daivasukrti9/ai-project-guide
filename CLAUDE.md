@@ -33,6 +33,7 @@ src/
 ├── index.html            # 4 secciones del wizard + sidebar de progreso
 ├── styles.css            # tema claro/oscuro, accesible, print-friendly
 ├── app.js                # estado en memoria, cálculos, import/export JSON
+├── i18n.js               # textos de interfaz + vocabulario de canales/formatos y términos ambiguos
 ├── contenido-guias.js    # solo datos: galerías de ideas por nivel, guía de IA y catálogo del PDF
 ├── skills-catalog.json   # catálogo de skills (fuente portable, también embebido en app.js)
 ├── ilustracion-chica.png # hero del wizard
@@ -50,6 +51,8 @@ docs/
 
 ## Reglas de testing
 - Sin framework de tests (no hay build/CI todavía). Verificación manual vía `tests/checklist-e2e.md`.
+- `node tests/verificar-textos.js` comprueba que no falte ninguna clave de interfaz
+  y que los idiomas estén parejos. Correrlo después de tocar textos.
 - Cubrir siempre: import/export JSON, las 4 secciones, cálculo 80/20, generación de prompt.
 
 ## Convención de documentación

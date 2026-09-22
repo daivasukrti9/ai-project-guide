@@ -155,17 +155,38 @@
               <li><strong>Salida</strong> (lo que entregas): el resultado final que generas — ej. el reporte enviado al
                 cliente.</li>
             </ul>
-            <p class="hint-footnote">📝 Escribe cada una en una línea distinta. Vas a ver cuántos canales de ingreso
-              manejas hoy y cuál conviene estandarizar primero.</p>
+            <p class="hint-footnote">📝 Para cada una, decí <strong>qué es</strong>, <strong>por dónde llega</strong> y
+              <strong>en qué formato</strong>. Con eso vas a ver cuántos canales manejas hoy y cuál conviene
+              estandarizar primero — y los prompts que genera la guía salen concretos en vez de genéricos.</p>
           </div>
-          <div class="grid-2">
-            <label>Entradas (una por línea)
-              <textarea id="s1_entradas" rows="3" placeholder="Correo del cliente&#10;Planilla Excel local"></textarea>
-            </label>
-            <label>Salidas (una por línea)
-              <textarea id="s1_salidas" rows="3"
-                placeholder="Reporte consolidado&#10;Notificación por email"></textarea>
-            </label>
+          <div class="mapeo-grid">
+            <div class="mapeo-col">
+              <p class="mapeo-titulo" data-i18n="s1.mapeo.entradas.titulo">Entradas — lo que recibís para trabajar</p>
+              <div class="mapeo-header">
+                <span data-i18n="s1.mapeo.col.que">¿Qué es?</span>
+                <span data-i18n="s1.mapeo.col.canal">¿Por dónde llega?</span>
+                <span data-i18n="s1.mapeo.col.formato">¿En qué formato?</span>
+                <span></span>
+              </div>
+              <div id="entradasRows" class="repeatable-rows"></div>
+              <button type="button" class="btn-tertiary" id="btnAddEntrada"
+                data-i18n="s1.mapeo.agregarEntrada">+ Agregar entrada</button>
+              <p class="mapeo-resumen" id="entradasResumen" aria-live="polite"></p>
+            </div>
+
+            <div class="mapeo-col">
+              <p class="mapeo-titulo" data-i18n="s1.mapeo.salidas.titulo">Salidas — lo que entregás al terminar</p>
+              <div class="mapeo-header">
+                <span data-i18n="s1.mapeo.col.que">¿Qué es?</span>
+                <span data-i18n="s1.mapeo.col.canalSalida">¿Por dónde se entrega?</span>
+                <span data-i18n="s1.mapeo.col.formato">¿En qué formato?</span>
+                <span></span>
+              </div>
+              <div id="salidasRows" class="repeatable-rows"></div>
+              <button type="button" class="btn-tertiary" id="btnAddSalida"
+                data-i18n="s1.mapeo.agregarSalida">+ Agregar salida</button>
+              <p class="mapeo-resumen" id="salidasResumen" aria-live="polite"></p>
+            </div>
           </div>
           <label class="checkbox-row">
             <input type="checkbox" id="s1_punto_entrada_unico" />
@@ -686,6 +707,17 @@
       externa</span>
   </footer>
 
+  <template id="tpl-mapeo-row">
+    <div class="row-card row-card--mapeo" data-row="mapeo">
+      <input type="text" data-field="texto" />
+      <select data-field="canal"></select>
+      <select data-field="formato"></select>
+      <span class="mapeo-estado" data-field="estado" role="img"></span>
+      <button type="button" class="btn-icon" data-remove-row>🗑️</button>
+      <p class="mapeo-pista" data-field="pista" hidden></p>
+    </div>
+  </template>
+
   <template id="tpl-colaborador-row">
     <div class="row-card row-card--capacidad" data-row="colaborador">
       <input type="text" data-field="nombre_o_rol" placeholder="Nombre o rol" />
@@ -725,6 +757,7 @@
     </div>
   </template>
 
+  <script src="i18n.js"></script>
   <script src="contenido-guias.js"></script>
   <script src="app.js"></script>
 </body>

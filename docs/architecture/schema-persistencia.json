@@ -54,8 +54,30 @@
         "mapeo_entradas_salidas": {
           "type": "object",
           "properties": {
-            "entradas": { "type": "array", "items": { "type": "string" } },
-            "salidas": { "type": "array", "items": { "type": "string" } },
+            "entradas": {
+              "type": "array",
+              "description": "Cada insumo con su canal y formato. Un expediente anterior a esta versión guardaba un array de strings: la app lo migra sola al abrirlo (ver normalizarMapeo en app.js), conservando el texto y dejando canal y formato vacíos.",
+              "items": {
+                "type": "object",
+                "properties": {
+                  "texto": { "type": "string", "description": "Qué es, en las palabras del usuario." },
+                  "canal": { "type": "string", "description": "Id del canal por el que llega (correo, chat, verbal, formulario, carpeta, sistema, papel, otro). Se guarda el id, nunca la etiqueta traducida.", "enum": ["", "correo", "chat", "verbal", "formulario", "carpeta", "sistema", "papel", "otro"] },
+                  "formato": { "type": "string", "description": "Id del formato (pdf, excel, texto, imagen, mensaje, registro, otro).", "enum": ["", "pdf", "excel", "texto", "imagen", "mensaje", "registro", "otro"] }
+                }
+              }
+            },
+            "salidas": {
+              "type": "array",
+              "description": "Cada entregable con su canal y formato. Misma migración que entradas.",
+              "items": {
+                "type": "object",
+                "properties": {
+                  "texto": { "type": "string" },
+                  "canal": { "type": "string", "enum": ["", "correo", "carpeta", "sistema", "chat", "tablero", "impreso", "otro"] },
+                  "formato": { "type": "string", "enum": ["", "excel", "pdf", "correo-confirmacion", "registro", "texto", "grafico", "otro"] }
+                }
+              }
+            },
             "punto_entrada_unico_definido": { "type": "boolean" }
           }
         },

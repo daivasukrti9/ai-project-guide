@@ -548,6 +548,36 @@ button{ font: inherit; cursor:pointer; }
   background:var(--color-surface); border:1px solid var(--color-border); border-radius:var(--radius-sm); padding:1rem; max-height:420px; overflow:auto;
 }
 
+/* ---------- Sección 1: mapeo estructurado de entradas y salidas ---------- */
+.mapeo-grid{ display:grid; grid-template-columns:1fr 1fr; gap:1.25rem; }
+@media (max-width:900px){ .mapeo-grid{ grid-template-columns:1fr; } }
+.mapeo-col{ min-width:0; }
+.mapeo-titulo{ margin:0 0 .5rem; font-weight:700; font-size:.88rem; }
+.mapeo-header{
+  display:grid; grid-template-columns:1.3fr 1fr 1fr auto auto; gap:.5rem;
+  font-size:.68rem; text-transform:uppercase; letter-spacing:.03em;
+  color:var(--color-text-muted); font-weight:700; padding:0 .2rem .3rem;
+}
+.row-card--mapeo{ grid-template-columns:1.3fr 1fr 1fr auto auto; align-items:center; }
+.row-card--mapeo > *{ min-width:0; }
+.row-card--mapeo input, .row-card--mapeo select{ width:100%; font-size:.82rem; padding:.45rem .5rem; }
+.mapeo-estado{ font-size:.95rem; line-height:1; text-align:center; cursor:help; }
+.mapeo-pista{
+  grid-column:1/-1; margin:.15rem 0 0; font-size:.76rem; line-height:1.45;
+  color:var(--color-warning); background:var(--color-warning-bg);
+  border-radius:var(--radius-sm); padding:.4rem .55rem;
+}
+.mapeo-resumen{ margin:.5rem 0 0; font-size:.78rem; color:var(--color-text-muted); }
+.mapeo-resumen[data-estado="completo"]{ color:var(--color-success); font-weight:600; }
+.mapeo-resumen[data-estado="vacio"]{ color:var(--color-warning); }
+@media (max-width:640px){
+  /* En pantalla angosta la fila se apila: el "qué es" ocupa el ancho y
+     canal/formato quedan debajo, sin desbordar la página. */
+  .mapeo-header{ display:none; }
+  .row-card--mapeo{ grid-template-columns:1fr 1fr auto auto; row-gap:.4rem; }
+  .row-card--mapeo input[data-field="texto"]{ grid-column:1/-1; }
+}
+
 /* ---------- Sección 3: galería de ideas y sugerencias ---------- */
 .sugerencias-etiqueta{
   margin:0 0 .25rem; font-size:.78rem; font-weight:700; text-transform:uppercase; letter-spacing:.04em;

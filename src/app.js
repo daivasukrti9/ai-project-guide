@@ -11,6 +11,22 @@
   const SCHEMA_VERSION = "1.0.0";
   const APP_VERSION = "1.0.0";
 
+  /* ------------------------------------------------------------------
+     Textos de interfaz. El idioma activo se resuelve acá; el estado nunca
+     guarda etiquetas traducidas, solo ids.
+     ------------------------------------------------------------------ */
+  const I18N = window.AIPG_I18N || { idiomaPorDefecto: "es", idiomas: { es: {} }, ambiguos: { es: {} }, vocabulario: { entrada: { canales: [], formatos: [] }, salida: { canales: [], formatos: [] } } };
+  let idiomaActivo = I18N.idiomaPorDefecto;
+
+  function t(clave, vars) {
+    const tabla = I18N.idiomas[idiomaActivo] || I18N.idiomas[I18N.idiomaPorDefecto] || {};
+    let texto = tabla[clave];
+    if (texto == null) texto = (I18N.idiomas[I18N.idiomaPorDefecto] || {})[clave];
+    if (texto == null) return clave; // clave sin traducir: visible a propósito
+    if (vars) Object.keys(vars).forEach(k => { texto = texto.split("{" + k + "}").join(vars[k]); });
+    return texto;
+  }
+
   function escAttr(str) {
     return String(str == null ? "" : str).replace(/[&<>"']/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
   }
@@ -130,6 +146,7 @@
       seccion_1_ordenar_trabajo: {
         metadata_proceso: { id_proceso: "", nombre_proceso: "", departamento: "", responsable_proceso: "", fecha_evaluacion: "", nivel_madurez_actual: "Nivel 1: Asistencia / Presentaciones" },
         mapeo_entradas_salidas: { entradas: [], salidas: [], punto_entrada_unico_definido: false },
+        // entradas/salidas: [{ texto, canal, formato }] — ver normalizarMapeo()
         metricas_tiempo_y_costos: { frecuencia_ejecucion: "Diaria", volumen_ejecuciones_mes: 0, horas_hombre_por_ejecucion: 0, horas_hombre_totales_mes: 0, numero_personas_involucradas: 0, costo_hora_promedio_usd: 0, tiempo_espera_o_bloqueo_horas: 0, jornada_laboral_horas_dia: 8 },
         tareas_habituales: [],
         capacidad_80_20: { modo_equipo: false, horas_jornada_semanal: 40, porcentaje_innovacion: 0.2, colaboradores: [] },
@@ -320,6 +337,10 @@
 
   function initSeccion1() {
     document.getElementById("btnAddColaborador").addEventListener("click", () => addRow("capacidadRows", "tpl-colaborador-row", {}, calcularCapacidad));
+    document.getElementById("btnAddEntrada").addEventListener("click", () => { addMapeoRow("entrada"); renderResumenMapeo("entrada"); });
+    document.getElementById("btnAddSalida").addEventListener("click", () => { addMapeoRow("salida"); renderResumenMapeo("salida"); });
+    renderMapeoCompleto();
+
     document.getElementById("btnAddDolor").addEventListener("click", () => addRow("dolorRows", "tpl-dolor-row", { id_dolor: "" }, () => { }));
     document.getElementById("btnAddTarea").addEventListener("click", () => addGanttRow());
     addRow("capacidadRows", "tpl-colaborador-row", {}, calcularCapacidad);
@@ -412,6 +433,142 @@
     const cargaOperativa = tareas.reduce((sum, t) => sum + t.horas_dia, 0);
     const tiempoLibre = jornada - cargaOperativa;
     return { jornada, tareas, cargaOperativa, tiempoLibre };
+  }
+
+  /* -------------------------------------------------- Mapeo de entradas y salidas */
+
+  /* Un expediente viejo guardaba ["Correo del cliente", "Planilla"] como
+     texto suelto. Se convierte a la forma estructurada sin perder lo escrito:
+     el texto se conserva y canal/formato quedan vacíos para completar. */
+  function normalizarMapeo(lista) {
+    return (lista || []).map(item => {
+      if (typeof item === "string") return { texto: item, canal: "", formato: "" };
+      return { texto: item.texto || "", canal: item.canal || "", formato: item.formato || "" };
+    }).filter(x => x.texto || x.canal || x.formato);
+  }
+
+  function opcionesSelect(items, prefijo, seleccionado) {
+    const vacia = `<option value="">${escHtml(t("s1.mapeo.elegir"))}</option>`;
+    return vacia + items.map(it =>
+      `<option value="${escAttr(it.id)}"${it.id === seleccionado ? " selected" : ""}>${it.icono} ${escHtml(t(prefijo + it.id))}</option>`
+    ).join("");
+  }
+
+  function addMapeoRow(tipo, data) {
+    data = data || { texto: "", canal: "", formato: "" };
+    const contenedor = tipo === "entrada" ? "entradasRows" : "salidasRows";
+    const vocab = I18N.vocabulario[tipo];
+    const tpl = document.getElementById("tpl-mapeo-row");
+    const node = tpl.content.firstElementChild.cloneNode(true);
+
+    const inputTexto = node.querySelector('[data-field="texto"]');
+    inputTexto.value = data.texto || "";
+    inputTexto.placeholder = t(tipo === "entrada" ? "s1.mapeo.phEntrada" : "s1.mapeo.phSalida");
+
+    const selCanal = node.querySelector('[data-field="canal"]');
+    selCanal.innerHTML = opcionesSelect(vocab.canales, `canal.${tipo}.`, data.canal);
+    selCanal.setAttribute("aria-label", t(tipo === "entrada" ? "s1.mapeo.col.canal" : "s1.mapeo.col.canalSalida"));
+
+    const selFormato = node.querySelector('[data-field="formato"]');
+    selFormato.innerHTML = opcionesSelect(vocab.formatos, `formato.${tipo}.`, data.formato);
+    selFormato.setAttribute("aria-label", t("s1.mapeo.col.formato"));
+
+    node.querySelector("[data-remove-row]").setAttribute("aria-label", t("s1.mapeo.quitar"));
+    node.dataset.tipo = tipo;
+
+    const alCambiar = () => { actualizarFilaMapeo(node); renderResumenMapeo(tipo); };
+    node.querySelectorAll("input, select").forEach(el => el.addEventListener("input", alCambiar));
+    node.querySelector("[data-remove-row]").addEventListener("click", () => { node.remove(); renderResumenMapeo(tipo); });
+
+    document.getElementById(contenedor).appendChild(node);
+    actualizarFilaMapeo(node);
+    return node;
+  }
+
+  /* Semáforo y pista de concreción de una fila. No hay heurística de
+     "palabras cortas": una fila está completa cuando tiene las tres cosas. */
+  function actualizarFilaMapeo(node) {
+    const texto = node.querySelector('[data-field="texto"]').value.trim();
+    const canal = node.querySelector('[data-field="canal"]').value;
+    const formato = node.querySelector('[data-field="formato"]').value;
+    const estado = node.querySelector('[data-field="estado"]');
+    const pista = node.querySelector('[data-field="pista"]');
+
+    if (!texto && !canal && !formato) {
+      estado.textContent = "";
+      estado.removeAttribute("aria-label");
+      estado.removeAttribute("title");
+      pista.hidden = true;
+      return;
+    }
+    const completa = !!(texto && canal && formato);
+    estado.textContent = completa ? "🟢" : "🟡";
+    estado.setAttribute("aria-label", t(completa ? "s1.mapeo.completo" : "s1.mapeo.parcial"));
+    estado.setAttribute("title", t(completa ? "s1.mapeo.completoDetalle" : "s1.mapeo.parcialDetalle"));
+
+    const sugerencia = completa ? null : sugerenciaAmbiguedad(texto);
+    if (sugerencia) { pista.textContent = "💡 " + sugerencia; pista.hidden = false; }
+    else { pista.hidden = true; pista.textContent = ""; }
+  }
+
+  /* Tabla de búsqueda local, sin red ni IA: si el texto menciona un término
+     ambiguo conocido, se ofrece la pregunta que lo concreta. */
+  function sugerenciaAmbiguedad(texto) {
+    const tabla = I18N.ambiguos[idiomaActivo] || I18N.ambiguos[I18N.idiomaPorDefecto] || {};
+    const normalizado = String(texto).toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "");
+    const palabras = normalizado.split(/[^a-z0-9]+/).filter(Boolean);
+    for (const palabra of palabras) {
+      // Se prueba la palabra y su singular simple, para que "facturas" caiga en "factura".
+      const candidatos = [palabra, palabra.replace(/es$/, ""), palabra.replace(/s$/, "")];
+      for (const c of candidatos) if (tabla[c]) return tabla[c];
+    }
+    return null;
+  }
+
+  function leerMapeo(tipo) {
+    const contenedor = document.getElementById(tipo === "entrada" ? "entradasRows" : "salidasRows");
+    return Array.from(contenedor?.children || []).map(row => ({
+      texto: row.querySelector('[data-field="texto"]').value.trim(),
+      canal: row.querySelector('[data-field="canal"]').value,
+      formato: row.querySelector('[data-field="formato"]').value
+    })).filter(x => x.texto || x.canal || x.formato);
+  }
+
+  function renderResumenMapeo(tipo) {
+    const el = document.getElementById(tipo === "entrada" ? "entradasResumen" : "salidasResumen");
+    if (!el) return;
+    const filas = leerMapeo(tipo);
+    if (!filas.length) {
+      el.textContent = t(tipo === "entrada" ? "s1.mapeo.vacioEntradas" : "s1.mapeo.vacioSalidas");
+      el.dataset.estado = "vacio";
+      return;
+    }
+    const completas = filas.filter(f => f.texto && f.canal && f.formato).length;
+    el.textContent = t("s1.mapeo.resumen", { completas, total: filas.length });
+    el.dataset.estado = completas === filas.length ? "completo" : "parcial";
+  }
+
+  function renderMapeoCompleto() {
+    ["entrada", "salida"].forEach(tipo => {
+      const contenedor = document.getElementById(tipo === "entrada" ? "entradasRows" : "salidasRows");
+      const datos = normalizarMapeo(state.seccion_1_ordenar_trabajo.mapeo_entradas_salidas[tipo === "entrada" ? "entradas" : "salidas"]);
+      contenedor.innerHTML = "";
+      (datos.length ? datos : [null]).forEach(d => addMapeoRow(tipo, d));
+      renderResumenMapeo(tipo);
+    });
+  }
+
+  /* Texto legible de una entrada/salida para los prompts y exportables:
+     "Facturas de proveedores (llega por Correo electrónico, en PDF)". */
+  function describirMapeo(item, tipo) {
+    const vocab = I18N.vocabulario[tipo];
+    const canal = vocab.canales.find(c => c.id === item.canal);
+    const formato = vocab.formatos.find(f => f.id === item.formato);
+    const partes = [];
+    if (canal) partes.push(t(`canal.${tipo}.` + canal.id).toLowerCase());
+    if (formato) partes.push(t(`formato.${tipo}.` + formato.id));
+    if (!partes.length) return item.texto;
+    return `${item.texto} (${partes.join(", ")})`;
   }
 
   function renderDiagnosticoCarga() {
@@ -1988,10 +2145,16 @@
     L.push("## Contexto de mi trabajo");
     L.push(`- Proceso: ${meta.nombre_proceso || "(pendiente de completar en la Sección 1)"}`);
     if (meta.departamento) L.push(`- Área: ${meta.departamento}`);
-    const entradas = (s1.mapeo_entradas_salidas.entradas || []).filter(Boolean);
-    const salidas = (s1.mapeo_entradas_salidas.salidas || []).filter(Boolean);
-    if (entradas.length) L.push(`- Entradas con las que trabajo: ${entradas.join("; ")}`);
-    if (salidas.length) L.push(`- Salidas que se esperan de mí: ${salidas.join("; ")}`);
+    const entradas = normalizarMapeo(s1.mapeo_entradas_salidas.entradas);
+    const salidas = normalizarMapeo(s1.mapeo_entradas_salidas.salidas);
+    if (entradas.length) {
+      L.push("- Entradas con las que trabajo:");
+      entradas.forEach(e => L.push(`  - ${describirMapeo(e, "entrada")}`));
+    }
+    if (salidas.length) {
+      L.push("- Salidas que se esperan de mí:");
+      salidas.forEach(x => L.push(`  - ${describirMapeo(x, "salida")}`));
+    }
     if (dolores.length) {
       L.push("- Principales problemas actuales:");
       dolores.forEach(d => L.push(`  - [${d.nivel_severidad || "—"}] ${d.categoria || ""}: ${d.descripcion}`));
@@ -2195,8 +2358,8 @@
       nivel_madurez_actual: s1.metadata_proceso.nivel_madurez_actual
     };
     s1.mapeo_entradas_salidas = {
-      entradas: val("s1_entradas").split("\n").filter(Boolean),
-      salidas: val("s1_salidas").split("\n").filter(Boolean),
+      entradas: leerMapeo("entrada"),
+      salidas: leerMapeo("salida"),
       punto_entrada_unico_definido: document.getElementById("s1_punto_entrada_unico").checked
     };
     s1.metricas_tiempo_y_costos.jornada_laboral_horas_dia = Number(val("carga_jornada") || 8);
@@ -2246,8 +2409,9 @@
     setVal("s1_departamento", s1.metadata_proceso.departamento);
     setVal("s1_responsable", s1.metadata_proceso.responsable_proceso);
     setVal("s1_fecha", s1.metadata_proceso.fecha_evaluacion);
-    setVal("s1_entradas", (s1.mapeo_entradas_salidas.entradas || []).join("\n"));
-    setVal("s1_salidas", (s1.mapeo_entradas_salidas.salidas || []).join("\n"));
+    s1.mapeo_entradas_salidas.entradas = normalizarMapeo(s1.mapeo_entradas_salidas.entradas);
+    s1.mapeo_entradas_salidas.salidas = normalizarMapeo(s1.mapeo_entradas_salidas.salidas);
+    renderMapeoCompleto();
     document.getElementById("s1_punto_entrada_unico").checked = !!s1.mapeo_entradas_salidas.punto_entrada_unico_definido;
     const mt = s1.metricas_tiempo_y_costos;
     setVal("carga_jornada", mt.jornada_laboral_horas_dia ?? 8);

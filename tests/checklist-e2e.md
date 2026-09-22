@@ -28,6 +28,16 @@ comparativo manual vs. herramienta y skills seleccionadas).
 - [x] "Continuar" avanza de sección y guarda los datos ingresados.
 - [x] "Volver" regresa sin perder lo ya escrito.
 
+## Sección 1 — mapeo de entradas y salidas
+- [ ] Cada entrada/salida es una fila con "qué es" + canal + formato, y se agregan/quitan con sus botones.
+- [ ] El semáforo de la fila pasa a 🟢 solo cuando están los tres campos; con alguno vacío queda 🟡.
+- [ ] Escribir un término ambiguo ("facturas", "datos", "reportes") con canal o formato sin elegir muestra la pista de concreción; al completar ambos, la pista desaparece.
+- [ ] La pista sale de una tabla local: no hay ninguna petición de red (verificar en la pestaña Network del navegador).
+- [ ] El resumen bajo cada lista cuenta cuántas filas están completas.
+- [ ] Un expediente `.json` exportado **antes** de este cambio (entradas como lista de textos) se carga sin errores: conserva los textos y deja canal/formato vacíos.
+- [ ] El prompt maestro de la Sección 3 lista cada entrada con su canal y formato entre paréntesis.
+- [ ] `node tests/verificar-textos.js` termina sin errores.
+
 ## Sección 1
 - [x] La tabla del Paso 3 no desborda la página en ventanas angostas (probado en 375px); la columna queda en un contenedor con scroll propio (`data-scrollable`) en vez de desbordar el body.
 - [x] La Matriz de capacidad de equipo está oculta por defecto; tildar "Estoy planificando para un equipo" la muestra y oculta la nota de "usá el Paso 1"; destildar hace lo inverso.
