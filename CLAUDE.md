@@ -19,7 +19,16 @@ punto de partida de cada proyecto nuevo.
 
 ## Comandos principales
 - Ejecutar la app: abrir `src/index.html` directamente en el navegador (no requiere servidor).
+- Versión con marca: `src/index-stt.html`, idéntica salvo el logo en el encabezado.
 - No hay `npm install` ni build: es intencional, para minimizar dependencias.
+
+## Versión con marca (index-stt.html)
+`src/index-stt.html` es un **archivo generado**: comparte app.js, styles.css,
+i18n.js y contenido-guias.js con la versión neutra, y solo agrega el logo.
+- Regenerarlo: `python tools/generar-version-marca.py`
+- Comprobar que no se desincronizó: `python tools/generar-version-marca.py --verificar`
+- **Después de tocar `index.html` hay que regenerarlo**, o las dos versiones
+  se separan. El `--verificar` falla con código 1 si eso pasa.
 
 ## Reglas de seguridad
 - **Zero-Data Exposure:** ninguna llamada de red, ninguna API de IA de pago, nada sale del navegador.
@@ -37,7 +46,11 @@ src/
 ├── contenido-guias.js    # solo datos: galerías de ideas por nivel, guía de IA y catálogo del PDF
 ├── skills-catalog.json   # catálogo de skills (fuente portable, también embebido en app.js)
 ├── ilustracion-chica.png # hero del wizard
-└── ilustracion-catalogo.png # portada del catálogo descargable
+├── ilustracion-catalogo.png # portada del catálogo descargable
+├── index-stt.html        # GENERADO: copia con el logo corporativo (no editar a mano)
+└── logo-stt.png          # logo de STT Group, ya recortado y sin fondo
+tools/
+└── generar-version-marca.py  # rehace index-stt.html desde index.html
 knowledge/
 ├── sugerencias-desarrollo-pagina3.md        # fuente editorial de las galerías de la Sección 3
 ├── catalogo-recursos-proyecto-usuario.md    # fuente editorial del catálogo PDF
