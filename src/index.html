@@ -1,519 +1,732 @@
 <!DOCTYPE html>
 <html lang="es">
+
 <head>
-<meta charset="UTF-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1.0" />
-<title>AI Project Guide — Planificación y Optimización de Procesos</title>
-<meta name="description" content="Guía interna de 4 etapas para ordenar un proceso, empaquetar skills de Claude, evaluar madurez y generar el plan de desarrollo. Sin IA embebida, sin conexión externa." />
-<link rel="stylesheet" href="styles.css" />
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>AI Project Guide — Planificación y Optimización de Procesos</title>
+  <meta name="description"
+    content="Guía interna de 4 etapas para ordenar un proceso, elegir qué construir, generar los prompts para el asistente de IA que prefieras y medir el impacto. Sin IA embebida, sin conexión externa." />
+  <link rel="stylesheet" href="styles.css" />
 </head>
+
 <body>
 
-<a class="skip-link" href="#main-content">Saltar al contenido principal</a>
+  <a class="skip-link" href="#main-content">Saltar al contenido principal</a>
 
-<div class="app-top-sticky" id="appTopSticky">
-<header class="app-header">
-  <div class="brand">
-    <span class="brand-dot" aria-hidden="true"></span>
-    <span class="brand-name">AI Project Guide</span>
-  </div>
-  <div class="header-actions">
-    <button type="button" id="themeToggle" class="btn-icon" aria-pressed="false" aria-label="Cambiar a modo oscuro">
-      🌙
-    </button>
-  </div>
-</header>
+  <div class="app-top-sticky" id="appTopSticky">
+    <header class="app-header">
+      <div class="brand">
+        <span class="brand-dot" aria-hidden="true"></span>
+        <span class="brand-name">AI Project Guide</span>
+      </div>
+      <div class="header-actions">
+        <button type="button" id="themeToggle" class="btn-icon" aria-pressed="false" aria-label="Cambiar a modo oscuro">
+          🌙
+        </button>
+      </div>
+    </header>
 
-<div class="hero-band" id="heroBand">
-  <div class="hero-row">
-    <div class="progress-ring-wrap" role="img" aria-label="Progreso: paso 1 de 4">
-      <svg class="progress-ring" viewBox="0 0 132 132">
-        <circle cx="66" cy="66" r="56" fill="none" stroke="var(--color-border)" stroke-width="10" />
-        <circle id="progressRingFill" cx="66" cy="66" r="56" fill="none" stroke="var(--color-primary)" stroke-width="10"
-          stroke-linecap="round" stroke-dasharray="351.9" stroke-dashoffset="351.9" transform="rotate(-90 66 66)" />
-      </svg>
-      <div class="progress-ring-label"><span id="progressRingStep">1</span>/4<small>pasos</small></div>
+    <div class="hero-band" id="heroBand">
+      <div class="hero-row">
+        <div class="progress-ring-wrap" role="img" aria-label="Progreso: paso 1 de 4">
+          <svg class="progress-ring" viewBox="0 0 132 132">
+            <circle cx="66" cy="66" r="56" fill="none" stroke="var(--color-border)" stroke-width="10" />
+            <circle id="progressRingFill" cx="66" cy="66" r="56" fill="none" stroke="var(--color-primary)"
+              stroke-width="10" stroke-linecap="round" stroke-dasharray="351.9" stroke-dashoffset="351.9"
+              transform="rotate(-90 66 66)" />
+          </svg>
+          <div class="progress-ring-label"><span id="progressRingStep">1</span>/4<small>pasos</small></div>
+        </div>
+
+        <div class="hero-copy">
+          <h1 class="hero-title" id="heroTitle">Ordena tu trabajo antes de automatizarlo</h1>
+          <p class="hero-lede" id="heroLede">Mapea tus tareas, descubre tu tiempo libre real y convierte esa idea
+            cotidiana en una hoja de ruta clara — lista para automatizar o potenciar con IA cuando quieras.</p>
+        </div>
+
+        <img class="hero-illustration" src="ilustracion-chica.png" width="684" height="549"
+          alt="Persona trabajando en su laptop, con una confirmación en pantalla" />
+      </div>
+
+      <nav class="step-tracker" aria-label="Progreso del proyecto">
+        <ol class="step-list" id="stepList">
+          <li class="step-item" data-step="1">
+            <button class="step-btn" data-goto="1" aria-current="step">
+              <span class="step-badge">1</span>
+              <span class="step-title">Organiza tu trabajo</span>
+            </button>
+          </li>
+          <li class="tracker-line" aria-hidden="true"></li>
+          <li class="step-item" data-step="2">
+            <button class="step-btn" data-goto="2">
+              <span class="step-badge">2</span>
+              <span class="step-title">Información de tu proyecto</span>
+            </button>
+          </li>
+          <li class="tracker-line" aria-hidden="true"></li>
+          <li class="step-item" data-step="3">
+            <button class="step-btn" data-goto="3">
+              <span class="step-badge">3</span>
+              <span class="step-title">Tipo de desarrollo</span>
+            </button>
+          </li>
+          <li class="tracker-line" aria-hidden="true"></li>
+          <li class="step-item" data-step="4">
+            <button class="step-btn" data-goto="4">
+              <span class="step-badge">4</span>
+              <span class="step-title">Resultados e impacto</span>
+            </button>
+          </li>
+        </ol>
+      </nav>
     </div>
-
-    <div class="hero-copy">
-      <h1 class="hero-title" id="heroTitle">Ordena tu trabajo antes de automatizarlo</h1>
-      <p class="hero-lede" id="heroLede">Mapea tus tareas, descubre tu tiempo libre real y convierte esa idea cotidiana en una hoja de ruta clara — lista para automatizar o potenciar con IA cuando quieras.</p>
-    </div>
-
-    <img class="hero-illustration" src="ilustracion-chica.png" width="684" height="549"
-      alt="Persona trabajando en su laptop, con una confirmación en pantalla" />
   </div>
 
-  <nav class="step-tracker" aria-label="Progreso del proyecto">
-    <ol class="step-list" id="stepList">
-      <li class="step-item" data-step="1">
-        <button class="step-btn" data-goto="1" aria-current="step">
-          <span class="step-badge">1</span>
-          <span class="step-title">Organiza tu trabajo</span>
-        </button>
-      </li>
-      <li class="tracker-line" aria-hidden="true"></li>
-      <li class="step-item" data-step="2">
-        <button class="step-btn" data-goto="2">
-          <span class="step-badge">2</span>
-          <span class="step-title">Información de tu proyecto</span>
-        </button>
-      </li>
-      <li class="tracker-line" aria-hidden="true"></li>
-      <li class="step-item" data-step="3">
-        <button class="step-btn" data-goto="3">
-          <span class="step-badge">3</span>
-          <span class="step-title">Nivel de solución</span>
-        </button>
-      </li>
-      <li class="tracker-line" aria-hidden="true"></li>
-      <li class="step-item" data-step="4">
-        <button class="step-btn" data-goto="4">
-          <span class="step-badge">4</span>
-          <span class="step-title">Configuración de Claude</span>
-        </button>
-      </li>
-    </ol>
-  </nav>
-</div>
-</div>
+  <p class="trust-note-inline">
+    <span aria-hidden="true">🛡️</span>
+    <strong>Tus datos no salen de este navegador.</strong> Sin IA embebida, sin API externa. Usa datos sintéticos o
+    generalizados.
+  </p>
 
-<p class="trust-note-inline">
-  <span aria-hidden="true">🛡️</span>
-  <strong>Tus datos no salen de este navegador.</strong> Sin IA embebida, sin API externa. Usa datos sintéticos o generalizados.
-</p>
+  <div class="app-shell" id="appShell">
 
-<div class="app-shell" id="appShell">
+    <main id="main-content" class="wizard-main">
 
-  <main id="main-content" class="wizard-main">
-
-    <div class="card io-card">
-      <div class="io-card-head">
-        <span class="io-card-icon" aria-hidden="true">📁</span>
-        <div>
-          <p class="io-card-title">Gestión de avance y expediente</p>
-          <p class="io-card-desc">Guarda tu avance localmente para retomar tu análisis en cualquier momento o cargarlo cuando estés listo para medir resultados sin perder tus cálculos.</p>
+      <div class="card io-card">
+        <div class="io-card-head">
+          <span class="io-card-icon" aria-hidden="true">📁</span>
+          <div>
+            <p class="io-card-title">Gestión de avance y expediente</p>
+            <p class="io-card-desc">Guarda tu avance localmente para retomar tu análisis en cualquier momento o cargarlo
+              cuando estés listo para medir resultados sin perder tus cálculos.</p>
+          </div>
+        </div>
+        <div class="io-bar">
+          <button type="button" id="btnExportJson" class="btn-primary">📤 Descargar estado (.json)</button>
+          <button type="button" id="btnImport" class="btn-secondary">💾 Cargar expediente (.json)</button>
+          <input type="file" id="fileInput" accept="application/json" class="visually-hidden" />
+          <button type="button" id="btnExportPrint" class="btn-secondary">🖨️ Descargar resumen (PDF)</button>
         </div>
       </div>
-      <div class="io-bar">
-        <button type="button" id="btnExportJson" class="btn-primary">📤 Descargar estado (.json)</button>
-        <button type="button" id="btnImport" class="btn-secondary">💾 Cargar expediente (.json)</button>
-        <input type="file" id="fileInput" accept="application/json" class="visually-hidden" />
-        <button type="button" id="btnExportPrint" class="btn-secondary">🖨️ Descargar resumen (PDF)</button>
-      </div>
-    </div>
-    <span class="toast" id="ioStatus" role="status" aria-live="polite"></span>
+      <span class="toast" id="ioStatus" role="status" aria-live="polite"></span>
 
-    <div id="dropZone" class="drop-zone" aria-hidden="true">Suelta aquí tu archivo .json para reanudar</div>
+      <div id="dropZone" class="drop-zone" aria-hidden="true">Suelta aquí tu archivo .json para reanudar</div>
 
-    <!-- SECCIÓN 1 -->
-    <section class="wizard-panel" id="panel-1" data-panel="1">
-      <fieldset class="card">
-        <legend>Identificación del proceso</legend>
-        <div class="grid-2">
-          <label>Nombre del proceso
-            <input type="text" id="s1_nombre_proceso" placeholder="Ej. Conciliación de reportes operativos diarios" />
-          </label>
-          <label>Departamento / área
-            <select id="s1_departamento">
-              <option value="">Selecciona…</option>
-              <option>Contabilidad</option><option>Finanzas</option><option>RRHH</option><option>Operaciones</option>
-              <option>Soporte</option><option>Servicios compartidos / BPO</option><option>Tecnología</option><option>Ventas</option><option>Logística</option><option>Otro</option>
-            </select>
-          </label>
-          <label>Responsable del proceso
-            <input type="text" id="s1_responsable" placeholder="Rol o nombre" />
-          </label>
-          <label>Fecha de evaluación
-            <input type="date" id="s1_fecha" />
-          </label>
-        </div>
-      </fieldset>
-
-      <fieldset class="card">
-        <legend>Mapeo de entradas y salidas</legend>
-        <div class="hint hint-card">
-          <p class="hint-title">💡 Mapea tus tareas por Entradas y Salidas</p>
-          <ul class="hint-list">
-            <li><strong>Entrada</strong> (lo que recibes): la solicitud o insumo que activa tu trabajo — ej. un correo pidiendo un reporte.</li>
-            <li><strong>Salida</strong> (lo que entregas): el resultado final que generas — ej. el reporte enviado al cliente.</li>
-          </ul>
-          <p class="hint-footnote">📝 Escribe cada una en una línea distinta. Vas a ver cuántos canales de ingreso manejas hoy y cuál conviene estandarizar primero.</p>
-        </div>
-        <div class="grid-2">
-          <label>Entradas (una por línea)
-            <textarea id="s1_entradas" rows="3" placeholder="Correo del cliente&#10;Planilla Excel local"></textarea>
-          </label>
-          <label>Salidas (una por línea)
-            <textarea id="s1_salidas" rows="3" placeholder="Reporte consolidado&#10;Notificación por email"></textarea>
-          </label>
-        </div>
-        <label class="checkbox-row">
-          <input type="checkbox" id="s1_punto_entrada_unico" />
-          Existe un único punto de entrada estandarizado (Form o carpeta compartida)
-        </label>
-      </fieldset>
-
-      <fieldset class="card">
-        <legend>📥 Paso 1 — Mapeo de carga habitual</legend>
-        <p class="hint">Registra tus funciones actuales para descubrir cuánto tiempo libre real tienes antes de comprometerte con un proyecto nuevo. Recién con ese número tiene sentido pensar cuánto vas a poder avanzar.</p>
-
-        <div class="habitual-header">
-          <span>Función / tarea</span><span>Tipo</span><span>Detalle</span><span>Hrs/día</span><span></span>
-        </div>
-        <div id="tareasHabitualesRows" class="repeatable-rows"></div>
-        <button type="button" class="btn-tertiary" id="btnAddTareaHabitual">+ Agregar tarea/función</button>
-
-        <div class="grid-2" style="margin-top:1rem">
-          <label>Jornada laboral
-            <input type="number" id="carga_jornada" min="1" max="24" step="0.5" value="8" /> hrs/día
-          </label>
-        </div>
-
-        <p class="hint-title" style="margin-top:1.25rem">📊 Paso 2 — Balance de disponibilidad</p>
-        <div id="diagnosticoCarga" class="status-box" aria-live="polite"></div>
-      </fieldset>
-
-      <fieldset class="card">
-        <legend>👥 Matriz de capacidad de equipo (Scrum) — opcional</legend>
-        <label class="checkbox-row">
-          <input type="checkbox" id="esManagerEquipo" />
-          Estoy planificando para un equipo, no solo para mí
-        </label>
-        <p class="hint hint--muted" id="notaSoloIndividual">Si estás armando tu propio proyecto, no necesitas esta sección — el Paso 1 (más arriba) ya calculó tu disponibilidad real. Activa esta opción solo si coordinas el tiempo de varias personas.</p>
-
-        <div id="equipoContenido" hidden>
-          <p class="hint">💡 Regla 80/20: 80% del tiempo a la operación habitual, 20% (≈8h/semana) a mejorar y automatizar. Evita asignar más del 20% para no colapsar el área.</p>
-
-          <div class="capacidad-header">
-            <span>Colaborador</span><span>Hrs ops/sem</span><span>Hrs libres</span><span>Estado</span><span></span>
+      <!-- SECCIÓN 1 -->
+      <section class="wizard-panel" id="panel-1" data-panel="1">
+        <fieldset class="card">
+          <legend>Identificación del proceso</legend>
+          <div class="grid-2">
+            <label>Nombre del proceso
+              <input type="text" id="s1_nombre_proceso" placeholder="Ej. Conciliación de reportes operativos diarios" />
+            </label>
+            <label>Departamento / área
+              <select id="s1_departamento">
+                <option value="">Selecciona…</option>
+                <option>Contabilidad</option>
+                <option>Finanzas</option>
+                <option>RRHH</option>
+                <option>Operaciones</option>
+                <option>Soporte</option>
+                <option>Servicios compartidos / BPO</option>
+                <option>Tecnología</option>
+                <option>Ventas</option>
+                <option>Logística</option>
+                <option>Otro</option>
+              </select>
+            </label>
+            <label>Responsable del proceso
+              <input type="text" id="s1_responsable" placeholder="Rol o nombre" />
+            </label>
+            <label>Fecha de evaluación
+              <input type="date" id="s1_fecha" />
+            </label>
           </div>
-          <div id="capacidadRows" class="repeatable-rows"></div>
-          <button type="button" class="btn-tertiary" id="btnAddColaborador">+ Agregar colaborador</button>
+        </fieldset>
 
-          <p class="hint-title" style="margin-top:1.25rem">Resumen de capacidad en sprint (2 semanas)</p>
-          <div class="summary-cards" id="capacidadResumen" aria-live="polite"></div>
-          <p class="hint hint--muted" id="velocidadSprint"></p>
-        </div>
-      </fieldset>
-
-      <fieldset class="card">
-        <legend>Puntos de dolor</legend>
-        <div id="dolorRows" class="repeatable-rows"></div>
-        <button type="button" class="btn-tertiary" id="btnAddDolor">+ Agregar punto de dolor</button>
-      </fieldset>
-
-      <fieldset class="card">
-        <legend>🚀 Paso 3 — Cronograma unificado (operación + proyecto)</legend>
-        <p class="hint">Cómo usarlo en 2 minutos: <strong>1)</strong> carga las tareas del proyecto en la pestaña Tabla, con cuántas horas de esfuerzo estimas. <strong>2)</strong> mira "≈ días sugeridos" (calculado con tu tiempo libre del Paso 2) para elegir fechas realistas. <strong>3)</strong> cuando ejecutes, carga las fechas reales — el Gantt las contrapone contra el plan y marca el desvío en rojo/verde.</p>
-
-        <div class="view-tabs" role="tablist" aria-label="Vista del cronograma">
-          <button type="button" class="view-tab" data-view="tabla" role="tab" aria-selected="true">📋 Tabla</button>
-          <button type="button" class="view-tab" data-view="gantt" role="tab" aria-selected="false">📊 Gantt</button>
-          <button type="button" class="view-tab" data-view="kanban" role="tab" aria-selected="false">🗂️ Kanban</button>
-        </div>
-
-        <div id="view-tabla" class="cronograma-view">
-          <div class="table-scroll">
-            <table class="data-table" id="ganttTable">
-              <thead>
-                <tr>
-                  <th>ID</th><th>Jerarquía</th><th>Nombre</th><th>Encargado</th><th>Urgencia</th>
-                  <th>Dependencia</th><th>Hrs estimadas</th><th>Sugerido</th>
-                  <th>Inicio plan</th><th>Fin plan</th><th>Inicio real</th><th>Fin real</th>
-                  <th>% Avance</th><th>Estado</th><th></th>
-                </tr>
-              </thead>
-              <tbody id="ganttBody"></tbody>
-            </table>
+        <fieldset class="card">
+          <legend>Mapeo de entradas y salidas</legend>
+          <div class="hint hint-card">
+            <p class="hint-title">💡 Mapea tus tareas por Entradas y Salidas</p>
+            <ul class="hint-list">
+              <li><strong>Entrada</strong> (lo que recibes): la solicitud o insumo que activa tu trabajo — ej. un correo
+                pidiendo un reporte.</li>
+              <li><strong>Salida</strong> (lo que entregas): el resultado final que generas — ej. el reporte enviado al
+                cliente.</li>
+            </ul>
+            <p class="hint-footnote">📝 Escribe cada una en una línea distinta. Vas a ver cuántos canales de ingreso
+              manejas hoy y cuál conviene estandarizar primero.</p>
           </div>
-          <button type="button" class="btn-tertiary" id="btnAddTarea">+ Agregar tarea</button>
+          <div class="grid-2">
+            <label>Entradas (una por línea)
+              <textarea id="s1_entradas" rows="3" placeholder="Correo del cliente&#10;Planilla Excel local"></textarea>
+            </label>
+            <label>Salidas (una por línea)
+              <textarea id="s1_salidas" rows="3"
+                placeholder="Reporte consolidado&#10;Notificación por email"></textarea>
+            </label>
+          </div>
+          <label class="checkbox-row">
+            <input type="checkbox" id="s1_punto_entrada_unico" />
+            Existe un único punto de entrada estandarizado (Form o carpeta compartida)
+          </label>
+        </fieldset>
 
-          <div class="excel-loop">
-            <p class="hint hint--muted">
-              📥📤 <strong>Loop con Excel:</strong> descarga el CSV, complétalo con tu plan de ejecución en Excel o Google Sheets
-              (una fila por tarea — no dupliques filas), y vuelve a cargarlo aquí. Columnas: <code>ID, Jerarquia, Nombre, Encargado,
+        <fieldset class="card">
+          <legend>📥 Paso 1 — Mapeo de carga habitual</legend>
+          <p class="hint">Registra tus funciones actuales para descubrir cuánto tiempo libre real tienes antes de
+            comprometerte con un proyecto nuevo. Recién con ese número tiene sentido pensar cuánto vas a poder avanzar.
+          </p>
+
+          <div class="habitual-header">
+            <span>Función / tarea</span><span>Tipo</span><span>Detalle</span><span>Hrs/día</span><span></span>
+          </div>
+          <div id="tareasHabitualesRows" class="repeatable-rows"></div>
+          <button type="button" class="btn-tertiary" id="btnAddTareaHabitual">+ Agregar tarea/función</button>
+
+          <div class="grid-2" style="margin-top:1rem">
+            <label>Jornada laboral
+              <input type="number" id="carga_jornada" min="1" max="24" step="0.5" value="8" /> hrs/día
+            </label>
+          </div>
+
+          <p class="hint-title" style="margin-top:1.25rem">📊 Paso 2 — Balance de disponibilidad</p>
+          <div id="diagnosticoCarga" class="status-box" aria-live="polite"></div>
+        </fieldset>
+
+        <fieldset class="card">
+          <legend>👥 Matriz de capacidad de equipo (Scrum) — opcional</legend>
+          <label class="checkbox-row">
+            <input type="checkbox" id="esManagerEquipo" />
+            Estoy planificando para un equipo, no solo para mí
+          </label>
+          <p class="hint hint--muted" id="notaSoloIndividual">Si estás armando tu propio proyecto, no necesitas esta
+            sección — el Paso 1 (más arriba) ya calculó tu disponibilidad real. Activa esta opción solo si coordinas el
+            tiempo de varias personas.</p>
+
+          <div id="equipoContenido" hidden>
+            <p class="hint">💡 Regla 80/20: 80% del tiempo a la operación habitual, 20% (≈8h/semana) a mejorar y
+              automatizar. Evita asignar más del 20% para no colapsar el área.</p>
+
+            <div class="capacidad-header">
+              <span>Colaborador</span><span>Hrs ops/sem</span><span>Hrs libres</span><span>Estado</span><span></span>
+            </div>
+            <div id="capacidadRows" class="repeatable-rows"></div>
+            <button type="button" class="btn-tertiary" id="btnAddColaborador">+ Agregar colaborador</button>
+
+            <p class="hint-title" style="margin-top:1.25rem">Resumen de capacidad en sprint (2 semanas)</p>
+            <div class="summary-cards" id="capacidadResumen" aria-live="polite"></div>
+            <p class="hint hint--muted" id="velocidadSprint"></p>
+          </div>
+        </fieldset>
+
+        <fieldset class="card">
+          <legend>Puntos de dolor</legend>
+          <div id="dolorRows" class="repeatable-rows"></div>
+          <button type="button" class="btn-tertiary" id="btnAddDolor">+ Agregar punto de dolor</button>
+        </fieldset>
+
+        <fieldset class="card">
+          <legend>🚀 Paso 3 — Cronograma unificado (operación + proyecto)</legend>
+          <p class="hint">Cómo usarlo en 2 minutos: <strong>1)</strong> carga las tareas del proyecto en la pestaña
+            Tabla, con cuántas horas de esfuerzo estimas. <strong>2)</strong> mira "≈ días sugeridos" (calculado con tu
+            tiempo libre del Paso 2) para elegir fechas realistas. <strong>3)</strong> cuando ejecutes, carga las fechas
+            reales — el Gantt las contrapone contra el plan y marca el desvío en rojo/verde.</p>
+
+          <div class="view-tabs" role="tablist" aria-label="Vista del cronograma">
+            <button type="button" class="view-tab" data-view="tabla" role="tab" aria-selected="true">📋 Tabla</button>
+            <button type="button" class="view-tab" data-view="gantt" role="tab" aria-selected="false">📊 Gantt</button>
+            <button type="button" class="view-tab" data-view="kanban" role="tab" aria-selected="false">🗂️
+              Kanban</button>
+          </div>
+
+          <div id="view-tabla" class="cronograma-view">
+            <div class="table-scroll">
+              <table class="data-table" id="ganttTable">
+                <thead>
+                  <tr>
+                    <th>ID</th>
+                    <th>Jerarquía</th>
+                    <th>Nombre</th>
+                    <th>Encargado</th>
+                    <th>Urgencia</th>
+                    <th>Dependencia</th>
+                    <th>Hrs estimadas</th>
+                    <th>Sugerido</th>
+                    <th>Inicio plan</th>
+                    <th>Fin plan</th>
+                    <th>Inicio real</th>
+                    <th>Fin real</th>
+                    <th>% Avance</th>
+                    <th>Estado</th>
+                    <th></th>
+                  </tr>
+                </thead>
+                <tbody id="ganttBody"></tbody>
+              </table>
+            </div>
+            <button type="button" class="btn-tertiary" id="btnAddTarea">+ Agregar tarea</button>
+
+            <div class="excel-loop">
+              <p class="hint hint--muted">
+                📥📤 <strong>Loop con Excel:</strong> descarga el CSV, complétalo con tu plan de ejecución en Excel o
+                Google Sheets
+                (una fila por tarea — no dupliques filas), y vuelve a cargarlo aquí. Columnas:
+                <code>ID, Jerarquia, Nombre, Encargado,
               Urgencia, Dependencia, Horas_Estimadas, Inicio_Plan, Fin_Plan, Inicio_Real, Fin_Real, Porcentaje_Avance, Estado</code>.
-              Urgencia usa uno de <code>⚡ Urgente / 🔥 Alta / ➡️ Normal / 🧊 Baja</code>; Estado usa uno de
-              <code>No Iniciado / En Proceso / En Riesgo / Completado</code>; fechas en formato <code>AAAA-MM-DD</code>.
-              Cargar un CSV <strong>reemplaza</strong> las tareas actuales de esta tabla.
-            </p>
-            <div class="excel-loop-actions">
-              <button type="button" class="btn-secondary" id="btnExportGanttCsv">📥 Descargar Gantt (CSV para Excel)</button>
-              <button type="button" class="btn-secondary" id="btnImportGanttCsvTrigger">📤 Cargar plan de ejecución (.csv)</button>
-              <input type="file" id="ganttCsvInput" accept=".csv" class="visually-hidden" />
+                Urgencia usa uno de <code>⚡ Urgente / 🔥 Alta / ➡️ Normal / 🧊 Baja</code>; Estado usa uno de
+                <code>No Iniciado / En Proceso / En Riesgo / Completado</code>; fechas en formato
+                <code>AAAA-MM-DD</code>.
+                Cargar un CSV <strong>reemplaza</strong> las tareas actuales de esta tabla.
+              </p>
+              <div class="excel-loop-actions">
+                <button type="button" class="btn-secondary" id="btnExportGanttCsv">📥 Descargar Gantt (CSV para
+                  Excel)</button>
+                <button type="button" class="btn-secondary" id="btnImportGanttCsvTrigger">📤 Cargar plan de ejecución
+                  (.csv)</button>
+                <input type="file" id="ganttCsvInput" accept=".csv" class="visually-hidden" />
+              </div>
             </div>
           </div>
-        </div>
 
-        <div id="view-gantt" class="cronograma-view" hidden>
-          <p class="hint hint--muted">🔵 Operación base (de tus funciones habituales) · 🟢 Plan del proyecto · barra sólida = ejecución real, con el desvío en días.</p>
-          <div id="ganttVisual" class="gantt-visual" aria-live="polite"></div>
-        </div>
+          <div id="view-gantt" class="cronograma-view" hidden>
+            <p class="hint hint--muted">🔵 Operación base (de tus funciones habituales) · 🟢 Plan del proyecto · barra
+              sólida = ejecución real, con el desvío en días.</p>
+            <div id="ganttVisual" class="gantt-visual" aria-live="polite"></div>
+          </div>
 
-        <div id="view-kanban" class="cronograma-view" hidden>
-          <div id="kanbanVisual" class="kanban-board" aria-live="polite"></div>
-        </div>
+          <div id="view-kanban" class="cronograma-view" hidden>
+            <div id="kanbanVisual" class="kanban-board" aria-live="polite"></div>
+          </div>
 
-        <div class="panel-actions" style="margin-top:1rem">
+          <div class="panel-actions" style="margin-top:1rem">
+            <span></span>
+            <button type="button" class="btn-secondary" id="btnExportGanttKanban">🎨 Descargar Gantt/Kanban
+              (HTML)</button>
+          </div>
+        </fieldset>
+
+        <div class="panel-actions">
           <span></span>
-          <button type="button" class="btn-secondary" id="btnExportGanttKanban">🎨 Descargar Gantt/Kanban (HTML)</button>
+          <button type="button" class="btn-primary" data-next="2">Continuar a Sección 2 →</button>
         </div>
-      </fieldset>
+      </section>
 
-      <div class="panel-actions">
-        <span></span>
-        <button type="button" class="btn-primary" data-next="2">Continuar a Sección 2 →</button>
-      </div>
-    </section>
+      <!-- SECCIÓN 2 -->
+      <section class="wizard-panel" id="panel-2" data-panel="2" hidden>
 
-    <!-- SECCIÓN 2 -->
-    <section class="wizard-panel" id="panel-2" data-panel="2" hidden>
+        <fieldset class="card">
+          <legend>1. ¿Qué tipo de entregable o solución necesitas?</legend>
+          <div class="level-picker level-picker--list" data-pregunta="entregable" role="radiogroup"
+            aria-label="Tipo de entregable o solución"></div>
+        </fieldset>
 
-      <fieldset class="card">
-        <legend>1. ¿Qué tipo de entregable o solución necesitas?</legend>
-        <div class="level-picker level-picker--list" data-pregunta="entregable" role="radiogroup" aria-label="Tipo de entregable o solución"></div>
-      </fieldset>
+        <fieldset class="card">
+          <legend>2. Mapeo del proceso — ¿cómo se realiza la tarea actualmente?</legend>
+          <div class="level-picker level-picker--list" data-pregunta="mapeo_proceso" role="radiogroup"
+            aria-label="Mapeo del proceso"></div>
+        </fieldset>
 
-      <fieldset class="card">
-        <legend>2. Mapeo del proceso — ¿cómo se realiza la tarea actualmente?</legend>
-        <div class="level-picker level-picker--list" data-pregunta="mapeo_proceso" role="radiogroup" aria-label="Mapeo del proceso"></div>
-      </fieldset>
+        <fieldset class="card">
+          <legend>3. ¿Qué nivel de lógica o interpretación requiere el proceso?</legend>
+          <div class="level-picker level-picker--list" data-pregunta="nivel_logica" role="radiogroup"
+            aria-label="Nivel de lógica o interpretación"></div>
+        </fieldset>
 
-      <fieldset class="card">
-        <legend>3. ¿Qué nivel de lógica o interpretación requiere el proceso?</legend>
-        <div class="level-picker level-picker--list" data-pregunta="nivel_logica" role="radiogroup" aria-label="Nivel de lógica o interpretación"></div>
-      </fieldset>
+        <fieldset class="card">
+          <legend>4. Fuentes y formato de los datos de origen</legend>
+          <div class="level-picker level-picker--list" data-pregunta="fuente_datos" role="radiogroup"
+            aria-label="Fuentes y formato de los datos"></div>
+        </fieldset>
 
-      <fieldset class="card">
-        <legend>4. Fuentes y formato de los datos de origen</legend>
-        <div class="level-picker level-picker--list" data-pregunta="fuente_datos" role="radiogroup" aria-label="Fuentes y formato de los datos"></div>
-      </fieldset>
+        <fieldset class="card">
+          <legend>5. Nivel de confidencialidad e impacto del error</legend>
+          <div class="level-picker level-picker--list" data-pregunta="confidencialidad" role="radiogroup"
+            aria-label="Nivel de confidencialidad e impacto del error"></div>
+        </fieldset>
 
-      <fieldset class="card">
-        <legend>5. Nivel de confidencialidad e impacto del error</legend>
-        <div class="level-picker level-picker--list" data-pregunta="confidencialidad" role="radiogroup" aria-label="Nivel de confidencialidad e impacto del error"></div>
-      </fieldset>
+        <fieldset class="card">
+          <legend>💡 Recomendación técnica</legend>
+          <div id="recomendacionTecnica" class="status-box" aria-live="polite">
+            <p style="margin:0;color:var(--color-text-muted);">Responde las preguntas de arriba para ver tu
+              recomendación.</p>
+          </div>
+          <div id="matrizRiesgos" class="riesgos-grid" aria-live="polite" hidden></div>
+        </fieldset>
 
-      <fieldset class="card">
-        <legend>💡 Recomendación técnica</legend>
-        <div id="recomendacionTecnica" class="status-box" aria-live="polite">
-          <p style="margin:0;color:var(--color-text-muted);">Responde las preguntas de arriba para ver tu recomendación.</p>
+        <fieldset class="card">
+          <legend>📐 Evaluación de complejidad del ecosistema</legend>
+          <p class="hint hint--muted">Puntaje aparte, sobre tu infraestructura y tolerancia al error — no reemplaza al
+            tipo de desarrollo de la Sección 3, lo complementa desde el lado técnico.</p>
+
+          <div class="eco-preguntas" id="ecoPreguntas"></div>
+
+          <div id="ecoResultado" class="status-box" aria-live="polite">
+            <p style="margin:0;color:var(--color-text-muted);">Responde las 5 preguntas para ver tu puntaje.</p>
+          </div>
+        </fieldset>
+
+        <div class="panel-actions">
+          <button type="button" class="btn-ghost" data-prev="1">← Volver</button>
+          <div class="actions-right">
+            <button type="button" class="btn-primary" data-next="3">Continuar a Sección 3 →</button>
+          </div>
         </div>
-        <div id="matrizRiesgos" class="riesgos-grid" aria-live="polite" hidden></div>
-      </fieldset>
+      </section>
 
-      <fieldset class="card">
-        <legend>📐 Evaluación de complejidad del ecosistema</legend>
-        <p class="hint hint--muted">Puntaje aparte, sobre tu infraestructura y tolerancia al error — no reemplaza al Nivel de solución de la Sección 3, lo complementa desde el lado técnico.</p>
+      <!-- SECCIÓN 3 -->
+      <section class="wizard-panel" id="panel-3" data-panel="3" hidden>
 
-        <div class="eco-preguntas" id="ecoPreguntas"></div>
+        <fieldset class="card">
+          <legend>⚙️ Antes de elegir: conceptos clave y precauciones</legend>
+          <div class="hint hint-card">
+            <p class="hint-title">Tres piezas que aparecen en toda conversación sobre proyectos con IA:</p>
+            <ul class="hint-list">
+              <li><strong>Instrucción / Skill:</strong> reglas reutilizables para que la IA actúe de forma consistente.
+                Se guardan en las "instrucciones del sistema" o en proyectos.</li>
+              <li><strong>Plugin / Integración:</strong> un paquete que agrupa funciones y permite que la IA ejecute
+                tareas avanzadas (convertir a PDF, enviar correos, procesar planillas).</li>
+              <li><strong>MCP (Model Context Protocol):</strong> conexión técnica real a una herramienta externa (Drive,
+                bases de datos, APIs). Requiere revisión de seguridad exhaustiva.</li>
+            </ul>
+            <p class="hint-footnote">🛡️ Precaución: no instales ni conectes herramientas de red ni permisos sobre tus
+              archivos sin revisar antes qué datos pueden leer o modificar.</p>
+          </div>
 
-        <div id="ecoResultado" class="status-box" aria-live="polite">
-          <p style="margin:0;color:var(--color-text-muted);">Responde las 5 preguntas para ver tu puntaje.</p>
+          <details class="calc-helper">
+            <summary>🔍 Formación de criterio: cómo investigar un error (bug) con la IA</summary>
+            <ul class="hint-list" style="margin-top:.75rem">
+              <li><strong>Aísla antes de preguntar.</strong> No pegues el archivo entero si sabes que el fallo está en
+                un paso concreto: acotar ahorra contexto y reduce respuestas confusas.</li>
+              <li><strong>Pide la causa, no solo el parche.</strong> Exige que te explique <em>por qué</em> falló antes
+                de aceptar el código corregido. Si no entiendes la explicación, pídela con una metáfora simple.</li>
+              <li><strong>Contrasta lo que te responde.</strong> La IA puede inventar datos que suenan convincentes.
+                Verifica cifras, nombres de funciones y rutas de archivo antes de usarlos.</li>
+              <li><strong>Prueba en un espacio seguro.</strong> Nunca ejecutes algo nuevo sobre archivos o sistemas
+                reales: usa una copia con datos sintéticos.</li>
+            </ul>
+          </details>
+        </fieldset>
+
+        <fieldset class="card">
+          <legend>Selecciona el tipo de desarrollo que deseas explorar</legend>
+          <div class="level-picker" id="levelPicker" role="radiogroup" aria-label="Tipo de desarrollo"></div>
+          <div class="callout" id="levelWhy" aria-live="polite"></div>
+        </fieldset>
+
+        <fieldset class="card">
+          <legend>Guía de Construcción y Estrategia</legend>
+          <p class="hint hint--muted">Basado en tu nivel seleccionado, aquí tienes cómo estructurar tu solución y
+            solicitar ayuda a un asistente de Inteligencia Artificial (IA).</p>
+
+          <div id="guiaDesarrollo" class="status-box" aria-live="polite">
+            <p style="margin:0;color:var(--color-text-muted);">Selecciona un tipo de desarrollo arriba para ver tu guía
+              estructurada.</p>
+          </div>
+        </fieldset>
+
+        <fieldset class="card" id="cardGaleriaIdeas">
+          <legend>💡 Galería de ideas y sugerencias</legend>
+          <p class="hint hint--muted">Marca las ideas que se parezcan a lo que necesitas. No hace falta que te
+            convenzan todas: sirven para que el prompt salga concreto en vez de genérico.</p>
+          <div id="galeriaIdeas" aria-live="polite">
+            <p style="margin:0;color:var(--color-text-muted);font-size:.85rem;">Selecciona un tipo de desarrollo para
+              ver las ideas sugeridas.</p>
+          </div>
+        </fieldset>
+
+        <fieldset class="card" id="cardPromptLauncher">
+          <legend>🚀 Lanzador de prompt y selección de IA</legend>
+          <p class="hint hint--muted">Elige con qué asistente vas a trabajar y copia el prompt maestro ya armado con tu
+            proceso y las ideas que marcaste.</p>
+          <div id="promptLauncher" aria-live="polite">
+            <p style="margin:0;color:var(--color-text-muted);font-size:.85rem;">Disponible en cuanto selecciones un tipo
+              de desarrollo.</p>
+          </div>
+        </fieldset>
+
+        <fieldset class="card">
+          <legend>📘 Catálogo de recursos para tu proyecto</legend>
+          <p class="hint hint--muted">Documento de consulta con el esquema universal de operación, las 5 áreas de
+            recursos y el glosario en lenguaje sencillo. Descárgalo en PDF para compartirlo con tu equipo, o en
+            Markdown para cargarlo como contexto en tu asistente de IA.</p>
+          <div class="catalogo-preview">
+            <img src="ilustracion-catalogo.png" width="800" height="600" alt=""
+              class="catalogo-preview-img" loading="lazy" />
+            <div>
+              <p class="hint-title">Qué incluye</p>
+              <ul class="hint-list">
+                <li>Esquema Entrada → Transformación → Control → Salida.</li>
+                <li>5 áreas de recursos con entradas y salidas de cada skill.</li>
+                <li>Reglas de gobernanza digital de la empresa.</li>
+                <li>Glosario de 10 conceptos con ejemplos de oficina.</li>
+              </ul>
+            </div>
+          </div>
+          <div class="panel-actions" style="margin-top:.75rem; justify-content: flex-start; gap:.6rem;">
+            <button type="button" class="btn-primary" id="btnCatalogoPdf">🖨️ Descargar catálogo (PDF)</button>
+            <button type="button" class="btn-secondary" id="btnExportSkills">📄 Descargar catálogo (.md)</button>
+          </div>
+        </fieldset>
+
+        <div class="panel-actions">
+          <button type="button" class="btn-ghost" data-prev="2">← Volver</button>
+          <div class="actions-right">
+            <button type="button" class="btn-primary" data-next="4">Continuar a Sección 4 →</button>
+          </div>
         </div>
-      </fieldset>
+      </section>
 
-      <div class="panel-actions">
-        <button type="button" class="btn-ghost" data-prev="1">← Volver</button>
-        <div class="actions-right">
-          <button type="button" class="btn-primary" data-next="3">Continuar a Sección 3 →</button>
-        </div>
-      </div>
-    </section>
+      <!-- SECCIÓN 4 -->
+      <section class="wizard-panel" id="panel-4" data-panel="4" hidden>
 
-    <!-- SECCIÓN 3 -->
-    <section class="wizard-panel" id="panel-3" data-panel="3" hidden>
-
-      <fieldset class="card">
-        <legend>Nivel de solución recomendado</legend>
-        <div class="level-picker" id="levelPicker" role="radiogroup" aria-label="Nivel de solución"></div>
-        <div class="callout" id="levelWhy" aria-live="polite"></div>
-      </fieldset>
-
-      <fieldset class="card">
-        <legend>Matriz KPI &amp; ROI (As-Is vs. To-Be)</legend>
-        <p class="hint hint--muted">Un KPI por fila: <strong>As-Is</strong> es el valor de hoy, <strong>To-Be</strong> el valor esperado con la solución construida. La diferencia entre ambos es lo que vas a mostrar como resultado — ej. "tiempo de cierre contable: 5 días (As-Is) → 1 día (To-Be)".</p>
-        <div class="table-scroll">
-          <table class="data-table" id="kpiTable">
-            <thead>
-              <tr><th>KPI</th><th>Unidad</th><th>As-Is</th><th>To-Be</th><th>Frecuencia</th><th>Origen (Google)</th><th></th></tr>
-            </thead>
-            <tbody id="kpiBody"></tbody>
-          </table>
-        </div>
-        <button type="button" class="btn-tertiary" id="btnAddKpi">+ Agregar KPI</button>
-      </fieldset>
-
-      <fieldset class="card">
-        <legend>Estimación de ROI</legend>
-        <div class="grid-3">
-          <label>Ahorro potencial (horas/mes)
-            <input type="number" id="s3_ahorro_horas" min="0" step="0.5" />
+        <fieldset class="card">
+          <legend>📦 Lo que construiste</legend>
+          <p class="hint hint--muted">Deja registrado qué salió de la Sección 3. Es lo que después la IA va a usar para
+            explicarte las dudas y para armar la presentación — y queda guardado en tu <code>.json</code>, no se envía a
+            ningún lado.</p>
+          <div class="grid-2">
+            <label>¿Qué obtuviste?
+              <select id="s4_entregable_tipo">
+                <option value="">Elige una opción…</option>
+                <option>Documento o presentación</option>
+                <option>Automatización o script</option>
+                <option>Herramienta, plantilla o dashboard</option>
+                <option>Agente o asistente configurado</option>
+                <option>Otro</option>
+              </select>
+            </label>
+            <label>¿Cómo salió?
+              <select id="s4_entregable_estado">
+                <option value="">Elige una opción…</option>
+                <option>Funcionó al primer intento</option>
+                <option>Requirió ajustes menores</option>
+                <option>Requirió varias iteraciones</option>
+                <option>Todavía no lo probé con datos reales</option>
+              </select>
+            </label>
+          </div>
+          <label style="margin-top:.9rem">Resultado / entregable
+            <textarea id="s4_entregable_resultado" rows="6"
+              placeholder="Pega el script, el prompt maestro, la fórmula, el enlace a la plantilla o describe en dos líneas qué quedó funcionando."></textarea>
           </label>
-          <label>Costo hora promedio (USD)
-            <input type="number" id="s3_costo_hora" min="0" step="0.5" />
+          <label style="margin-top:.9rem">Notas de ejecución
+            <textarea id="s4_entregable_notas" rows="3"
+              placeholder="Qué hubo que ajustar, qué quedó pendiente, qué sorprendió."></textarea>
           </label>
-          <label>Tiempo estimado de implementación
-            <input type="text" id="s3_tiempo_impl" placeholder="Ej. 2–4 semanas" />
+          <p class="hint-footnote" style="margin-top:.6rem">🛡️ Antes de pegar: revisa que no lleve contraseñas, llaves de
+            API, nombres de clientes ni cifras confidenciales reales.</p>
+        </fieldset>
+
+        <fieldset class="card">
+          <legend>⏱️ Contraste de Productividad: Operativa Manual vs. Con Solución (To-Be)</legend>
+          <p class="hint hint--muted">Visualiza el ahorro real. Ingresa cuánto tiempo crees que tardarás en cada tarea
+            utilizando la nueva herramienta. El gráfico calculará el porcentaje de productividad ganada.</p>
+
+          <div id="comparativoImpacto" class="impacto-grid" aria-live="polite"></div>
+
+          <div class="comparativo-header">
+            <span>Tarea</span><span>Operación actual</span><span>Meta con herramienta</span><span>Productividad</span>
+          </div>
+          <div id="comparativoRows" class="repeatable-rows"></div>
+
+          <div id="comparativoVisual" class="comparativo-visual" aria-live="polite"></div>
+        </fieldset>
+
+        <fieldset class="card">
+          <legend>Matriz de Medición de Éxito (KPIs)</legend>
+          <p class="hint hint--muted">Una métrica por fila. Define "Situación Actual" y tu "Meta".<br>💡 <em>Ejemplos de
+              métricas: Días para cierre de mes, Tasa de errores tipográficos (%), Reclamos de clientes por mes.</em>
+          </p>
+          <div class="table-scroll">
+            <table class="data-table" id="kpiTable">
+              <thead>
+                <tr>
+                  <th>Métrica</th>
+                  <th>Unidad</th>
+                  <th>Situación Actual</th>
+                  <th>Meta con Herramienta</th>
+                  <th>Frecuencia</th>
+                  <th>Origen de Datos</th>
+                  <th></th>
+                </tr>
+              </thead>
+              <tbody id="kpiBody"></tbody>
+            </table>
+          </div>
+          <button type="button" class="btn-tertiary" id="btnAddKpi">+ Agregar Métrica</button>
+        </fieldset>
+
+        <fieldset class="card">
+          <legend>Estimación de Retorno de Inversión (ROI)</legend>
+          <div class="hint hint-card" style="margin-bottom: 1rem;">
+            <p class="hint-title">¿Cómo estimar tu Costo Hora Promedio?</p>
+            <p style="margin: 0;">Para evitar confusiones vinculadas al salario personal, calcula este valor dividiendo
+              el presupuesto total estimado de tu área por cantidad de horas laborales del equipo, o utiliza un promedio
+              estándar de mercado para el rol/área en cuestión para defender la viabilidad del proyecto.</p>
+          </div>
+          <div class="grid-3">
+            <label>Ahorro de horas por semana
+              <input type="number" id="s3_ahorro_horas" min="0" step="0.5" />
+            </label>
+            <label>Costo hora estimado (USD)
+              <input type="number" id="s3_costo_hora" min="0" step="0.5" />
+            </label>
+            <label>Implementación estimada
+              <input type="text" id="s3_tiempo_impl" placeholder="Ej. 2–4 semanas" />
+            </label>
+          </div>
+          <p class="roi-atajo"><button type="button" class="btn-tertiary" id="btnRoiDesdeComparativo" hidden></button>
+            <span class="hint-footnote" id="roiBase">Base de cálculo: 5 días hábiles por semana, 22 por mes.</span>
+          </p>
+          <div class="summary-cards" id="roiResumen" aria-live="polite"></div>
+          <label class="checkbox-row">
+            <input type="checkbox" id="s3_requiere_seguridad" />
+            Requiere revisión de cumplimiento/seguridad para avanzar
           </label>
-        </div>
-        <div class="summary-cards" id="roiResumen" aria-live="polite"></div>
-        <label class="checkbox-row">
-          <input type="checkbox" id="s3_requiere_seguridad" />
-          Requiere aprobación de seguridad/privacidad antes de continuar
-        </label>
-      </fieldset>
+        </fieldset>
 
-      <fieldset class="card">
-        <legend>⏱️ Gantt comparativo: operativa manual (As-Is) vs. proceso con IA (To-Be)</legend>
-        <p class="hint hint--muted">Los tiempos manuales (As-Is) ya están cargados en la Sección 1 — se cargan solos aunque vengan de un expediente anterior. Acá agregas cuánto tarda cada tarea <strong>con la herramienta</strong> (To-Be) — hoy si ya tenés una prueba, o en unas semanas cuando tengas datos reales (exportá el expediente y volvé a cargarlo).</p>
+        <fieldset class="card">
+          <legend>Protocolo de Revisión y Pruebas</legend>
+          <p class="hint hint--muted">¿Qué cosas críticas deben pasar obligatoriamente para considerar que la
+            herramienta es un éxito y no introduce riesgos ocultos?</p>
+          <div id="checklistRows" class="repeatable-rows"></div>
+          <button type="button" class="btn-tertiary" id="btnAddChecklist">+ Agregar criterio de prueba</button>
+        </fieldset>
 
-        <div id="comparativoImpacto" class="impacto-grid" aria-live="polite"></div>
+        <fieldset class="card">
+          <legend>Gestión del Pilotaje</legend>
+          <div class="grid-2">
+            <label>Sponsor / quien aprueba este piloto
+              <input type="text" id="s4_sponsor" />
+            </label>
+            <label>Fecha sugerida para revisar resultados
+              <input type="date" id="s4_fecha_revision" />
+            </label>
+          </div>
+        </fieldset>
 
-        <div class="comparativo-header">
-          <span>Tarea</span><span>Manual hoy (As-Is)</span><span>Con IA (To-Be)</span><span>Ahorro</span>
-        </div>
-        <div id="comparativoRows" class="repeatable-rows"></div>
+        <fieldset class="card">
+          <legend>📊 Seguimiento: Plan base vs. Ejecución</legend>
+          <p class="hint hint--muted">Mismo cronograma que cargaste en la Sección 1 — aquí lo ves como resumen ejecutivo,
+            con el desvío entre lo planeado y lo ejecutado.</p>
+          <div id="seguimientoGanttVisual" class="gantt-visual" aria-live="polite"></div>
+          <div id="seguimientoKanbanVisual" class="kanban-board" aria-live="polite" style="margin-top:1rem"></div>
+        </fieldset>
 
-        <div id="comparativoVisual" class="comparativo-visual" aria-live="polite"></div>
-      </fieldset>
-
-      <fieldset class="card">
-        <legend>📊 Seguimiento: Plan base vs. Ejecución</legend>
-        <p class="hint hint--muted">Mismo cronograma que cargaste en la Sección 1 — acá lo ves como resumen ejecutivo, con el desvío entre lo planeado y lo ejecutado.</p>
-        <div id="seguimientoGanttVisual" class="gantt-visual" aria-live="polite"></div>
-        <div id="seguimientoKanbanVisual" class="kanban-board" aria-live="polite" style="margin-top:1rem"></div>
-      </fieldset>
-
-      <div class="panel-actions">
-        <button type="button" class="btn-ghost" data-prev="2">← Volver</button>
-        <div class="actions-right">
-          <button type="button" class="btn-secondary" id="btnExportResumen">📄 Descargar resumen ejecutivo</button>
-          <button type="button" class="btn-primary" data-next="4">Continuar a Sección 4 →</button>
-        </div>
-      </div>
-    </section>
-
-    <!-- SECCIÓN 4 -->
-    <section class="wizard-panel" id="panel-4" data-panel="4" hidden>
-
-      <fieldset class="card">
-        <legend>Catálogo de skills</legend>
-        <p class="hint hint--muted">Elige qué habilidades cargar como instrucciones personalizadas en Claude o como skills de Claude Code.</p>
-        <div id="skillsCatalog" class="skills-catalog" aria-live="polite">Cargando catálogo…</div>
-        <div class="panel-actions" style="margin-top:.75rem">
-          <span></span>
-          <button type="button" class="btn-secondary" id="btnExportSkills">📄 Descargar diccionario seleccionado</button>
-        </div>
-      </fieldset>
-
-      <fieldset class="card">
-        <legend>⚙️ Configuración global — skills, plugins y MCP</legend>
-        <div class="hint hint-card">
-          <p class="hint-title">Antes de pegar el prompt, conoce estas tres piezas:</p>
-          <ul class="hint-list">
-            <li><strong>Skill:</strong> instrucción reutilizable (como esta guía). En Claude Code va en <code>.claude/skills/</code>; en Claude web/desktop, en tus instrucciones personalizadas.</li>
-            <li><strong>Plugin:</strong> paquete que agrupa varias skills, comandos y a veces un MCP — se instala una sola vez.</li>
-            <li><strong>MCP (Model Context Protocol):</strong> conexión técnica real a una herramienta externa (Drive, una base de datos, un servicio). Requiere revisión de seguridad antes de activarlo.</li>
-          </ul>
-          <p class="hint-footnote">🛡️ Regla fija: no instales ni actives nada de esto sin revisar antes qué permisos pide y qué datos puede tocar.</p>
-        </div>
-      </fieldset>
-
-      <fieldset class="card">
-        <legend>Prompt generado</legend>
-        <div id="promptOutput" class="prompt-box" aria-live="polite"></div>
-        <div class="panel-actions" style="margin-top:.75rem">
-          <span></span>
-          <button type="button" class="btn-secondary" id="btnCopyPrompt">📋 Copiar prompt</button>
-        </div>
-      </fieldset>
-
-      <fieldset class="card">
-        <legend>Prompts secundarios</legend>
-        <p class="hint hint--muted">Úsalos después del prompt principal, ya con la solución construida.</p>
-
-        <p class="hint-title" style="margin-top:1rem">🐛 Depuración de errores</p>
-        <div id="promptDebugOutput" class="prompt-box" aria-live="polite"></div>
-        <div class="panel-actions" style="margin-top:.75rem">
-          <span></span>
-          <button type="button" class="btn-secondary" id="btnCopyPromptDebug">📋 Copiar prompt de depuración</button>
-        </div>
-
-        <p class="hint-title" style="margin-top:1.25rem">🧪 Plan de pruebas</p>
-        <div id="promptTestOutput" class="prompt-box" aria-live="polite"></div>
-        <div class="panel-actions" style="margin-top:.75rem">
-          <span></span>
-          <button type="button" class="btn-secondary" id="btnCopyPromptTest">📋 Copiar prompt de pruebas</button>
-        </div>
-      </fieldset>
-
-      <fieldset class="card">
-        <legend>Protocolo de pruebas (Sandbox)</legend>
-        <div id="checklistRows" class="repeatable-rows"></div>
-        <button type="button" class="btn-tertiary" id="btnAddChecklist">+ Agregar ítem</button>
-      </fieldset>
-
-      <fieldset class="card">
-        <legend>Gestión del cambio</legend>
-        <div class="grid-2">
-          <label>Sponsor / responsable de aprobar el piloto
-            <input type="text" id="s4_sponsor" />
+        <fieldset class="card">
+          <legend>❓ ¿Quedó algo confuso?</legend>
+          <p class="hint hint--muted">Recibir algo que funciona pero no se entiende del todo es normal. Marca qué te
+            pasa y armamos la consulta para que te lo expliquen sin tecnicismos.</p>
+          <div class="idea-grid" id="dudasFrecuentes"></div>
+          <label style="margin-top:.9rem">Cuéntalo con tus palabras (opcional)
+            <textarea id="s4_dudas_detalle" rows="3"
+              placeholder="Ej. no entiendo qué hace la parte que dice «filtrar por fecha», ni qué pasa si la planilla viene vacía."></textarea>
           </label>
-          <label>Fecha de revisión del piloto
-            <input type="date" id="s4_fecha_revision" />
-          </label>
+          <div id="consultaDudas" aria-live="polite"></div>
+        </fieldset>
+
+        <fieldset class="card">
+          <legend>🎤 Presentación ejecutiva</legend>
+          <p class="hint hint--muted">Con los números que ya cargaste, armamos el prompt para que la IA que prefieras
+            te escriba un guion de 5 diapositivas. Tú eliges a quién se lo vas a mostrar y qué quieres conseguir.</p>
+
+          <div id="presentacionMetricas" class="impacto-grid" aria-live="polite"></div>
+
+          <p class="hint-title">1 · ¿A quién se lo vas a presentar?</p>
+          <div class="level-picker level-picker--compact" id="audienciaPicker" role="radiogroup"
+            aria-label="Audiencia de la presentación"></div>
+          <p class="ia-fortaleza" id="audienciaNota"></p>
+
+          <p class="hint-title" style="margin-top:1.1rem">2 · ¿Qué quieres conseguir?</p>
+          <div class="level-picker level-picker--compact" id="objetivoPicker" role="radiogroup"
+            aria-label="Objetivo de la presentación"></div>
+
+          <div class="hint hint-card" style="margin-top:1.1rem">
+            <p class="hint-title">3 · Estilo visual</p>
+            <p style="margin:0 0 .5rem;font-size:.84rem;">El prompt ya viene con un estilo sobrio y prolijo listo para
+              usar. Si tu empresa tiene su propia identidad, puedes pedirle a la IA que cambie la paleta, la tipografía o
+              el formato — es texto dentro del prompt, edítalo sin miedo.</p>
+            <ul class="hint-list" id="estiloDefecto"></ul>
+            <label class="checkbox-row">
+              <input type="checkbox" id="s4_pres_logo" />
+              Voy a sumar el logo de mi empresa (deja el espacio reservado en cada diapositiva)
+            </label>
+          </div>
+
+          <p class="hint-title" style="margin-top:1.1rem">4 · Tu prompt listo para copiar</p>
+          <pre class="prompt-box" id="promptPresentacion"></pre>
+          <div class="panel-actions" style="margin-top:.6rem; justify-content:flex-start; gap:.6rem;">
+            <button type="button" class="btn-primary" id="btnCopiarPresentacion">📋 Copiar prompt</button>
+            <button type="button" class="btn-secondary" id="btnDescargarPresentacion">⬇️ Descargar prompt (.md)</button>
+          </div>
+          <p class="hint-footnote" style="margin-top:.6rem">Funciona en ChatGPT, Claude, Gemini y también en
+            generadores de diapositivas como Gamma o Canva. 🛡️ Revisa los números y nombres antes de pegarlo: lo que
+            copies sale de tu navegador.</p>
+        </fieldset>
+
+        <div class="panel-actions">
+          <button type="button" class="btn-ghost" data-prev="3">← Volver</button>
+          <div class="actions-right">
+            <button type="button" class="btn-secondary" id="btnExportResumen">📄 Descargar resumen ejecutivo (.md)</button>
+            <button type="button" class="btn-primary" id="btnFinalize">✅ Completar Plan de Proyecto</button>
+          </div>
         </div>
-      </fieldset>
+      </section>
 
-      <div class="panel-actions">
-        <button type="button" class="btn-ghost" data-prev="3">← Volver</button>
-        <div class="actions-right">
-          <button type="button" class="btn-primary" id="btnFinalize">✅ Descargar manual de implementación completo</button>
-        </div>
-      </div>
-    </section>
-
-  </main>
-</div>
-
-<footer class="app-footer">
-  <span>© 2026 AI Project Guide · Herramienta interna de diagnóstico y planificación · Sin conexión a IA externa</span>
-</footer>
-
-<template id="tpl-colaborador-row">
-  <div class="row-card row-card--capacidad" data-row="colaborador">
-    <input type="text" data-field="nombre_o_rol" placeholder="Nombre o rol" />
-    <input type="number" data-field="horas_operativas_actuales" placeholder="Hrs ops/sem" min="0" step="0.5" value="32" />
-    <span class="row-result" data-field="horas_libres">—</span>
-    <span class="estado-badge" data-field="badge">—</span>
-    <button type="button" class="btn-icon" data-remove-row aria-label="Eliminar colaborador">🗑️</button>
+    </main>
   </div>
-</template>
 
-<template id="tpl-dolor-row">
-  <div class="row-card row-card--wide" data-row="dolor">
-    <select data-field="categoria">
-      <option>Entrada Desordenada</option><option>Procesamiento Manual</option>
-      <option>Esperas/Silos</option><option>Errores Humanos</option><option>Falta de Visibilidad</option>
-    </select>
-    <input type="text" data-field="descripcion" placeholder="Descripción del punto de dolor" />
-    <select data-field="nivel_severidad">
-      <option>Bajo</option><option>Medio</option><option>Alto</option><option>Crítico</option>
-    </select>
-    <button type="button" class="btn-icon" data-remove-row aria-label="Eliminar punto de dolor">🗑️</button>
-  </div>
-</template>
+  <!-- Documento imprimible del catálogo (oculto en pantalla; solo se muestra al imprimir) -->
+  <div id="docCatalogo" class="doc-print" hidden></div>
 
-<template id="tpl-checklist-row">
-  <div class="row-card row-card--checklist" data-row="checklist">
-    <input type="checkbox" data-field="completado" />
-    <input type="text" data-field="item" placeholder="Ítem del checklist" />
-    <button type="button" class="btn-icon" data-remove-row aria-label="Eliminar ítem">🗑️</button>
-  </div>
-</template>
+  <footer class="app-footer">
+    <span>© 2026 AI Project Guide · Herramienta interna de diagnóstico y planificación · Sin conexión a IA
+      externa</span>
+  </footer>
 
-<script src="app.js"></script>
+  <template id="tpl-colaborador-row">
+    <div class="row-card row-card--capacidad" data-row="colaborador">
+      <input type="text" data-field="nombre_o_rol" placeholder="Nombre o rol" />
+      <input type="number" data-field="horas_operativas_actuales" placeholder="Hrs ops/sem" min="0" step="0.5"
+        value="32" />
+      <span class="row-result" data-field="horas_libres">—</span>
+      <span class="estado-badge" data-field="badge">—</span>
+      <button type="button" class="btn-icon" data-remove-row aria-label="Eliminar colaborador">🗑️</button>
+    </div>
+  </template>
+
+  <template id="tpl-dolor-row">
+    <div class="row-card row-card--wide" data-row="dolor">
+      <select data-field="categoria">
+        <option>Entrada Desordenada</option>
+        <option>Procesamiento Manual</option>
+        <option>Esperas/Silos</option>
+        <option>Errores Humanos</option>
+        <option>Falta de Visibilidad</option>
+      </select>
+      <input type="text" data-field="descripcion" placeholder="Descripción del punto de dolor" />
+      <select data-field="nivel_severidad">
+        <option>Bajo</option>
+        <option>Medio</option>
+        <option>Alto</option>
+        <option>Crítico</option>
+      </select>
+      <button type="button" class="btn-icon" data-remove-row aria-label="Eliminar punto de dolor">🗑️</button>
+    </div>
+  </template>
+
+  <template id="tpl-checklist-row">
+    <div class="row-card row-card--checklist" data-row="checklist">
+      <input type="checkbox" data-field="completado" />
+      <input type="text" data-field="item" placeholder="Ítem del checklist" />
+      <button type="button" class="btn-icon" data-remove-row aria-label="Eliminar ítem">🗑️</button>
+    </div>
+  </template>
+
+  <script src="contenido-guias.js"></script>
+  <script src="app.js"></script>
 </body>
+
 </html>

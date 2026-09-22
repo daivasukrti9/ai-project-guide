@@ -1,8 +1,16 @@
 # AI Project Guide
 
-Wizard interno de 4 secciones para ordenar un proceso operativo, empaquetar
-las skills de Claude que necesita, evaluar su nivel de madurez/ROI y salir
-con un plan de desarrollo listo para copiar en un chat con Claude.
+Wizard interno de 4 secciones para ordenar un proceso operativo, elegir qué
+tipo de solución construir, y cerrar midiendo el impacto real:
+
+1. **Organiza tu trabajo** — mapeo de tareas, capacidad 80/20 y cronograma.
+2. **Información de tu proyecto** — clasificación y recomendación técnica.
+3. **Tipo de desarrollo** — galería de ideas por tipo de desarrollo y prompt
+   maestro listo para copiar, más el catálogo de recursos en PDF.
+4. **Resultados e impacto** — el entregable que salió de la Sección 3, el
+   contraste antes/después sobre las mismas tareas de la Sección 1, el ROI,
+   una consulta para despejar dudas y el prompt para armar la presentación
+   ejecutiva.
 
 **No incluye IA embebida.** Toda la lógica (clasificación, capacidad 80/20,
 generación de prompts) es determinística y corre en el navegador.

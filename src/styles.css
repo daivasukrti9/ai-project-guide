@@ -368,7 +368,15 @@ button{ font: inherit; cursor:pointer; }
   display:grid; grid-template-columns:1.4fr .9fr 1fr .9fr; gap:.5rem; padding:0 .5rem;
   font-size:.72rem; text-transform:uppercase; letter-spacing:.03em; color:var(--color-text-muted); margin-bottom:.4rem;
 }
-@media (max-width:700px){ .comparativo-header{ display:none; } }
+@media (max-width:700px){
+  .comparativo-header{ display:none; }
+  /* En pantalla angosta la fila se apila: el nombre ocupa el ancho completo y
+     los tres valores quedan en dos columnas, sin empujar la página a lo ancho. */
+  .row-card--comparativo{ grid-template-columns:1fr 1fr; row-gap:.4rem; }
+  .row-card--comparativo > *{ min-width:0; }
+  .row-card--comparativo .comparativo-nombre{ grid-column:1/-1; font-weight:600; }
+  .row-card--comparativo input{ width:100%; }
+}
 .row-card--comparativo{ grid-template-columns:1.4fr .9fr 1fr .9fr; }
 .row-card--comparativo .comparativo-nombre{ font-size:.85rem; }
 
@@ -540,6 +548,134 @@ button{ font: inherit; cursor:pointer; }
   background:var(--color-surface); border:1px solid var(--color-border); border-radius:var(--radius-sm); padding:1rem; max-height:420px; overflow:auto;
 }
 
+/* ---------- Sección 3: galería de ideas y sugerencias ---------- */
+.sugerencias-etiqueta{
+  margin:0 0 .25rem; font-size:.78rem; font-weight:700; text-transform:uppercase; letter-spacing:.04em;
+  color:var(--color-primary);
+}
+.sugerencias-lede{ margin:0 0 1rem; font-size:.88rem; color:var(--color-text-muted); max-width:70ch; }
+.sugerencias-grid{ display:grid; grid-template-columns:1fr 1fr; gap:1rem; }
+@media (max-width:760px){ .sugerencias-grid{ grid-template-columns:1fr; } }
+.sugerencias-bloque{
+  background:var(--color-surface-2); border:1px solid var(--color-border);
+  border-radius:var(--radius-md); padding:.85rem 1rem;
+}
+.sugerencias-bloque .hint-title{ font-size:.85rem; }
+.sugerencias-bloque .hint-list{ font-size:.82rem; color:var(--color-text-muted); margin-bottom:0; }
+.sugerencias-bloque .hint-list strong{ color:var(--color-text); }
+
+.idea-grid{ display:grid; grid-template-columns:repeat(auto-fit,minmax(240px,1fr)); gap:.6rem; margin-top:.6rem; }
+.idea-card{
+  display:grid; grid-template-columns:auto 1fr; gap:.6rem; align-items:start; cursor:pointer;
+  background:var(--color-surface); border:1px solid var(--color-border); border-radius:var(--radius-md);
+  padding:.7rem .85rem; font-weight:400; color:var(--color-text); transition:border-color .15s ease, background .15s ease;
+}
+.idea-card:hover{ border-color:var(--color-primary); }
+.idea-card.is-selected{ border-color:var(--color-primary); background:var(--color-surface-2); }
+.idea-card input{ width:auto; margin-top:.2rem; accent-color:var(--color-primary); }
+.idea-texto{ display:block; min-width:0; }
+.idea-card strong{ display:block; font-size:.86rem; margin-bottom:.15rem; }
+.idea-desc{ display:block; font-size:.79rem; color:var(--color-text-muted); line-height:1.45; }
+.idea-contador{ margin:.85rem 0 0; font-size:.8rem; color:var(--color-text-muted); }
+
+.ia-badge{
+  font-size:.62rem; font-weight:700; text-transform:uppercase; letter-spacing:.04em; vertical-align:middle;
+  background:var(--color-success-bg); color:var(--color-success); border-radius:999px; padding:.1rem .4rem; margin-left:.3rem;
+}
+.ia-fortaleza{ margin:.7rem 0 0; font-size:.82rem; color:var(--color-text-muted); }
+
+.catalogo-preview{ display:grid; grid-template-columns:150px 1fr; gap:1rem; align-items:center; margin-top:.9rem; }
+.catalogo-preview-img{ width:100%; height:auto; border-radius:var(--radius-md); background:var(--color-surface-2); }
+.catalogo-preview .hint-list{ font-size:.82rem; color:var(--color-text-muted); margin-bottom:0; }
+@media (max-width:640px){ .catalogo-preview{ grid-template-columns:1fr; } .catalogo-preview-img{ max-width:180px; } }
+
+/* ---------- Sección 4: cierre (ROI, dudas y presentación) ---------- */
+.roi-atajo{ display:flex; flex-wrap:wrap; align-items:center; gap:.6rem; margin:.75rem 0 0; }
+.roi-atajo .btn-tertiary{ padding:.35rem .7rem; font-size:.8rem; }
+.summary-card--destacada{ background:var(--color-success-bg); border-color:transparent; }
+.summary-card--destacada .value{ color:var(--color-success); }
+.btn-link{
+  background:none; border:none; padding:0; font:inherit; color:var(--color-primary);
+  text-decoration:underline; cursor:pointer;
+}
+.btn-link:hover{ color:var(--color-primary-hover); }
+#dudasFrecuentes .idea-card{ align-items:center; }
+#dudasFrecuentes .idea-card strong{ margin-bottom:0; font-weight:500; }
+#presentacionMetricas .comparativo-empty{ margin:0; }
+
+/* ---------- Documento imprimible: catálogo de recursos ----------
+   Oculto en pantalla (atributo hidden). Solo se muestra cuando
+   imprimirCatalogo() lo revela y marca body.imprimiendo-catalogo.       */
+.doc-print{ color:var(--color-text); max-width:1100px; margin:0 auto; padding:1.25rem; }
+.doc-print h1{ font-size:1.9rem; line-height:1.15; margin:0 0 .6rem; }
+.doc-print h2{
+  font-size:1.15rem; margin:0 0 .75rem; display:flex; align-items:center; gap:.6rem;
+  padding-bottom:.45rem; border-bottom:2px solid var(--color-primary);
+}
+.doc-print h3{ font-size:.98rem; margin:0 0 .35rem; }
+.doc-num{
+  display:inline-flex; align-items:center; justify-content:center; width:1.55rem; height:1.55rem;
+  border-radius:50%; background:var(--color-primary); color:var(--color-primary-contrast);
+  font-size:.85rem; font-weight:700; flex:0 0 auto;
+}
+.doc-kicker{
+  margin:0 0 .5rem; font-size:.72rem; font-weight:700; text-transform:uppercase; letter-spacing:.08em;
+  color:var(--color-primary);
+}
+.doc-portada{
+  display:grid; grid-template-columns:1fr 240px; gap:1.5rem; align-items:center;
+  padding:0 0 1.25rem; margin-bottom:1.5rem; border-bottom:1px solid var(--color-border);
+}
+.doc-portada-img{ width:100%; height:auto; }
+.doc-bajada{ margin:0 0 1rem; font-size:.95rem; line-height:1.6; color:var(--color-text-muted); max-width:70ch; }
+.doc-meta{ display:grid; grid-template-columns:repeat(auto-fit,minmax(130px,1fr)); gap:.6rem; margin:0; }
+.doc-meta div{ background:var(--color-surface-2); border:1px solid var(--color-border); border-radius:var(--radius-sm); padding:.45rem .6rem; }
+.doc-meta dt{ font-size:.66rem; text-transform:uppercase; letter-spacing:.05em; color:var(--color-text-muted); font-weight:700; }
+.doc-meta dd{ margin:.1rem 0 0; font-size:.82rem; font-weight:600; }
+.doc-seccion{ margin-bottom:1.75rem; }
+.doc-lede{ margin:0 0 1rem; font-size:.87rem; color:var(--color-text-muted); line-height:1.6; max-width:78ch; }
+
+.doc-flujo{ display:flex; align-items:stretch; gap:.4rem; }
+.doc-flujo-paso{
+  flex:1 1 0; min-width:0; background:var(--color-surface-2); border:1px solid var(--color-border);
+  border-top:3px solid var(--color-primary); border-radius:var(--radius-md); padding:.75rem .8rem;
+}
+.doc-flujo-icono{ display:block; font-size:1.1rem; margin-bottom:.3rem; }
+.doc-flujo-paso strong{ display:block; font-size:.82rem; margin-bottom:.25rem; }
+.doc-flujo-paso span:last-child{ display:block; font-size:.74rem; color:var(--color-text-muted); line-height:1.45; }
+.doc-flujo-flecha{ align-self:center; color:var(--color-primary); font-weight:700; }
+@media (max-width:760px){ .doc-flujo{ flex-direction:column; } .doc-flujo-flecha{ display:none; } }
+
+.doc-area{ margin-bottom:1.35rem; }
+.doc-area-desc{ margin:0 0 .3rem; font-size:.84rem; color:var(--color-text-muted); }
+.doc-area-valor{ margin:0 0 .6rem; font-size:.82rem; color:var(--color-text); }
+.doc-tabla{ width:100%; border-collapse:collapse; font-size:.76rem; }
+.doc-tabla th{
+  text-align:left; background:var(--color-surface-2); border-bottom:2px solid var(--color-border);
+  padding:.45rem .55rem; font-size:.72rem; text-transform:uppercase; letter-spacing:.03em; color:var(--color-text-muted);
+}
+.doc-tabla td{ padding:.45rem .55rem; border-bottom:1px solid var(--color-border); vertical-align:top; line-height:1.45; }
+.doc-tabla tr:nth-child(even) td{ background:var(--color-surface-2); }
+.doc-ref{ display:inline-block; font-size:.62rem; color:var(--color-primary); white-space:nowrap; }
+
+.doc-gobernanza{ margin:0; padding-left:1.2rem; font-size:.85rem; line-height:1.6; }
+.doc-gobernanza li{ margin-bottom:.4rem; }
+.doc-glosario{ display:grid; grid-template-columns:1fr 1fr; gap:.8rem; }
+@media (max-width:760px){ .doc-glosario{ grid-template-columns:1fr; } }
+.doc-termino{
+  background:var(--color-surface-2); border:1px solid var(--color-border);
+  border-radius:var(--radius-md); padding:.75rem .85rem;
+}
+.doc-termino h3{ display:flex; align-items:center; gap:.45rem; font-size:.86rem; margin-bottom:.4rem; }
+.doc-termino-num{
+  display:inline-flex; align-items:center; justify-content:center; width:1.3rem; height:1.3rem; flex:0 0 auto;
+  border-radius:50%; background:var(--color-primary); color:var(--color-primary-contrast); font-size:.7rem; font-weight:700;
+}
+.doc-termino p{ margin:.2rem 0; font-size:.76rem; line-height:1.5; color:var(--color-text-muted); }
+.doc-termino p strong{ color:var(--color-text); }
+.doc-ejemplo{ border-left:2px solid var(--color-primary); padding-left:.5rem; margin-top:.4rem !important; }
+.doc-pie{ margin-top:1.5rem; padding-top:.75rem; border-top:1px solid var(--color-border); font-size:.7rem; color:var(--color-text-muted); text-align:center; }
+
 /* ---------- Footer ---------- */
 .app-footer{ text-align:center; padding:2rem 1rem; color:var(--color-text-muted); font-size:.78rem; }
 
@@ -547,9 +683,30 @@ button{ font: inherit; cursor:pointer; }
 
 /* ---------- Print ---------- */
 @media print{
+  @page{ margin:14mm; }
   .app-header, .hero-row, .step-tracker, .trust-note-inline, .io-card, .toast, .panel-actions, .btn-tertiary, .drop-zone{ display:none !important; }
   .app-shell{ display:block; padding:0; }
   .wizard-panel{ box-shadow:none; border:none; padding:0; }
   .wizard-panel[hidden]{ display:block !important; }
   body{ background:#fff; color:#000; }
+
+  /* Catálogo: al imprimirlo, es lo único que sale en el papel. */
+  body.imprimiendo-catalogo > *:not(#docCatalogo){ display:none !important; }
+  body.imprimiendo-catalogo #docCatalogo{ display:block !important; }
+  body.imprimiendo-catalogo{ background:#fff; }
+  body.imprimiendo-catalogo #docCatalogo{ max-width:none; padding:0 2mm; }
+  #docCatalogo .doc-seccion{ break-inside:auto; page-break-inside:auto; }
+  #docCatalogo .doc-seccion--glosario, #docCatalogo .doc-area, #docCatalogo .doc-termino, #docCatalogo .doc-flujo{
+    break-inside:avoid; page-break-inside:avoid;
+  }
+  #docCatalogo h2{ break-after:avoid; page-break-after:avoid; }
+  #docCatalogo .doc-tabla tr{ break-inside:avoid; page-break-inside:avoid; }
+  #docCatalogo .doc-tabla thead{ display:table-header-group; }
+  #docCatalogo .doc-portada{ break-after:page; page-break-after:always; }
+  /* El documento se imprime siempre en claro, aunque la app esté en modo oscuro. */
+  #docCatalogo{
+    --color-bg:#ffffff; --color-surface:#ffffff; --color-surface-2:#f4f6fb; --color-border:#d7dbe8;
+    --color-text:#14172a; --color-text-muted:#4d5265; --color-primary:#2f5fdb; --color-primary-contrast:#ffffff;
+    color:var(--color-text); print-color-adjust:exact; -webkit-print-color-adjust:exact;
+  }
 }
