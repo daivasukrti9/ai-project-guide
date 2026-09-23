@@ -33,7 +33,7 @@ LOGO = "logo-stt.png"
 MARCA_INICIO = "<!-- logo corporativo: generado por tools/generar-version-marca.py -->"
 
 BLOQUE = f'''        {MARCA_INICIO}
-        <img class="brand-logo" src="{LOGO}" width="131" height="96" alt="STT Group" />
+        <img class="brand-logo" src="{LOGO}" width="263" height="192" alt="STT Group" />
 '''
 
 

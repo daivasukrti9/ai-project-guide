@@ -37,4 +37,7 @@ sobre la ventana). Ver el esquema completo en
 Ver [`CLAUDE.md`](CLAUDE.md) y [`knowledge/INDEX.md`](knowledge/INDEX.md).
 
 ## Estado del proyecto
-Ver [`docs/plans/plan-implementacion.md`](docs/plans/plan-implementacion.md).
+Reporte completo en
+[`docs/plans/plan-implementacion.md`](docs/plans/plan-implementacion.md):
+qué hace cada sección, qué está terminado, cómo se verifica y qué queda
+fuera de alcance.
