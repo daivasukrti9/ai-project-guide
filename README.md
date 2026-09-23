@@ -16,8 +16,12 @@ tipo de solución construir, y cerrar midiendo el impacto real:
 generación de prompts) es determinística y corre en el navegador.
 
 ## Uso
-Abre [`src/index.html`](src/index.html) directamente en el navegador. No
-requiere instalación, servidor ni conexión a internet.
+Doble clic en [`Iniciar-AI-Project-Guide.bat`](Iniciar-AI-Project-Guide.bat)
+(Windows): un menú de una tecla abre la guía, la guía con el logo, la
+presentación, o la guía y la presentación juntas.
+
+También se puede abrir [`src/index.html`](src/index.html) directamente en el
+navegador. No requiere instalación, servidor ni conexión a internet.
 
 Disponible en **español, inglés y portugués** — se elige desde el selector del
 encabezado y la preferencia se recuerda. Se traduce todo: la interfaz, las
