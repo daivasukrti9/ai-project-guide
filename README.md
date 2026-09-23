@@ -17,8 +17,8 @@ generación de prompts) es determinística y corre en el navegador.
 
 ## Uso
 Doble clic en [`Iniciar-AI-Project-Guide.bat`](Iniciar-AI-Project-Guide.bat)
-(Windows): un menú de una tecla abre la guía, la guía con el logo, la
-presentación, o la guía y la presentación juntas.
+(Windows): un menú de una tecla abre la guía, la presentación, o las dos
+juntas.
 
 También se puede abrir [`src/index.html`](src/index.html) directamente en el
 navegador. No requiere instalación, servidor ni conexión a internet.
@@ -26,10 +26,6 @@ navegador. No requiere instalación, servidor ni conexión a internet.
 Disponible en **español, inglés y portugués** — se elige desde el selector del
 encabezado y la preferencia se recuerda. Se traduce todo: la interfaz, las
 guías, los prompts que genera y los descargables.
-
-Hay además una versión con el logo corporativo en
-[`src/index-stt.html`](src/index-stt.html), generada desde la neutra con
-`python tools/generar-version-marca.py`.
 
 ## Presentación
 [`docs/presentacion.html`](docs/presentacion.html) — 11 diapositivas que

@@ -105,15 +105,6 @@ body{
 }
 .header-actions{ display:flex; align-items:center; gap:.75rem; }
 .eta-badge{ font-size:.85rem; color:var(--color-text-muted); background:var(--color-surface-2); padding:.35rem .7rem; border-radius:999px; }
-/* Logo corporativo (solo en la versión con marca, index-stt.html). */
-.brand-logo{
-  /* Se sirve a 2x (192px de alto) para que el metalizado y la palabra
-     "Group" se vean nítidos en pantallas de alta densidad. */
-  height:2.75rem; width:auto; margin-left:.9rem;
-}
-.app-top-sticky.is-compact .brand-logo{ height:2rem; }
-@media (max-width:520px){ .brand-logo{ height:1.8rem; margin-left:.5rem; } }
-@media print{ .brand-logo{ display:none !important; } }
 
 .idioma-picker{ display:flex; align-items:center; }
 .idioma-picker select{

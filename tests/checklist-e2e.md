@@ -154,13 +154,6 @@ comparativo manual vs. herramienta y skills seleccionadas).
 - [x] "Descargar resumen ejecutivo (.md)" incluye qué se construyó, el impacto medido y la tabla por tarea, con el Markdown bien formado (líneas en blanco antes de cada título y tabla).
 - [x] "Completar Plan de Proyecto" incluye el impacto medido y el prompt de presentación además del JSON completo.
 
-## Versión con marca
-- [ ] `src/index-stt.html` abre igual que la neutra y muestra el logo arriba a la derecha.
-- [ ] El logo se ve bien en tema claro y oscuro (fondo transparente, sin recuadro gris).
-- [ ] El logo desaparece al imprimir (no ensucia el PDF del catálogo ni el resumen).
-- [ ] En pantalla angosta el logo se achica y no empuja los controles fuera del encabezado.
-- [ ] `python tools/generar-version-marca.py --verificar` termina en [OK].
-
 ## Persistencia (import/export)
 - [x] "Descargar estado (.json)" en la Sección 1 genera un archivo válido.
 - [x] Recargar la página y cargar ese `.json` (botón o drag&drop) reconstruye exactamente las 4 secciones.

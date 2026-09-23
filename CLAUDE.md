@@ -20,19 +20,10 @@ punto de partida de cada proyecto nuevo.
 ## Comandos principales
 - Ejecutar la app: abrir `src/index.html` directamente en el navegador (no requiere servidor).
 - Atajo para quien no abre archivos a mano: `Iniciar-AI-Project-Guide.bat` en
-  la raíz — menú de una tecla (guía / guía con logo / presentación / las dos).
+  la raíz — menú de una tecla (guía / presentación / las dos).
   Es un `.bat`, así que va en CRLF y UTF-8 **sin BOM**: con BOM, `cmd.exe` se
   atraganta con la primera línea.
-- Versión con marca: `src/index-stt.html`, idéntica salvo el logo en el encabezado.
 - No hay `npm install` ni build: es intencional, para minimizar dependencias.
-
-## Versión con marca (index-stt.html)
-`src/index-stt.html` es un **archivo generado**: comparte app.js, styles.css,
-i18n.js y contenido-guias.js con la versión neutra, y solo agrega el logo.
-- Regenerarlo: `python tools/generar-version-marca.py`
-- Comprobar que no se desincronizó: `python tools/generar-version-marca.py --verificar`
-- **Después de tocar `index.html` hay que regenerarlo**, o las dos versiones
-  se separan. El `--verificar` falla con código 1 si eso pasa.
 
 ## Reglas de seguridad
 - **Zero-Data Exposure:** ninguna llamada de red, ninguna API de IA de pago, nada sale del navegador.
@@ -52,11 +43,7 @@ src/
 ├── contenido-pt.js       # el mismo contenido en portugués
 ├── skills-catalog.json   # catálogo de skills (fuente portable, también embebido en app.js)
 ├── ilustracion-chica.png # hero del wizard
-├── ilustracion-catalogo.png # portada del catálogo descargable
-├── index-stt.html        # GENERADO: copia con el logo corporativo (no editar a mano)
-└── logo-stt.png          # logo de STT Group, ya recortado y sin fondo
-tools/
-└── generar-version-marca.py  # rehace index-stt.html desde index.html
+└── ilustracion-catalogo.png # portada del catálogo descargable
 knowledge/
 ├── sugerencias-desarrollo-pagina3.md        # fuente editorial de las galerías de la Sección 3
 ├── catalogo-recursos-proyecto-usuario.md    # fuente editorial del catálogo PDF

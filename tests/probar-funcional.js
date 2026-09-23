@@ -309,11 +309,6 @@ id("btnExportJson").click();
      wES.document.getElementById("s4_entregable_tipo").value === "Automatización o script",
      wES.document.getElementById("s4_entregable_tipo").value);
 
-  /* ---- Versión con marca ---- */
-  const w4 = arrancar("index-stt.html");
-  ok("La versión con marca arranca igual", !!w4.document.getElementById("idiomaSelect"));
-  ok("Muestra el logo", !!w4.document.querySelector(".brand-logo"));
-
   /* ============================ Informe ============================ */
   const fallos = resultados.filter(r => !r.cond);
   console.log(`\n${resultados.length - fallos.length}/${resultados.length} comprobaciones OK\n`);

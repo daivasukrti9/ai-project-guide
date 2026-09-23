@@ -43,7 +43,6 @@ memoria del proyecto viaja en un archivo `.json` que la persona descarga.
 | Gantt y Kanban, con ida y vuelta a Excel por CSV | ✅ Completos |
 | Español, inglés y portugués — interfaz, contenido y descargables | ✅ Completo |
 | Tema claro y oscuro, impresión, uso en teléfono | ✅ Completo |
-| Versión con la marca de STT Group | ✅ Completa (temporal, ver abajo) |
 | Verificación automática | ✅ 5 verificadores, 62 comprobaciones funcionales |
 | Checklist manual (`tests/checklist-e2e.md`) | ⏳ Pendiente de recorrer con ojos humanos |
 
@@ -87,22 +86,6 @@ exportables.
 
 ---
 
-## Versión con marca
-
-`src/index-stt.html` es la misma app con el logo de STT Group arriba a la
-derecha. **Es un archivo generado**, no una bifurcación: comparte el código,
-los estilos y los diccionarios con la versión neutra.
-
-- Regenerar: `python tools/generar-version-marca.py`
-- Comprobar que no se desincronizó: `python tools/generar-version-marca.py --verificar`
-
-**Para quitarla** cuando ya no haga falta, alcanza con borrar tres archivos
-(`src/index-stt.html`, `src/logo-stt.png`, `tools/generar-version-marca.py`)
-y las cinco reglas `.brand-logo` de `styles.css`. La versión neutra no se
-entera.
-
----
-
 ## Fuera de alcance, a propósito
 
 - Llamadas a APIs de IA (Gemini, Claude API, OpenAI) desde la app.
@@ -131,7 +114,5 @@ entera.
 
 1. Recorrer `tests/checklist-e2e.md` con un expediente de prueba y datos
    sintéticos, en los tres idiomas.
-2. Decidir si la versión con marca se queda o se retira después de la
-   presentación.
-3. Evaluar si conviene traducir también los valores del CSV, lo que exigiría
+2. Evaluar si conviene traducir también los valores del CSV, lo que exigiría
    versionar ese contrato.
