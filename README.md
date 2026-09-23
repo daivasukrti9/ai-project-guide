@@ -27,6 +27,12 @@ Hay además una versión con el logo corporativo en
 [`src/index-stt.html`](src/index-stt.html), generada desde la neutra con
 `python tools/generar-version-marca.py`.
 
+## Presentación
+[`docs/presentacion.html`](docs/presentacion.html) — 11 diapositivas que
+explican qué resuelve, cómo funciona y qué entrega, con el mismo diseño de la
+app. Se abre con doble clic, funciona sin internet y se exporta a PDF con la
+tecla **P**. Flechas ← → para avanzar.
+
 ## Persistencia
 El progreso se guarda descargando un `.json` (botón "Descargar estado") y
 se reanuda cargándolo de nuevo (botón "Cargar expediente" o arrastrándolo
