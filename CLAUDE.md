@@ -19,6 +19,10 @@ punto de partida de cada proyecto nuevo.
 
 ## Comandos principales
 - Ejecutar la app: abrir `src/index.html` directamente en el navegador (no requiere servidor).
+- Atajo para quien no abre archivos a mano: `Iniciar-AI-Project-Guide.bat` en
+  la raíz — menú de una tecla (guía / guía con logo / presentación / las dos).
+  Es un `.bat`, así que va en CRLF y UTF-8 **sin BOM**: con BOM, `cmd.exe` se
+  atraganta con la primera línea.
 - Versión con marca: `src/index-stt.html`, idéntica salvo el logo en el encabezado.
 - No hay `npm install` ni build: es intencional, para minimizar dependencias.
 
